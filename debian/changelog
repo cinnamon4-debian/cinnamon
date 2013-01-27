@@ -1,3 +1,11 @@
+cinnamon (1.6.7-2) UNRELEASED; urgency=low
+
+  * new patch: network-user-connection.patch
+    Set connections and passwords as user-owned, following matching changes
+    in nm-applet and gnome-control-center. (Closes: #698571)
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Sun, 27 Jan 2013 21:34:27 +0100
+
 cinnamon (1.6.7-1) unstable; urgency=low
 
   * New upstream cinnamon_1.6.7
