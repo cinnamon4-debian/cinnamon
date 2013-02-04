@@ -4,6 +4,8 @@ cinnamon (1.6.7-2) UNRELEASED; urgency=low
     Set connections and passwords as user-owned, following matching changes
     in nm-applet and gnome-control-center. (Closes: #698571)
   * Remove caribou as dependency. (LP: #1106062) 
+  * Restrict libgudev-glib-dev and libnm-glib-dev build-dependencies to
+    Linux platforms: should fix the build on FreeBSD and Hurd.
 
  -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Sun, 27 Jan 2013 21:34:27 +0100
 
