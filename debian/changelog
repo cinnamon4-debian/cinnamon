@@ -1,11 +1,12 @@
 cinnamon (1.7.1-1) UNRELEASED; urgency=low
 
-  [ Nicolas Bourdaud ]
-  * New upstream cinnamon_1.7.1
-
   [ Laszlo Boszormenyi (GCS) ]
   * Bump debian policy version to 3.9.4: no changes 
   * Enable hardening compilation flags
+
+  [ Nicolas Bourdaud ]
+  * New upstream cinnamon_1.7.1
+  * Provides x-window-manager virtual package (Closes: #700896)
 
  -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Mon, 25 Feb 2013 21:36:20 +0100
 
