@@ -7,6 +7,8 @@ cinnamon (1.7.1-1) UNRELEASED; urgency=low
   [ Nicolas Bourdaud ]
   * New upstream cinnamon_1.7.1
   * Provides x-window-manager virtual package (Closes: #700896)
+  * Add missing dependency to gir1.2-caribou-1.0.
+    (Fixes LP: #1106062 and LP: #1126721)
 
  -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Mon, 25 Feb 2013 21:36:20 +0100
 
