@@ -40,18 +40,18 @@ Last-Update: 2012-12-10
  		except:
 --- a/files/usr/lib/cinnamon-settings/cinnamon-settings.py
 +++ b/files/usr/lib/cinnamon-settings/cinnamon-settings.py
-@@ -30,7 +30,7 @@
- 
+@@ -27,7 +27,7 @@
+     sys.exit(1)
  
  # i18n
 -gettext.install("cinnamon", "/usr/share/cinnamon/locale")
 +gettext.install("cinnamon", "/usr/share/locale")
- 
  # i18n for menu item
- menuName = _("Desktop Settings")
+ menuName = _("System Settings")
+ menuComment = _("Control Center")
 --- a/js/ui/main.js
 +++ b/js/ui/main.js
-@@ -98,7 +98,7 @@
+@@ -102,7 +102,7 @@
  
  // Override Gettext localization
  const Gettext = imports.gettext;
@@ -82,3 +82,36 @@ Last-Update: 2012-12-10
  	-DDATADIR=\"$(datadir)\"		\
  	-DCINNAMON_LIBEXECDIR=\"$(libexecdir)\"	\
  	-DCINNAMON_DATADIR=\"$(pkgdatadir)\"	\
+--- a/files/usr/lib/cinnamon-screensaver-lock-dialog/cinnamon-screensaver-lock-dialog.py
++++ b/files/usr/lib/cinnamon-screensaver-lock-dialog/cinnamon-screensaver-lock-dialog.py
+@@ -9,7 +9,7 @@
+ import socket
+ 
+ # i18n
+-gettext.install("cinnamon", "/usr/share/cinnamon/locale")
++gettext.install("cinnamon", "/usr/share/locale")
+ 
+ class MainWindow:
+   
+--- a/files/usr/lib/cinnamon-settings/modules/cs_backgrounds.py
++++ b/files/usr/lib/cinnamon-settings/modules/cs_backgrounds.py
+@@ -11,7 +11,7 @@
+ import subprocess
+ import tempfile
+ 
+-gettext.install("cinnamon", "/usr/share/cinnamon/locale")
++gettext.install("cinnamon", "/usr/share/locale")
+ 
+ BACKGROUND_MODES = [
+     ("wallpaper", _("Wallpaper")),
+--- a/files/usr/lib/cinnamon-settings/modules/cs_keyboard.py
++++ b/files/usr/lib/cinnamon-settings/modules/cs_keyboard.py
+@@ -5,7 +5,7 @@
+ import cgi
+ import gettext
+ 
+-gettext.install("cinnamon", "/usr/share/cinnamon/locale")
++gettext.install("cinnamon", "/usr/share/locale")
+ 
+ # Keybindings page - check if we need to store custom
+ # keybindings to gsettings key as well as gconf (In Mint 14 this is changed)

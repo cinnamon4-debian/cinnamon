@@ -1,3 +1,9 @@
+cinnamon (1.7.1-1) UNRELEASED; urgency=low
+
+  * New upstream cinnamon_1.7.1
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Mon, 25 Feb 2013 21:36:20 +0100
+
 cinnamon (1.6.7-2) unstable; urgency=low
 
   * new patch: network-user-connection.patch
