@@ -99,8 +99,8 @@ const MediaServer2PlayerIFace = {
 
 /* global values */
 let icon_path = "/usr/share/cinnamon/theme/";
-let compatible_players = [ "clementine", "mpd", "exaile", "banshee", "rhythmbox", "rhythmbox3", "pragha", "quodlibet", "guayadeque", "amarok", "googlemusicframe", "xbmc", "xnoise", "gmusicbrowser", "spotify", "audacious", "vlc", "beatbox", "songbird" ];
-let support_seek = [ "clementine", "banshee", "rhythmbox", "rhythmbox3", "pragha", "quodlibet", "amarok", "xnoise", "gmusicbrowser", "spotify", "vlc", "beatbox" ];
+let compatible_players = [ "clementine", "mpd", "exaile", "banshee", "rhythmbox", "rhythmbox3", "pragha", "quodlibet", "guayadeque", "amarok", "googlemusicframe", "xbmc", "xnoise", "gmusicbrowser", "spotify", "audacious", "vlc", "beatbox", "songbird", "pithos", "gnome-mplayer", "nuvolaplayer" ];
+let support_seek = [ "clementine", "banshee", "rhythmbox", "rhythmbox3", "pragha", "quodlibet", "amarok", "xnoise", "gmusicbrowser", "spotify", "vlc", "beatbox", "gnome-mplayer" ];
 /* dummy vars for translation */
 let x = _("Playing");
 x = _("Paused");
@@ -759,6 +759,12 @@ MyApplet.prototype = {
         }
     },
 
+    on_applet_removed_from_panel : function() {
+        if (this._iconTimeoutId) {
+            Mainloop.source_remove(this._iconTimeoutId);
+        }
+    },
+
     on_applet_clicked: function(event) {
         this.menu.toggle();
     },
@@ -806,12 +812,34 @@ MyApplet.prototype = {
         this._notifyVolumeChange();
     },
 
+    _onButtonReleaseEvent: function (actor, event) {
+        Applet.IconApplet.prototype._onButtonReleaseEvent.call(this, actor, event);
+
+        if (event.get_button() == 2) {
+            if (this._output.is_muted)
+                this._output.change_is_muted(false);
+            else {
+                this._output.change_is_muted(true);
+            }
+
+            this._output.push_volume();
+        }
+
+        return true;
+    },
+
     setIconName: function(icon) {
-       this._icon_name = icon;
-       if (this._nbPlayers()==0)
-         this.set_applet_icon_symbolic_name(icon);
-       else
-         this.set_applet_icon_symbolic_name('audio-x-generic');
+        this._icon_name = icon;
+        this.set_applet_icon_symbolic_name(icon);
+        if (this._nbPlayers()>0) {
+            if (this._iconTimeoutId) {
+                Mainloop.source_remove(this._iconTimeoutId);
+            }
+            this._iconTimeoutId = Mainloop.timeout_add(3000, Lang.bind(this, function() {
+                this._iconTimeoutId = null;
+                this.set_applet_icon_symbolic_name(this['_output'].is_muted ? 'audio-volume-muted' : 'audio-x-generic');
+            }));
+        }
     },
 
     _nbPlayers: function() {
@@ -908,7 +936,7 @@ MyApplet.prototype = {
         this.menu.addMenuItem(this._inputTitle);
         this.menu.addMenuItem(this._inputSlider);
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-        this.menu.addSettingsAction(_("Sound Settings"), 'gnome-sound-panel.desktop');
+        this.menu.addSettingsAction(_("Sound Settings"), 'sound');
 
         this._selectDeviceItem = new PopupMenu.PopupSubMenuMenuItem(_("Output device..."));
         this.menu.addMenuItem(this._selectDeviceItem);

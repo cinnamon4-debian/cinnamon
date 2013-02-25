@@ -9,9 +9,12 @@ const Signals = imports.signals;
 const St = imports.gi.St;
 
 const BoxPointer = imports.ui.boxpointer;
+const DND = imports.ui.dnd;
 const Main = imports.ui.main;
 const Params = imports.misc.params;
 const Tweener = imports.ui.tweener;
+
+const Util = imports.misc.util;
 
 const SLIDER_SCROLL_STEP = 0.05; /* Slider scrolling step in % */
 
@@ -871,17 +874,9 @@ PopupMenuBase.prototype = {
         return menuItem;
     },
 
-    addSettingsAction: function(title, desktopFile) {
+    addSettingsAction: function(title, module) {		
         let menuItem = this.addAction(title, function() {
-                           let app = Cinnamon.AppSystem.get_default().lookup_setting(desktopFile);
-
-                           if (!app) {
-                               log('Settings panel for desktop file ' + desktopFile + ' could not be loaded!');
-                               return;
-                           }
-
-                           Main.overview.hide();
-                           app.activate();
+                           Util.spawnCommandLine("cinnamon-settings " + module);
                        });
         return menuItem;
     },
@@ -1554,12 +1549,11 @@ PopupComboMenu.prototype = {
 
         this.isOpen = true;
 
-        let [sourceX, sourceY] = this.sourceActor.get_transformed_position();
-        let items = this._getMenuItems();
-        let activeItem = items[this._activeItemPos];
+        let activeItem = this._getMenuItems()[this._activeItemPos];
 
-        this.actor.set_position(sourceX, sourceY - activeItem.actor.y);
-        this.actor.width = Math.max(this.actor.width, this.sourceActor.width);
+        let [sourceX, sourceY] = this.sourceActor.get_transformed_position();
+        this.actor.set_position(Math.round(sourceX), Math.round(sourceY - activeItem.actor.y));
+
         this.actor.raise_top();
 
         this.actor.opacity = 0;
@@ -1570,6 +1564,8 @@ PopupComboMenu.prototype = {
                            transition: 'linear',
                            time: BoxPointer.POPUP_ANIMATION_TIME });
 
+        this.savedFocusActor = global.stage.get_key_focus();
+        global.stage.set_key_focus(this.actor);
         this.emit('open-state-changed', true);
     },
 
@@ -1589,6 +1585,7 @@ PopupComboMenu.prototype = {
                          });
 
         this.emit('open-state-changed', false);
+        global.stage.set_key_focus(this.savedFocusActor);
     },
 
     setActiveItem: function(position) {
@@ -1860,7 +1857,7 @@ PopupMenuManager.prototype = {
 
             if (hadFocus)
                 focus.grab_key_focus();
-            else
+else
                 menu.actor.grab_key_focus();
         } else if (menu == this._activeMenu) {
             if (this.grabbed)
@@ -1920,7 +1917,7 @@ PopupMenuManager.prototype = {
     },
 
     _onKeyFocusChanged: function() {
-        if (!this.grabbed || !this._activeMenu)
+        if (!this.grabbed || !this._activeMenu || DND.isDragging())
             return;
 
         let focus = global.stage.key_focus;
