@@ -1,3 +1,4 @@
 disable-bluetooth-applet-hack.patch
 fix-gettext-files-path.patch
 network-user-connections.patch
+remove-embbeded-jquery.patch
