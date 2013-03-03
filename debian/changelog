@@ -1,4 +1,4 @@
-cinnamon (1.7.1-1) UNRELEASED; urgency=low
+cinnamon (1.7.1-1) unstable; urgency=low
 
   [ Laszlo Boszormenyi (GCS) ]
   * Bump debian policy version to 3.9.4: no changes 
@@ -18,7 +18,7 @@ cinnamon (1.7.1-1) UNRELEASED; urgency=low
     cinnamon-screensaver-lock-dialog.
   * Bump minimal version of libmuffin-dev build-depends to 1.7.1
 
- -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Mon, 25 Feb 2013 21:36:20 +0100
+ -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Sun, 03 Mar 2013 23:35:50 +0100
 
 cinnamon (1.6.7-2) unstable; urgency=low
 
