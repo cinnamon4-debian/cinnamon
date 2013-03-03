@@ -16,6 +16,7 @@ cinnamon (1.7.1-1) UNRELEASED; urgency=low
     - new patch: no-mdmsetup-settings.patch
   * Provides manpage for cinnamon-looking-glass and
     cinnamon-screensaver-lock-dialog.
+  * Bump minimal version of libmuffin-dev build-depends to 1.7.1
 
  -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Mon, 25 Feb 2013 21:36:20 +0100
 
