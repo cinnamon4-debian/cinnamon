@@ -14,6 +14,8 @@ cinnamon (1.7.1-1) UNRELEASED; urgency=low
     - new patch: remove-gtk-menubutton.patch
   * Do not display mdmsetup in cinnamon-settings:
     - new patch: no-mdmsetup-settings.patch
+  * Provides manpage for cinnamon-looking-glass and
+    cinnamon-screensaver-lock-dialog.
 
  -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Mon, 25 Feb 2013 21:36:20 +0100
 
