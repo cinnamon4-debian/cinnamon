@@ -10,6 +10,8 @@ cinnamon (1.7.1-1) UNRELEASED; urgency=low
   * Add missing dependency to gir1.2-caribou-1.0.
     (Fixes LP: #1106062 and LP: #1126721)
   * Remove embedded jquery version. new patch: remove-embbeded-jquery.patch
+  * Make cinnamon-looking-glass runnable without GTK+-3.6
+    - new patch: remove-gtk-menubutton.patch
 
  -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Mon, 25 Feb 2013 21:36:20 +0100
 

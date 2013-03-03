@@ -1,0 +1,41 @@
+Description: Remove call to Gtk.MenuButton from cinnnamon-looking-glass
+ Gtk.MenuButton is an addition of GTK+ 3.6. So remove any reference to it
+ from cinnnamon-looking-glass while GTK+ 3.6 is not available in Debian.
+Author: Nicolas Bourdaud <nicolas.bourdaud@gmail.com>
+Origin: Vendor, Debian
+Forwarded: not-needed
+Last-Update: 2013-03-03
+--- a/files/usr/lib/cinnamon-looking-glass/cinnamon-looking-glass.py
++++ b/files/usr/lib/cinnamon-looking-glass/cinnamon-looking-glass.py
+@@ -412,9 +412,6 @@
+         table.attach(statusLabel, column, column+1, 1, 2, 0, 0, 1)
+         column += 1
+ 
+-        actionButton = self.createActionButton()
+-        table.attach(actionButton, column, column+1, 1, 2, 0, 0, 1)
+-
+         grip = ResizeGrip(self.window)
+         table.attach(grip, 0, numColumns, 2, 3, Gtk.AttachOptions.EXPAND|Gtk.AttachOptions.FILL, 0, 0, 0)
+ 
+@@ -427,21 +424,6 @@
+         item.connect("activate", callback)
+         return item
+ 
+-    def createActionButton(self):
+-        menu = Gtk.Menu()
+-        menu.append(self.createMenuItem('Add File Watcher', self.onAddFileWatcher))
+-        menu.append(Gtk.SeparatorMenuItem())
+-        menu.append(self.createMenuItem('Restart Cinnamon', self.onRestartClicked))
+-        menu.append(self.createMenuItem('Reset Cinnamon Settings', self.onResetClicked))
+-        menu.append(Gtk.SeparatorMenuItem())
+-        menu.append(self.createMenuItem('About Melange', self.onAboutClicked))
+-        menu.append(self.createMenuItem('Quit', self.onExitClicked))
+-        menu.show_all()
+-
+-        button = Gtk.MenuButton(u"Actions \u25BE")
+-        button.set_popup(menu)
+-        return button
+-
+     def onAddFileWatcher(self, menuItem):
+         dialog = NewLogDialog(self.window)
+         response = dialog.run()
