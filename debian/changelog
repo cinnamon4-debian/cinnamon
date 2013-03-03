@@ -12,6 +12,8 @@ cinnamon (1.7.1-1) UNRELEASED; urgency=low
   * Remove embedded jquery version. new patch: remove-embbeded-jquery.patch
   * Make cinnamon-looking-glass runnable without GTK+-3.6
     - new patch: remove-gtk-menubutton.patch
+  * Do not display mdmsetup in cinnamon-settings:
+    - new patch: no-mdmsetup-settings.patch
 
  -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Mon, 25 Feb 2013 21:36:20 +0100
 

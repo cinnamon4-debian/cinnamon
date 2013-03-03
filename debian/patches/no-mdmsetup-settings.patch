@@ -1,0 +1,17 @@
+Description: Do not display mdmsetup in cinnamon-settings
+ MDM is not packaged in Debian, so remove the icon of mdmsetup in
+ cinnamon-settings in order to avoid misleading info.
+Author: Nicolas Bourdaud <nicolas.bourdaud@gmail.com>
+Origin: Vendor, Debian
+Forwarded: not-needed
+Last-Update: 2013-03-03
+--- a/files/usr/lib/cinnamon-settings/cinnamon-settings.py
++++ b/files/usr/lib/cinnamon-settings/cinnamon-settings.py
+@@ -60,7 +60,6 @@
+     [_("Printers"),                      "system-config-printer",        "printer.svg",         "hardware",       False,          _("printers, laser, inkjet")],
+     [_("Firewall"),                      "gufw",                         "firewall.svg",        "prefs",          True,           _("firewall, block, filter, programs")],
+     [_("Languages"),                     "gnome-language-selector",      "language.svg",        "prefs",          False,          _("language, install, foreign")],
+-    [_("Login Screen"),                  "gksu /usr/sbin/mdmsetup",      "login.svg",           "prefs",          True,           _("login, mdm, gdm, manager, user, password, startup, switch")]
+ ]
+ 
+ class MainWindow:
