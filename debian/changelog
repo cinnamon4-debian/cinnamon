@@ -1,6 +1,7 @@
 cinnamon (1.7.1-2) UNRELEASED; urgency=low
 
   * Add python-pyinotify dependency. (Closes: #702239)
+  * Improve cinnamon-screensaver-lock-dialog manpage. (Closes: #702237) 
 
  -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Mon, 04 Mar 2013 22:30:05 +0100
 
