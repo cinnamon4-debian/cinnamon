@@ -4,6 +4,7 @@ cinnamon (1.7.2-1) UNRELEASED; urgency=low
     - Fix clock text dropshadow. (Closes: #694688)
   * Add python-pyinotify dependency. (Closes: #702239)
   * Improve cinnamon-screensaver-lock-dialog manpage. (Closes: #702237) 
+  * Add various missing gir dependencies.
 
  -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Fri, 08 Mar 2013 21:01:56 +0100
 
