@@ -1,0 +1,20 @@
+Description: Handle case of missing bindings in cs_keyboard.py
+ cinnamon-settings.py crash when gconf settings
+ (/desktop/gnome/keybindings/*/bindings) is missing. Default to "" if
+ missing when happening the settings.
+Author: Stephan Sürken <absurd@olurdix.de>
+Bug-Debian: http://bugs.debian.org/702281
+Forwarded: no
+Last-Update: 2013-03-09
+
+--- a/files/usr/lib/cinnamon-settings/modules/cs_keyboard.py
++++ b/files/usr/lib/cinnamon-settings/modules/cs_keyboard.py
+@@ -241,7 +241,7 @@
+         self.label = label
+         self.action = action
+         self.entries = []
+-        self.entries.append(binding)
++        self.entries.append(binding if binding else "")
+ 
+     def setBinding(self, index, val):
+         if val is not None:
