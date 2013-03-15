@@ -5,6 +5,8 @@ cinnamon (1.7.2-1) UNRELEASED; urgency=low
   * Add python-pyinotify dependency. (Closes: #702239)
   * Improve cinnamon-screensaver-lock-dialog manpage. (Closes: #702237) 
   * Add various missing gir dependencies.
+  * Handle missing bindings with cinnamon-settings. (Closes: #702281)
+    - new patch: handle-missing-bindings.patch (thanks to Stephan Sürken)
 
  -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Fri, 08 Mar 2013 21:01:56 +0100
 
