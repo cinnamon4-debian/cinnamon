@@ -1,4 +1,4 @@
-cinnamon (1.7.2-1) UNRELEASED; urgency=low
+cinnamon (1.7.2-1) unstable; urgency=low
 
   * New upstream cinnamon_1.7.2
     - Fix clock text dropshadow. (Closes: #694688)
@@ -8,7 +8,7 @@ cinnamon (1.7.2-1) UNRELEASED; urgency=low
   * Handle missing bindings with cinnamon-settings. (Closes: #702281)
     - new patch: handle-missing-bindings.patch (thanks to Stephan Sürken)
 
- -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Fri, 08 Mar 2013 21:01:56 +0100
+ -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Fri, 15 Mar 2013 22:39:29 +0100
 
 cinnamon (1.7.1-1) unstable; urgency=low
 
