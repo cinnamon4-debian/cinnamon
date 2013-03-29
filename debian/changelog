@@ -1,3 +1,9 @@
+cinnamon (1.7.3-1) UNRELEASED; urgency=low
+
+  * New upstream cinnamon_1.7.3
+
+ -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Fri, 29 Mar 2013 15:19:21 +0100
+
 cinnamon (1.7.2-1) unstable; urgency=low
 
   * New upstream cinnamon_1.7.2
