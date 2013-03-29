@@ -1,0 +1,17 @@
+Description: Reenable notification actions
+Author: Robert Adams <radams@artlogic.com>
+Origin: upstream, https://github.com/rjanja/Cinnamon/commit/92800f987a66328e
+Bug: https://github.com/linuxmint/Cinnamon/issues/1479
+Bug-Debian: http://bugs.debian.org/698418
+Applied-Upstream: no
+Last-Update: 2013-03-29
+--- a/js/ui/messageTray.js
++++ b/js/ui/messageTray.js
+@@ -685,7 +685,6 @@
+     // Puts @actor into the action area of the notification, replacing
+     // the previous contents
+     setActionArea: function(actor, props) {
+-    	return;
+         if (this._actionArea) {
+             this._actionArea.destroy();
+             this._actionArea = null;

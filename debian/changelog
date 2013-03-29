@@ -1,6 +1,8 @@
 cinnamon (1.7.3-1) UNRELEASED; urgency=low
 
   * New upstream cinnamon_1.7.3
+  * Allow notification action.
+    - new patch: reenable-notification-action.patch
 
  -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Fri, 29 Mar 2013 15:19:21 +0100
 
