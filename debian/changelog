@@ -1,7 +1,7 @@
 cinnamon (1.7.3-1) UNRELEASED; urgency=low
 
   * New upstream cinnamon_1.7.3
-  * Allow notification action.
+  * Allow notification action. (Closes: #698418)
     - new patch: reenable-notification-action.patch
   * Speed up menu loading on some hardware. (Closes: #702761)
     - new patch: remove-background-bumpmap.patch (Thanks to Paul Brook)
