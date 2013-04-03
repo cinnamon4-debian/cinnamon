@@ -6,3 +6,4 @@ remove-gtk-menubutton.patch
 no-mdmsetup-settings.patch
 handle-missing-bindings.patch
 reenable-notification-action.patch
+remove-background-bumpmap.patch

@@ -1,0 +1,19 @@
+Description: Remove the background bumpmap from theme style
+ The bumpmap slows down menu loading a lot on some hardware (Intel
+ Atom/i915). Removing it does not change too much the theme.
+Author: Nicolas Bourdaud <nicolas.bourdaud@gmail.com>
+Origin: Debian
+Bug-Debian: http://bugs.debian.org/702761
+Forwarded: no
+Applied-Upstream: no
+Last-Update: 2013-04-03
+--- a/data/theme/cinnamon.css
++++ b/data/theme/cinnamon.css
+@@ -103,7 +103,6 @@
+ 	color: #ffffff;
+ 	font-size: 9.5pt;
+ 	min-width: 100px;
+-	background-bumpmap: url("/usr/share/cinnamon/bumpmaps/frost.png");
+ }
+ .popup-submenu-menu-item:open {
+ 	background-color: #4c4c4c;
