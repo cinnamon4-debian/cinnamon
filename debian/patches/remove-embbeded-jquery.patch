@@ -1,9 +1,9 @@
 Description: Remove embedded version of jquert
 Author: Nicolas Bourdaud <nicolas.bourdaud@gmail.com>
 Origin: Debian
-Forwarded: https://github.com/linuxmint/Cinnamon/pull/1750
+Forwarded: rejected, https://github.com/linuxmint/Cinnamon/pull/1750
 Applied-Upstream: no
-Last-Update: 2013-02-26
+Last-Update: 2013-04-03
 --- a/files/usr/lib/cinnamon-settings/data/spices/applet-detail.html
 +++ b/files/usr/lib/cinnamon-settings/data/spices/applet-detail.html
 @@ -4,7 +4,7 @@
