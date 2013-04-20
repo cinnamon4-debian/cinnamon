@@ -2,8 +2,6 @@ disable-bluetooth-applet-hack.patch
 fix-gettext-files-path.patch
 network-user-connections.patch
 remove-embbeded-jquery.patch
-remove-gtk-menubutton.patch
 no-mdmsetup-settings.patch
 handle-missing-bindings.patch
-reenable-notification-action.patch
 remove-background-bumpmap.patch
