@@ -49,7 +49,8 @@ Build-Depends: debhelper (>= 9),
                libpolkit-agent-1-dev (>= 0.100),
                libjson-glib-dev (>= 0.13.2),
                libgl1-mesa-dev,
-               python
+               python,
+               python-gi-cairo
 Standards-Version: 3.9.4
 Vcs-Git: git://anonscm.debian.org/pkg-cinnamon/cinnamon.git
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=pkg-cinnamon/cinnamon.git

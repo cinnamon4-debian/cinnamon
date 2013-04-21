@@ -7,6 +7,7 @@ cinnamon (1.7.4-1) UNRELEASED; urgency=low
   * Remove unused imports from cinnamon-settings (Closes: #704919)
     - new patch: delete-unused-imports.patch
   * Remove useless dependencies (gir1.2-gtkclutter-1.0)
+  * Add dependency on python-gi-cairo
 
  -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Sat, 20 Apr 2013 19:26:33 +0200
 
