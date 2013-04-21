@@ -4,6 +4,9 @@ cinnamon (1.7.4-1) UNRELEASED; urgency=low
     - menu-editor: Use GLib.Error for catching errors (Closes: #704835)
     - delete patch remove-gtk-menubutton.patch (rendered useless)
     - delete patch reenable-notification-action.patch (applied upstream)
+  * Remove unused imports from cinnamon-settings (Closes: #704919)
+    - new patch: delete-unused-imports.patch
+  * Remove useless dependencies (gir1.2-gtkclutter-1.0)
 
  -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Sat, 20 Apr 2013 19:26:33 +0200
 
