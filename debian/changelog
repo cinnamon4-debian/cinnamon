@@ -1,8 +1,8 @@
-cinnamon (1.7.4-2) UNRELEASED; urgency=low
+cinnamon (1.7.4-2) unstable; urgency=low
 
   * Fix dependency on python-gi-cairo (Closes: #705903)
 
- -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Tue, 23 Apr 2013 11:51:38 +0200
+ -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Thu, 25 Apr 2013 13:12:41 +0200
 
 cinnamon (1.7.4-1) unstable; urgency=low
 
