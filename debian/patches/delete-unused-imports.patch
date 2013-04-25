@@ -6,7 +6,8 @@ Author: Nicolas Bourdaud <nicolas.bourdaud@gmail.com>
 Origin: Debian
 Bug-Debian: http://bugs.debian.org/704919
 Forwarded: https://github.com/linuxmint/Cinnamon/pull/1895
-Last-Update: 2013-04-21
+Applied-Upstream: https://github.com/linuxmint/Cinnamon/commit/eae288e878
+Last-Update: 2013-04-25
 --- a/files/usr/lib/cinnamon-settings/cinnamon-settings.py
 +++ b/files/usr/lib/cinnamon-settings/cinnamon-settings.py
 @@ -8,7 +8,7 @@
