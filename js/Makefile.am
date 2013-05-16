@@ -16,7 +16,11 @@ nobase_dist_js_DATA = \
 	misc/util.js		\
 	misc/windowUtils.js		\
 	perf/core.js		\
-	ui/altTab.js		\
+	ui/appSwitcher/appSwitcher.js	\
+	ui/appSwitcher/appSwitcher3D.js	\
+	ui/appSwitcher/classicSwitcher.js	\
+	ui/appSwitcher/coverflowSwitcher.js	\
+	ui/appSwitcher/timelineSwitcher.js	\
 	ui/applet.js		\
 	ui/appletManager.js	\
 	ui/appFavorites.js	\
@@ -38,6 +42,7 @@ nobase_dist_js_DATA = \
 	ui/extensionSystem.js	\
 	ui/flashspot.js		\
 	ui/hotCorner.js		\
+    ui/keybindings.js   \
 	ui/keyboard.js		\
 	ui/layout.js		\
 	ui/lightbox.js		\
@@ -55,7 +60,6 @@ nobase_dist_js_DATA = \
 	ui/notificationDaemon.js \
 	ui/overview.js		\
 	ui/panel.js		\
-	ui/panelMenu.js		\
 	ui/placesManager.js  \
 	ui/polkitAuthenticationAgent.js \
 	ui/popupMenu.js		\
