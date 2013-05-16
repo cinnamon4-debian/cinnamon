@@ -989,17 +989,20 @@ MyApplet.prototype = {
     },
 
     _onMenuKeyPress: function(actor, event) {
-
         let symbol = event.get_key_symbol();
         let item_actor;
         let index = 0;
         this.appBoxIter.reloadVisible();
         this.catBoxIter.reloadVisible();
 
-        if (symbol==Clutter.KEY_Super_L && this.menu.isOpen) {
+        let keyCode = event.get_key_code();
+        let modifierState = Cinnamon.get_event_state(event);
+
+        if (global.display.get_is_overlay_key(keyCode, modifierState) && this.menu.isOpen) {
             this.menu.close();
             return true;
         }
+
         let index = this._selectedItemIndex;   
 
         if (this._activeContainer === null && symbol == Clutter.KEY_Up) {
@@ -1016,6 +1019,7 @@ MyApplet.prototype = {
                 item_actor = this.appBoxIter.getPrevVisible(this._previousSelectedActor);
                 this._previousVisibleIndex = this.appBoxIter.getVisibleIndex(item_actor);
                 index = this.appBoxIter.getAbsoluteIndexOfChild(item_actor);
+                this._scrollToButton(item_actor._delegate);
             } else {
                 this._previousTreeSelectedActor = this.categoriesBox.get_child_at_index(index);
                 this._previousTreeSelectedActor._delegate.isHovered = false;
@@ -1028,6 +1032,7 @@ MyApplet.prototype = {
                 item_actor = this.appBoxIter.getNextVisible(this._previousSelectedActor);
                 this._previousVisibleIndex = this.appBoxIter.getVisibleIndex(item_actor);
                 index = this.appBoxIter.getAbsoluteIndexOfChild(item_actor);
+                this._scrollToButton(item_actor._delegate);
             } else {
                 this._previousTreeSelectedActor = this.categoriesBox.get_child_at_index(index);
                 this._previousTreeSelectedActor._delegate.isHovered = false;
@@ -1204,7 +1209,7 @@ MyApplet.prototype = {
         if (this.vector_update_loop) {
             Mainloop.source_remove(this.vector_update_loop);
         }
-        this.vector_update_loop = Mainloop.timeout_add(200, Lang.bind(this, this.updateVectorBox));
+        this.vector_update_loop = Mainloop.timeout_add(35, Lang.bind(this, this.updateVectorBox));
     },
 
     updateVectorBox: function(actor) {
@@ -1214,11 +1219,15 @@ MyApplet.prototype = {
             let xformed_mouse_x = mx-bx;
             let [appbox_x, appbox_y] = this.applicationsBox.get_transformed_position();
             let right_x = appbox_x - bx;
-            this.vectorBox.width = right_x-xformed_mouse_x;
-            this.vectorBox.set_position(xformed_mouse_x, 0);
-            this.vectorBox.urc_x = this.vectorBox.width;
-            this.vectorBox.lrc_x = this.vectorBox.width;
-            this.vectorBox.queue_repaint();
+            if ((right_x-xformed_mouse_x) > 0) {
+                this.vectorBox.width = right_x-xformed_mouse_x;
+                this.vectorBox.set_position(xformed_mouse_x, 0);
+                this.vectorBox.urc_x = this.vectorBox.width;
+                this.vectorBox.lrc_x = this.vectorBox.width;
+                this.vectorBox.queue_repaint();
+            } else {
+                this.destroyVectorBox(actor);
+            }
         }
         if (this.vector_update_loop) {
             this.vector_update_loop = null;
@@ -1373,7 +1382,6 @@ MyApplet.prototype = {
                 this._addEnterEvent(button, Lang.bind(this, function() {
                         this._clearPrevAppSelection(button.actor);
                         button.actor.style_class = "menu-application-button-selected";
-                        this._scrollToButton(button);
                         }));
                 button.actor.connect('leave-event', Lang.bind(this, function() {
                         button.actor.style_class = "menu-application-button";
@@ -1812,7 +1820,7 @@ MyApplet.prototype = {
     _onApplicationButtonRealized: function(actor) {
         if (actor.get_width() > this._applicationsBoxWidth){
             this._applicationsBoxWidth = actor.get_width();
-            this.applicationsBox.set_width(this._applicationsBoxWidth + 20);
+            this.applicationsBox.set_width(this._applicationsBoxWidth + 42); // The answer to life...
         }
     },
     

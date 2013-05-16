@@ -153,9 +153,9 @@ class Module:
         self.name = "keyboard"
         self.category = "hardware"
 
-        # Let's transition any existing gconf shortcuts over to gsettings
-        # Since we're still going to support both, and really only track gconf (for now)
-        # We'll only do this on the first run of Cinnamon Settings after an upgrade.
+        # Let us transition any existing gconf shortcuts over to gsettings
+        # Since we are still going to support both, and really only track gconf (for now)
+        # We will only do this on the first run of Cinnamon Settings after an upgrade.
         schema = Gio.Settings("org.cinnamon.overrides")
         first_run_completed = schema.get_boolean("custom-keybindings-to-3-6")
 
@@ -328,9 +328,10 @@ class AddCustomDialog(Gtk.Dialog):
         self.set_response_sensitive(Gtk.ResponseType.OK, ok_enabled)
 
 class NotebookPage:
-    def __init__(self, name):
+    def __init__(self, name, expanding):
         self.name = name
         self.widgets = []
+        self.expanding = expanding
         self.tab = Gtk.ScrolledWindow()
         self.content_box = Gtk.VBox()
 
@@ -343,9 +344,10 @@ class NotebookPage:
         for widget in widgets:
             self.content_box.remove(widget)
         for widget in self.widgets:
-            self.content_box.pack_start(widget, True, True, 2)
+            self.content_box.pack_start(widget, self.expanding, self.expanding, 2)
         self.tab.add_with_viewport(self.content_box)
         self.content_box.set_border_width(5)
+        self.tab.set_min_content_height(320)
         self.content_box.show_all()
 
 class KeyboardSidePage (SidePage):
@@ -360,7 +362,7 @@ class KeyboardSidePage (SidePage):
             self.content_box.remove(widget)
         self.notebook = Gtk.Notebook()
 
-        tab = NotebookPage(_("Typing"))
+        tab = NotebookPage(_("Typing"), False)
         tab.add_widget(GSettingsCheckButton(_("Enable key repeat"), "org.gnome.settings-daemon.peripherals.keyboard", "repeat", None))
         box = IndentedHBox()
         slider = GSettingsRange(_("Repeat delay:"), _("Short"), _("Long"), 100, 2000, False, "uint", False, "org.gnome.settings-daemon.peripherals.keyboard", "delay",
@@ -385,7 +387,7 @@ class KeyboardSidePage (SidePage):
         tab.add_widget(Gtk.Entry())
         self.addNotebookTab(tab)
 
-        tab = NotebookPage(_("Keyboard shortcuts"))
+        tab = NotebookPage(_("Keyboard shortcuts"), True)
 
         headingbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 2)
         mainbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 2)
