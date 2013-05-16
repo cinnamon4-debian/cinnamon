@@ -4,14 +4,14 @@ Description: Do not display mdmsetup in cinnamon-settings
 Author: Nicolas Bourdaud <nicolas.bourdaud@gmail.com>
 Origin: Vendor, Debian
 Forwarded: not-needed
-Last-Update: 2013-03-03
+Last-Update: 2013-05-16
 --- a/files/usr/lib/cinnamon-settings/cinnamon-settings.py
 +++ b/files/usr/lib/cinnamon-settings/cinnamon-settings.py
-@@ -60,7 +60,6 @@
+@@ -65,7 +65,6 @@
      [_("Printers"),                      "system-config-printer",        "printer.svg",         "hardware",       False,          _("printers, laser, inkjet")],
      [_("Firewall"),                      "gufw",                         "firewall.svg",        "prefs",          True,           _("firewall, block, filter, programs")],
      [_("Languages"),                     "gnome-language-selector",      "language.svg",        "prefs",          False,          _("language, install, foreign")],
--    [_("Login Screen"),                  "gksu /usr/sbin/mdmsetup",      "login.svg",           "prefs",          True,           _("login, mdm, gdm, manager, user, password, startup, switch")]
- ]
- 
- class MainWindow:
+-    [_("Login Screen"),                  "gksu /usr/sbin/mdmsetup",      "login.svg",           "prefs",          True,           _("login, mdm, gdm, manager, user, password, startup, switch")],
+     [_("Startup Programs"),              "gnome-session-properties",     "startup-programs.svg","prefs",          False,          _("startup, programs, boot, init, session")],
+     [_("Device Drivers"),                "mintdrivers",                  "drivers.svg",         "hardware",       False,          _("video, driver, wifi, card, hardware, proprietary, nvidia, radeon, nouveau, fglrx")],
+     [_("Software Sources"),              "mintsources",                  "sources.svg",         "prefs",          True,           _("ppa, repository, package, source, download")]

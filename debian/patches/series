@@ -4,5 +4,3 @@ network-user-connections.patch
 remove-embbeded-jquery.patch
 no-mdmsetup-settings.patch
 handle-missing-bindings.patch
-remove-background-bumpmap.patch
-delete-unused-imports.patch
