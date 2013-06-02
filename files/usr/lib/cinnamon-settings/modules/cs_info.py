@@ -6,49 +6,42 @@ import platform
 import subprocess
 import os
 import re
+import threading
+
+
+def killProcess(process):
+    process.kill()
 
 def getProcessOut(command):
+    timeout = 2.0  # Timeout for any subprocess before aborting it
+
     lines = []
     p = subprocess.Popen(command, stdout=subprocess.PIPE)
+    timer = threading.Timer(timeout, killProcess, [p])
+    timer.start()
     while True:
         line = p.stdout.readline()
         if not line:
             break
         if line != '':
             lines.append(line)
+    timer.cancel()
     return lines
 
 def getGraphicsInfos():
     cards = {}
-    cardUnits = {
-        "K": 1024,
-        "M": 1024*1024,
-        "G": 1024*1024*1024,
-        "T": 1024*1024*1024*1024,
-    }
     count = 0
     for card in getProcessOut(("lspci")):
         if not "VGA" in card:
             continue
         cardId = card.split()[0]
-        cardUnitSize = 0
-        cardUnitName = ""
         cardName = None
-        cardSize = 0
         for line in getProcessOut(("lspci", "-v", "-s", cardId)):
             if line.startswith(cardId):
                 cardName = (line.split(":")[2].split("(rev")[0].strip())
-            else:
-                for (size, unit) in re.findall("\[size=([\.0-9]*)([a-zA-Z])\]", line):
-                    size = int(size)
-                    unitSize = cardUnits[unit.upper()]
-                    if (size*unitSize) > (cardSize * cardUnitSize):
-                        cardSize = size
-                        cardUnitSize = unitSize
-                        cardUnitName = unit.upper()
-
+  
         if cardName:
-            cards[count] = ("%s ( %s %sB )" % (cardName, cardSize, cardUnitName))
+            cards[count] = (cardName)
             count += 1
     return cards
 
