@@ -3,7 +3,7 @@ Author: Nicolas Bourdaud <nicolas.bourdaud@gmail.com>
 Origin: vendor
 Forwarded: no
 Applied-Upstream: no
-Last-Update: 2013-05-16
+Last-Update: 2013-06-02
 
 --- a/files/generate_desktop_files
 +++ b/files/generate_desktop_files
@@ -40,7 +40,7 @@ Last-Update: 2013-05-16
  		except:
 --- a/files/usr/lib/cinnamon-settings/cinnamon-settings.py
 +++ b/files/usr/lib/cinnamon-settings/cinnamon-settings.py
-@@ -27,7 +27,7 @@
+@@ -29,7 +29,7 @@
      sys.exit(1)
  
  # i18n
@@ -113,5 +113,5 @@ Last-Update: 2013-05-16
 -gettext.install("cinnamon", "/usr/share/cinnamon/locale")
 +gettext.install("cinnamon", "/usr/share/locale")
  
- # Keybindings page - check if we need to store custom
- # keybindings to gsettings key as well as GConf (In Mint 14 this is changed)
+ HAS_DEDICATED_TERMINAL_SHORTCUT = False
+ 

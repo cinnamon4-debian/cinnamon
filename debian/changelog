@@ -1,11 +1,11 @@
-cinnamon (1.8.2-1) UNRELEASED; urgency=low
+cinnamon (1.9.1-1) UNRELEASED; urgency=low
 
-  * New upstream cinnamon_1.8.2
+  * New upstream cinnamon_1.9.1
     - delete patch: delete-unused-imports.patch (applied upstream)
     - delete patch: remove-background-bumpmap.patch (applied upstream)
     - updated: no-mdmsetup-settings.patch
 
- -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Thu, 16 May 2013 21:08:07 +0200
+ -- Nicolas Bourdaud <nicolas.bourdaud@gmail.com>  Sun, 02 Jun 2013 14:29:46 +0200
 
 cinnamon (1.7.4-2) unstable; urgency=low
 

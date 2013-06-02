@@ -5,11 +5,11 @@ Description: Handle case of missing bindings in cs_keyboard.py
 Author: Stephan Sürken <absurd@olurdix.de>
 Bug-Debian: http://bugs.debian.org/702281
 Forwarded: no
-Last-Update: 2013-03-09
+Last-Update: 2013-06-02
 
 --- a/files/usr/lib/cinnamon-settings/modules/cs_keyboard.py
 +++ b/files/usr/lib/cinnamon-settings/modules/cs_keyboard.py
-@@ -241,7 +241,7 @@
+@@ -220,7 +220,7 @@
          self.label = label
          self.action = action
          self.entries = []

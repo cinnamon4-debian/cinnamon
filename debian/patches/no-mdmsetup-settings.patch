@@ -4,10 +4,10 @@ Description: Do not display mdmsetup in cinnamon-settings
 Author: Nicolas Bourdaud <nicolas.bourdaud@gmail.com>
 Origin: Vendor, Debian
 Forwarded: not-needed
-Last-Update: 2013-05-16
+Last-Update: 2013-06-02
 --- a/files/usr/lib/cinnamon-settings/cinnamon-settings.py
 +++ b/files/usr/lib/cinnamon-settings/cinnamon-settings.py
-@@ -65,7 +65,6 @@
+@@ -67,7 +67,6 @@
      [_("Printers"),                      "system-config-printer",        "printer.svg",         "hardware",       False,          _("printers, laser, inkjet")],
      [_("Firewall"),                      "gufw",                         "firewall.svg",        "prefs",          True,           _("firewall, block, filter, programs")],
      [_("Languages"),                     "gnome-language-selector",      "language.svg",        "prefs",          False,          _("language, install, foreign")],
