@@ -4,3 +4,4 @@ network-user-connections.patch
 remove-embbeded-jquery.patch
 no-mdmsetup-settings.patch
 handle-missing-bindings.patch
+install-python-files-in-share.patch

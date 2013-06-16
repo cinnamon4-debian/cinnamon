@@ -1,0 +1,59 @@
+Description: Install python script supporting files in /usr/share
+Author: Nicolas Bourdaud <nicolas.bourdaud@gmail.com>
+Origin: Debian
+Forwarded: not-needed
+Last-Update: 2013-06-16
+--- a/files/usr/bin/cinnamon-looking-glass
++++ b/files/usr/bin/cinnamon-looking-glass
+@@ -2,5 +2,5 @@
+ 
+ import os, sys
+ 
+-os.execvp("/usr/lib/cinnamon-looking-glass/cinnamon-looking-glass.py", ("",) + tuple(sys.argv[1:]))
++os.execvp("/usr/share/cinnamon/cinnamon-looking-glass/cinnamon-looking-glass.py", ("",) + tuple(sys.argv[1:]))
+ 
+--- a/files/usr/bin/cinnamon-menu-editor
++++ b/files/usr/bin/cinnamon-menu-editor
+@@ -1,7 +1,7 @@
+ #! /usr/bin/python -OOt
+ 
+ import sys
+-sys.path.insert(0,'/usr/lib/cinnamon-menu-editor')
++sys.path.insert(0,'/usr/share/cinnamon/cinnamon-menu-editor')
+ from cme import MainWindow
+ 
+ def main():
+--- a/files/usr/bin/cinnamon-screensaver-lock-dialog
++++ b/files/usr/bin/cinnamon-screensaver-lock-dialog
+@@ -2,4 +2,4 @@
+ 
+ import os
+ 
+-os.system("/usr/lib/cinnamon-screensaver-lock-dialog/cinnamon-screensaver-lock-dialog.py")
++os.system("/usr/share/cinnamon/cinnamon-screensaver-lock-dialog/cinnamon-screensaver-lock-dialog.py")
+--- a/files/usr/bin/cinnamon-settings
++++ b/files/usr/bin/cinnamon-settings
+@@ -4,18 +4,18 @@
+ 
+ if len(sys.argv) > 1:
+ 	module = sys.argv[1]
+-	if os.path.exists("/usr/lib/cinnamon-settings/modules/cs_%s.py" % module):
++	if os.path.exists("/usr/share/cinnamon/cinnamon-settings/modules/cs_%s.py" % module):
+ 		print "Python module"
+-		os.execvp("/usr/lib/cinnamon-settings/cinnamon-settings.py", ("",) + tuple(sys.argv[1:]))
++		os.execvp("/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py", ("",) + tuple(sys.argv[1:]))
+ 	elif os.path.exists("/usr/bin/cinnamon-control-center"):
+ 		print "Unknown module %s, using cinnamon-control-center" % module
+-		os.execvp("/usr/lib/cinnamon-settings/cinnamon-settings.py", ("",) + tuple(sys.argv[1:]))
++		os.execvp("/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py", ("",) + tuple(sys.argv[1:]))
+ 	elif os.path.exists("/usr/bin/gnome-control-center"):
+ 		print "Unknown module %s, calling gnome-control-center" % module
+ 		os.execvp("gnome-control-center", ("",) + tuple(sys.argv[1:]))
+ 	else:
+ 		print "Unkown module %s" % module
+-		os.execvp("/usr/lib/cinnamon-settings/cinnamon-settings.py", ("",) + tuple(sys.argv[1:]))	
++		os.execvp("/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py", ("",) + tuple(sys.argv[1:]))	
+ else:
+-	os.execvp("/usr/lib/cinnamon-settings/cinnamon-settings.py", ("",) + tuple(sys.argv[1:]))
++	os.execvp("/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py", ("",) + tuple(sys.argv[1:]))
+ 
