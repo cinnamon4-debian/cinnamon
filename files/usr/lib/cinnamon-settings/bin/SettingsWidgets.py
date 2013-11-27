@@ -29,7 +29,7 @@ except Exception, detail:
     sys.exit(1)
 
 class SidePage:
-    def __init__(self, name, icon, keywords, advanced, content_box, size = None, is_c_mod = False, is_standalone = False, exec_name = None):
+    def __init__(self, name, icon, keywords, advanced, content_box, size = None, is_c_mod = False, is_standalone = False, exec_name = None, module=None):
         self.name = name
         self.icon = icon
         self.content_box = content_box
@@ -37,6 +37,7 @@ class SidePage:
         self.is_c_mod = is_c_mod
         self.is_standalone = is_standalone
         self.exec_name = exec_name
+        self.module = module # Optionally set by the module so we can call on_module_selected() on it when we show it.
         self.keywords = keywords
         self.advanced = advanced
         self.size = size
@@ -79,8 +80,10 @@ class SidePage:
                         else:
                             for c_widget in c_widgets:
                                 c_widget.show()
-            else:
+            else:                
                 self.content_box.show_all()
+                if (self.module is not None):
+                    self.module.on_module_selected()
         else:
             subprocess.Popen(self.exec_name.split())
 
@@ -155,7 +158,7 @@ class IndentedHBox(Gtk.HBox):
         self.pack_start(indent, False, False, 0)
 
     def add(self, item):
-        self.pack_start(item, False, False, 0)
+        self.pack_start(item, False, True, 0)
 
     def add_expand(self, item):
         self.pack_start(item, True, True, 0)
@@ -300,6 +303,7 @@ class GSettingsFileChooser(Gtk.HBox):
     def __init__(self, label, schema, key, dep_key, show_none_cb = False):
         self.key = key
         self.dep_key = dep_key
+        self.show_none_cb = show_none_cb
         super(GSettingsFileChooser, self).__init__()
         self.label = Gtk.Label(label)       
         self.content_widget = Gtk.FileChooserButton()
@@ -307,18 +311,19 @@ class GSettingsFileChooser(Gtk.HBox):
         self.add(self.content_widget)
         self.settings = Gio.Settings.new(schema)
         value = self.settings.get_string(self.key)     
-        if show_none_cb:
-            self.show_none_cb = Gtk.CheckButton(_("None"))
-            self.show_none_cb.set_active(value=="")
-            self.pack_start(self.show_none_cb, False, False, 5)
-        else:
-            self.show_none_cb = None
-        if value=="":
-            self.content_widget.set_sensitive(False)
-        else:
+        if value != "":
             self.content_widget.set_filename(value)
+
+        if self.show_none_cb:
+            self.show_none_cb_widget = Gtk.CheckButton(_("None"))
+            self.show_none_cb_widget.set_active(value=="")
+            self.pack_start(self.show_none_cb_widget, False, False, 5)        
+            if value=="":
+                self.content_widget.set_sensitive(False)
+        
         self.content_widget.connect('file-set', self.on_my_value_changed)
-        self.show_none_cb.connect('toggled', self.on_my_value_changed)
+        if self.show_none_cb:
+            self.show_none_cb_widget.connect('toggled', self.on_my_value_changed)
         self.content_widget.show_all()
         self.dependency_invert = False
         if self.dep_key is not None:
@@ -332,17 +337,22 @@ class GSettingsFileChooser(Gtk.HBox):
             self.on_dependency_setting_changed(self, None)
 
     def on_my_value_changed(self, widget):
-        if self.show_none_cb.get_active():
-            value = ""
-            self.content_widget.set_sensitive(False)
+        if self.show_none_cb:
+            if self.show_none_cb_widget.get_active():
+                value = ""
+                self.content_widget.set_sensitive(False)
+            else:
+                value = self.content_widget.get_filename()
+                if value==None:
+                    value = ""
+                self.content_widget.set_sensitive(True)
         else:
             value = self.content_widget.get_filename()
             if value==None:
                 value = ""
-            self.content_widget.set_sensitive(True)
         self.settings.set_string(self.key, value)
 
-    def on_dependency_setting_changed(self, settings, dep_key):
+    def on_dependency_setting_changed(self, settings, dep_key):        
         if not self.dependency_invert:
             self.set_sensitive(self.dep_settings.get_boolean(self.dep_key))
         else:
@@ -587,7 +597,9 @@ class GSettingsRangeSpin(Gtk.HBox):
             self.on_dependency_setting_changed(self, None)
 
     def on_my_setting_changed(self, settings, key):
-        self.content_widget.set_value(self.settings.get_double(self.key))
+        value = self.settings.get_double(self.key)
+        if value != self.content_widget.get_value():
+            self.content_widget.set_value(value)
 
     def on_my_value_changed(self, widget):
         self.settings.set_double(self.key, self.content_widget.get_value())
@@ -626,7 +638,7 @@ class GSettingsComboBox(Gtk.HBox):
         
         if (label != ""):
             self.pack_start(self.label, False, False, 2)                
-        self.pack_start(self.content_widget, False, False, 2)                     
+        self.pack_start(self.content_widget, True, True, 2)                     
         self.content_widget.connect('changed', self.on_my_value_changed)
         self.content_widget.show_all()
         self.dependency_invert = False
@@ -680,7 +692,7 @@ class GSettingsIntComboBox(Gtk.HBox):
 
         if (label != ""):
             self.pack_start(self.label, False, False, 2)
-        self.pack_start(self.content_widget, False, False, 2)
+        self.pack_start(self.content_widget, False, True, 2)
         self.content_widget.connect('changed', self.on_my_value_changed)
         self.content_widget.show_all()
 

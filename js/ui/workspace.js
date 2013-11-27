@@ -29,7 +29,7 @@ const SCROLL_SCALE_AMOUNT = 50;
 const LIGHTBOX_FADE_TIME = 0.1;
 const CLOSE_BUTTON_FADE_TIME = 0.1;
 
-const BUTTON_LAYOUT_SCHEMA = 'org.cinnamon.overrides';
+const BUTTON_LAYOUT_SCHEMA = 'org.cinnamon.muffin';
 const BUTTON_LAYOUT_KEY = 'button-layout';
 
 const DEMANDS_ATTENTION_CLASS_NAME = "window-list-item-demands-attention";
@@ -179,7 +179,7 @@ WindowClone.prototype = {
         this.actor.add_actor(this.clone);
         let [pwidth, pheight] = [this.realWindow.width, this.realWindow.height];
         let clones = WindowUtils.createWindowClone(this.metaWindow, 0, 0, withTransients);
-        for (i in clones) {
+        for (let i in clones) {
             let clone = clones[i].actor;
             this.clone.add_actor(clone);
             let [width, height] = clone.get_size();
@@ -303,8 +303,10 @@ WindowClone.prototype = {
     },
 
     _zoomStart : function () {
+        if (!this._zooming) {
+            this.emit('zoom-start');
+        }
         this._zooming = true;
-        this.emit('zoom-start');
 
         if (!this._zoomLightbox)
             this._zoomLightbox = new Lightbox.Lightbox(Main.uiGroup,
@@ -318,7 +320,7 @@ WindowClone.prototype = {
         this._zoomGlobalOrig.setPosition.apply(this._zoomGlobalOrig, this.actor.get_transformed_position());
         this._zoomGlobalOrig.setScale(width / this.actor.width, height / this.actor.height);
 
-        this.actor.reparent(Main.uiGroup);
+        global.reparentActor(this.actor, Main.uiGroup);
         this._zoomLightbox.highlight(this.actor);
 
         [this.actor.x, this.actor.y]             = this._zoomGlobalOrig.getPosition();
@@ -338,7 +340,7 @@ WindowClone.prototype = {
         this._zooming = false;
         this.emit('zoom-end');
 
-        this.actor.reparent(this._origParent);
+        global.reparentActor(this.actor, this._origParent);
         if (this._stackAbove == null)
             this.actor.lower_bottom();
         // If the workspace has been destroyed while we were reparented to
@@ -362,6 +364,7 @@ WindowClone.prototype = {
     },
 
     _onButtonPress: function(actor, event) {
+        this.emit('selected', global.get_current_time());
         // a button-press on a clone already showing a menu should
         // not open a new-menu, only close the current menu.
         this.menuCancelled = closeContextMenu(this);
@@ -370,7 +373,7 @@ WindowClone.prototype = {
     _onButtonRelease: function(actor, event) {
         if ( event.get_button()==1 ) {
             this._selected = true;
-            this.emit('selected', global.get_current_time());
+            this.emit('activated', global.get_current_time());
             return true;
         }
         if (event.get_button()==2){
@@ -379,7 +382,7 @@ WindowClone.prototype = {
         }
         if (event.get_button()==3){
             if (!this.menuCancelled) {
-                this.emit('context-menu-requested', global.get_current_time());
+                this.emit('context-menu-requested');
             }
             this.menuCancelled = false;
             return true;
@@ -407,6 +410,7 @@ WindowOverlay.prototype = {
         this._parentActor = parentActor;
         this._hidden = false;
         this._hovering = false;
+        this._isSelected = null;
 
         let tracker = Cinnamon.WindowTracker.get_default();
         let app = tracker.get_window_app(metaWindow);
@@ -501,6 +505,10 @@ WindowOverlay.prototype = {
     },
 
     setSelected: function(selected) {
+        if (this._isSelected === selected) {
+            return;
+        }
+        this._isSelected = selected;
         this.title.name = selected ? 'selected' : '';
         this.refreshTitle(this.title.text);
         
@@ -609,7 +617,7 @@ WindowOverlay.prototype = {
                 // see comment in Workspace._windowAdded
                 Mainloop.idle_add(Lang.bind(this,
                                             function() {
-                                                this._windowClone.emit('selected');
+                                                this._windowClone.emit('activated');
                                                 return false;
                                             }));
             }
@@ -798,19 +806,25 @@ WorkspaceMonitor.prototype = {
             return false; // not handled
         }
 
-        if (currentIndex !== nextIndex) {
-            this.showActiveSelection(false);
-        }
-        this._kbWindowIndex = currentIndex = nextIndex;
-        this.showActiveSelection(true);
+        this.selectIndex(nextIndex);
         return true;
     },
     
-    showActiveSelection: function(show) {
-        if (this._kbWindowIndex > -1 && this._kbWindowIndex < this._windows.length) {
-            this._windows[this._kbWindowIndex].overlay.setSelected(show);
+    showActiveSelection: function() {
+        this.selectIndex(this._kbWindowIndex);
+    },
+
+    selectIndex: function(index) {
+        this._kbWindowIndex = index;
+        let activeClone = null;
+        if (index > -1 && index < this._windows.length) {
+            activeClone = this._windows[this._kbWindowIndex];
         }
-        this.emit('selection-changed');
+        this._myWorkspace.selectActiveClone(activeClone, this);
+    },
+
+    selectClone: function(clone) {
+        this.selectIndex(this._windows.indexOf(clone));
     },
 
     _onCloneContextMenuRequested: function(clone) {
@@ -832,7 +846,7 @@ WorkspaceMonitor.prototype = {
 
     activateSelectedWindow: function() {
         if (this._kbWindowIndex > -1 && this._kbWindowIndex < this._windows.length) {
-            this._onCloneSelected(this._windows[this._kbWindowIndex], global.get_current_time());
+            this._onCloneActivated(this._windows[this._kbWindowIndex], global.get_current_time());
             return true;
         }
         return false;
@@ -847,6 +861,15 @@ WorkspaceMonitor.prototype = {
     closeSelectedWindow: function() {
         if (this._kbWindowIndex > -1 && this._kbWindowIndex < this._windows.length) {
             this._windows[this._kbWindowIndex].overlay.closeWindow();
+        }
+    },
+
+    moveSelectedWindowToNextMonitor: function() {
+        if (this._kbWindowIndex > -1 && this._kbWindowIndex < this._windows.length) {
+            let monitorCount = Main.layoutManager.monitors.length;
+            if (monitorCount < 2) return;
+            let nextIndex = (this._windows[this._kbWindowIndex].metaWindow.get_monitor() + monitorCount + 1) % monitorCount;
+            this._windows[this._kbWindowIndex].metaWindow.move_to_monitor(nextIndex);
         }
     },
 
@@ -1130,13 +1153,12 @@ WorkspaceMonitor.prototype = {
                 scale: stageWidth / clone.actor.width
             };
         }
-        if (index === this._kbWindowIndex) {
-            if (this._kbWindowIndex >= this._windows.length) {
-                this._kbWindowIndex = 0;
-            }
-            if (this._kbWindowIndex < this._windows.length) {
-                this._windows[this._kbWindowIndex].overlay.setSelected(true);
-            }
+
+        if (this._kbWindowIndex >= this._windows.length) {
+            this._kbWindowIndex = this._windows.length - 1;
+        }
+        if (clone === this._myWorkspace._activeClone) {
+            this.selectIndex(this._kbWindowIndex);
         }
         
         clone.destroy();
@@ -1366,14 +1388,16 @@ WorkspaceMonitor.prototype = {
         }));
         clone.connect('selected',
                       Lang.bind(this, this._onCloneSelected));
+        clone.connect('activated',
+                      Lang.bind(this, this._onCloneActivated));
         clone.connect('closed',
                       Lang.bind(this, this._onCloneClosed));
         clone.connect('context-menu-requested',
                       Lang.bind(this, this._onCloneContextMenuRequested));
-        clone.connect('zoom-start',
-                      Lang.bind(this, function() {
-                          this._windowIsZooming = true;
-                      }));
+        clone.connect('zoom-start', Lang.bind(this, function(clone) {
+            this.selectClone(clone);
+            this._windowIsZooming = true;
+        }));
         clone.connect('zoom-end',
                       Lang.bind(this, function() {
                           this._windowIsZooming = false;
@@ -1429,6 +1453,10 @@ WorkspaceMonitor.prototype = {
     },
 
     _onCloneSelected : function (clone, time) {
+        this.selectClone(clone);
+    },
+
+    _onCloneActivated : function (clone, time) {
         let wsIndex = undefined;
         if (this.metaWorkspace)
             wsIndex = this.metaWorkspace.index();
@@ -1619,6 +1647,7 @@ Workspace.prototype = {
         this.actor = new Clutter.Group();
         this.actor.set_size(0, 0);
         this._monitors = [];
+        this._activeClone = null;
         this.currentMonitorIndex = Main.layoutManager.primaryIndex;
         Main.layoutManager.monitors.forEach(function(monitor, ix) {
             let m = new WorkspaceMonitor(metaWorkspace, ix, this, ix === this.currentMonitorIndex)
@@ -1643,15 +1672,30 @@ Workspace.prototype = {
     },
 
     selectNextNonEmptyMonitor: function(start, increment) {
-        if (this._monitors.length === 1) {
-            this.currentMonitorIndex = 0;
-            this._monitors[this.currentMonitorIndex].showActiveSelection(true);
-            return;
+        this.selectMonitor(this.findNextNonEmptyMonitor(start || 0, increment));
+    },
+
+    selectMonitor: function(index) {
+        this.currentMonitorIndex = index;
+        this._monitors[this.currentMonitorIndex].showActiveSelection();
+    },
+
+    selectActiveClone: function(clone, wsMonitor) {
+        let current = this._activeClone;
+        if (clone) {
+            this.currentMonitorIndex = wsMonitor.monitorIndex;
         }
-        let previousIndex = this.currentMonitorIndex;
-        this.currentMonitorIndex = this.findNextNonEmptyMonitor(start || 0, increment);
-        this._monitors[previousIndex].showActiveSelection(false);
-        this._monitors[this.currentMonitorIndex].showActiveSelection(true);
+        this._activeClone = clone;
+
+        if (current !== this._activeClone) {
+            if (current) {
+                current.overlay.setSelected(false);
+            }
+            if (this._activeClone) {
+                this._activeClone.overlay.setSelected(true);
+            }
+            wsMonitor.emit('selection-changed');
+        }
     },
 
     _onKeyPress: function(actor, event) {
@@ -1679,7 +1723,12 @@ Workspace.prototype = {
             return true;
         }
 
-        if (symbol === Clutter.Return || symbol === Clutter.KEY_space) {
+        if ((symbol === Clutter.m || symbol === Clutter.M) && modifiers & Clutter.ModifierType.CONTROL_MASK) {
+            activeMonitor.moveSelectedWindowToNextMonitor();
+            return true;
+        }
+
+        if (symbol === Clutter.Return || symbol === Clutter.KEY_space || symbol === Clutter.KP_Enter) {
             if (activeMonitor.activateSelectedWindow()) {
                 return true;
             }

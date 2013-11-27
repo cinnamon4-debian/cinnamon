@@ -2,35 +2,35 @@ const Applet = imports.ui.applet;
 const Lang = imports.lang;
 const Main = imports.ui.main;
 const Gtk = imports.gi.Gtk;
+const Settings = imports.ui.settings;
 
-function MyApplet(metadata, orientation, panel_height) {
-    this._init(metadata, orientation, panel_height);
+function MyApplet(metadata, orientation, panel_height, instance_id) {
+    this._init(metadata, orientation, panel_height, instance_id);
 }
 
 MyApplet.prototype = {
     __proto__: Applet.IconApplet.prototype,
 
-    _init: function(metadata, orientation, panel_height) {
-        Applet.IconApplet.prototype._init.call(this, orientation, panel_height);
+    _init: function(metadata, orientation, panel_height, instance_id) {
+        Applet.IconApplet.prototype._init.call(this, orientation, panel_height, instance_id);
 
         try {            
             Gtk.IconTheme.get_default().append_search_path(metadata.path);
             this.set_applet_icon_symbolic_name("cinnamon-scale");
             this.set_applet_tooltip(_("Scale"));            
             this._hover_activates = false;            
-            global.settings.connect('changed::panel-edit-mode', Lang.bind(this, this.on_panel_edit_mode_changed));
-            global.settings.connect('changed::scale-applet-hover', Lang.bind(this, this._reload_settings));
+
+            this.settings = new Settings.AppletSettings(this, metadata["uuid"], this.instance_id);
+
+            this.settings.bindProperty(Settings.BindingDirection.IN,
+                                       "activate-on-hover",
+                                       "_hover_activates",
+                                       function () {});
+
             this.actor.connect('enter-event', Lang.bind(this, this._onEntered));
-            this._reload_settings();
         }
         catch (e) {
             global.logError(e);
-        }
-    },
-
-    on_panel_edit_mode_changed: function () {
-        if (global.settings.get_boolean("scale-applet-hover")) {
-            this._hover_activates = !global.settings.get_boolean("panel-edit-mode");
         }
     },
 
@@ -41,7 +41,7 @@ MyApplet.prototype = {
     },
 
     _onEntered: function(event) {
-        if (!this._hover_activates)
+        if (!this._hover_activates || global.settings.get_boolean("panel-edit-mode"))
             return;
         this.doAction();
     },
@@ -49,14 +49,10 @@ MyApplet.prototype = {
     doAction: function() {
         if (!Main.overview.animationInProgress)
             Main.overview.toggle();
-    },
-
-    _reload_settings: function() {
-        this._hover_activates = global.settings.get_boolean("scale-applet-hover");
     }
 };
 
-function main(metadata, orientation, panel_height) {
-    let myApplet = new MyApplet(metadata, orientation, panel_height);
+function main(metadata, orientation, panel_height, instance_id) {
+    let myApplet = new MyApplet(metadata, orientation, panel_height, instance_id);
     return myApplet;
 }

@@ -16,7 +16,14 @@ const DISABLE_HOVER_TIMEOUT = 500; // milliseconds
 function sortWindowsByUserTime(win1, win2) {
     let t1 = win1.get_user_time();
     let t2 = win2.get_user_time();
-    return (t2 > t1) ? 1 : -1 ;
+    let m1 = win1.minimized;
+    let m2 = win2.minimized;
+    if (m1 == m2) {
+        return (t2 > t1) ? 1 : -1;   
+    }
+    else {
+        return m1 ? 1 : -1;
+    }    
 }
 
 function matchSkipTaskbar(win) {
@@ -43,6 +50,35 @@ function primaryModifier(mask) {
     return primary;
 }
 
+function getWindowsForBinding(binding) {
+    // Construct a list with all windows
+    let windows = [];
+    let windowActors = global.get_window_actors();
+    for (let i in windowActors)
+        windows.push(windowActors[i].get_meta_window());
+
+    switch(binding.get_name()) {
+        case 'switch-panels':
+            // Switch between windows of all workspaces
+            windows = windows.filter( matchSkipTaskbar );
+            break;
+        case 'switch-group':
+            // Switch between windows of same application from all workspaces
+            let focused = global.display.focus_window ? global.display.focus_window : windows[0];
+            windows = windows.filter( matchWmClass, focused.get_wm_class() );
+            break;
+        default:
+            // Switch between windows of current workspace
+            windows = windows.filter( matchWorkspace, global.screen.get_active_workspace() );
+            break;
+    }
+
+    // Sort by user time
+    windows.sort(sortWindowsByUserTime);
+    
+    return windows;
+}
+
 function AppSwitcher() {
     this._init.apply(this, arguments);
 }
@@ -51,7 +87,7 @@ AppSwitcher.prototype = {
     _init: function(binding) {
         this._initialDelayTimeoutId = null;
         this._binding = binding;
-        this._windows = this._getWindowsForBinding(binding);
+        this._windows = getWindowsForBinding(binding);
         
         this._haveModal = false;
         this._motionTimeoutId = 0;
@@ -106,35 +142,6 @@ AppSwitcher.prototype = {
             Main.popModal(this.actor);
             this._haveModal = false;
         }
-    },
-    
-    _getWindowsForBinding: function(binding) {
-        // Construct a list with all windows
-        let windows = [];
-        let windowActors = global.get_window_actors();
-        for (i in windowActors)
-            windows.push(windowActors[i].get_meta_window());
-
-        switch(binding.get_name()) {
-            case 'switch-panels':
-                // Switch between windows of all workspaces
-                windows = windows.filter( matchSkipTaskbar );
-                break;
-            case 'switch-group':
-                // Switch between windows of same application from all workspaces
-                let focused = global.display.focus_window ? global.display.focus_window : windows[0];
-                windows = windows.filter( matchWmClass, focused.get_wm_class() );
-                break;
-            default:
-                // Switch between windows of current workspace
-                windows = windows.filter( matchWorkspace, global.screen.get_active_workspace() );
-                break;
-        }
-
-        // Sort by user time
-        windows.sort(sortWindowsByUserTime);
-        
-        return windows;
     },
 
     _show: function() {
@@ -372,7 +379,7 @@ AppSwitcher.prototype = {
     },
 
     _removeDestroyedWindow: function(window) {
-        for (i in this._windows) {
+        for (let i in this._windows) {
             if (window == this._windows[i]) {
                 if (this._windows.length == 1)
                     this.destroy();
@@ -401,7 +408,7 @@ AppSwitcher.prototype = {
     },
 
     _showDesktop: function() {
-        for (i in this._windows) {
+        for (let i in this._windows) {
             if (!this._windows[i].minimized)
                 this._windows[i].minimize();
         }

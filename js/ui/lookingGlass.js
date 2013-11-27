@@ -466,21 +466,23 @@ Inspector.prototype = {
     
     _updatePassthroughText: function() {
         if(this.passThroughEvents)
-            this._passThroughText.text = '(Press Pause to disable event pass through)';
+            this._passThroughText.text = '(Press Pause or Control to disable event pass through)';
         else
-            this._passThroughText.text = '(Press Pause to enable event pass through)';
+            this._passThroughText.text = '(Press Pause or Control to enable event pass through)';
     },
 
     _onCapturedEvent: function (actor, event) {
-        if(event.type() == Clutter.EventType.KEY_PRESS && event.get_key_symbol() == Clutter.Pause) {
+        if(event.type() == Clutter.EventType.KEY_PRESS && (event.get_key_symbol() == Clutter.Control_L ||
+                                                           event.get_key_symbol() == Clutter.Control_R ||
+                                                           event.get_key_symbol() == Clutter.Pause)) {
             this.passThroughEvents = !this.passThroughEvents;
             this._updatePassthroughText();
             return true;
         }
-        
+
         if(this.passThroughEvents)
             return false;
-        
+
         switch (event.type()) {
             case Clutter.EventType.KEY_PRESS:
                 return this._onKeyPressEvent(actor, event);
@@ -640,8 +642,8 @@ ErrorLog.prototype = {
 
         let stack = Main._errorLogStack;
         if(stack.length > this.addedErrors) {
-            let text = this.text.text;
-            for (; this.addedErrors < stack.length; this.addedErrors++) {
+            for (var text = this.text.text; this.addedErrors < stack.length; 
+                 this.addedErrors++) {
                 let logItem = stack[this.addedErrors];
                 text += logItem.category + ' t=' + this._formatTime(new Date(parseInt(logItem.timestamp))) + ' ' + logItem.message + '\n';
             }
@@ -1065,7 +1067,7 @@ LookingGlass.prototype = {
 
         let result = eval(fullCmd);
         let resultObj = [];
-        for(key in result) {
+        for(let key in result) {
             let type = typeof(result[key]);
             let value = result[key].toString();
             
@@ -1181,6 +1183,8 @@ LookingGlass.prototype = {
     // Handle key events which are relevant for all tabs of the LookingGlass
     _globalKeyPressEvent : function(actor, event) {
         let symbol = event.get_key_symbol();
+        let newIndex;
+
         if (symbol == Clutter.Escape) {
             if (this._objInspector.actor.visible) {
                 this._objInspector.close();
@@ -1188,18 +1192,23 @@ LookingGlass.prototype = {
                 this.close();
             }
             return true;
-        } else if (symbol==Clutter.Right) {
-	    let newIndex = this._notebook._selectedIndex-1;
-	    if (newIndex == 5) {
-		newIndex = 0;
-	    }
-	    return true;
-	} else if (symbol==Clutter.Left) {
-	    let newIndex = this._notebook._selectedIndex-1;
-	    if (newIndex == -1){
-		newIndex = 4;
-	    }
-	}
+        } else if (symbol == Clutter.Page_Down) {
+            newIndex = this._notebook._selectedIndex + 1;
+            if (newIndex == this._notebook._tabs.length) {
+                newIndex = 0;
+            }
+        } else if (symbol == Clutter.Page_Up) {
+            newIndex = this._notebook._selectedIndex - 1;
+            if (newIndex == -1){
+                newIndex = this._notebook._tabs.length - 1;
+            }
+        }
+
+        if(newIndex) {
+            this._notebook.selectIndex(newIndex);
+            return true;
+        }
+
         return false;
     },
 

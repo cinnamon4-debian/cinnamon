@@ -39,6 +39,13 @@ var STRING_TYPES = {
             "description"
         ]
     },
+    "textview" : {
+        "required-fields": [
+            "type",
+            "default",
+            "description"
+        ]
+    },
     "colorchooser" : {
         "required-fields": [
             "type",
@@ -275,9 +282,8 @@ _provider.prototype = {
         },
 
         _json_validity_check: function (init_json) {
-            let primary_key;
             let valid = false;
-            for (primary_key in init_json) {
+            for (let primary_key in init_json) {
                 valid = this._check_for_min_props(init_json[primary_key])
                 if (!valid)
                     break;
@@ -339,15 +345,22 @@ _provider.prototype = {
 
             let existing_settings_file = Cinnamon.get_file_contents_utf8_sync(this.settings_file.get_path());
             let existing_json;
-            let new_json;
-            try {
-                existing_json = JSON.parse(existing_settings_file);
+	    let new_json;
+            try {             
                 new_json = JSON.parse(init_file_contents);
             } catch (e) {
-                global.logError("Problem parsing settings files for " + this.uuid + "while preparing to perform upgrade");
+                global.logError("Problem parsing " + orig_file.get_path() + " while preparing to perform upgrade.");
                 global.logError("Skipping upgrade for now - something may be wrong with the new settings schema file.");
                 return false;
             }
+	    try {
+                existing_json = JSON.parse(existing_settings_file);
+            } catch (e) {
+                global.logError("Problem parsing " + this.settings_file.get_path() + " while preparing to perform upgrade.");
+                global.log("Re-creating settings file.");   
+		this.settings_file.delete(null, null);
+                return this._create_settings_file();
+            }           
             if (existing_json["__md5__"] != checksum) {
                 global.log("Updated settings file detected for " + this.uuid + ".  Beginning upgrade of existing settings");
                 return this._do_upgrade(new_json, existing_json, checksum);
@@ -467,6 +480,8 @@ _provider.prototype = {
                 return false;
             }
             let type = this.settings_obj.get_key_exists_and_type(key_name);
+            if (!applet_callback)
+                applet_callback = function() {};
             if (type) {
                 if (type in BOOLEAN_TYPES || type in STRING_TYPES || type in NUMBER_TYPES) {
                     this.metaBindings[key_name] = new _setting(sync_type, this.xlet, key_name, this.settings_obj, applet_var, Lang.bind (this.xlet, applet_callback), user_data);
