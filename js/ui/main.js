@@ -2,8 +2,6 @@
 /**
  * FILE:main.js
  * @automountManager (AutomountManager.AutomountManager): The automount manager
- * @autorunManager (null): This object no longer in use but is kept
- *                         in case we change our mind
  * @placesManager (PlacesManager.PlacesManager): The places manager
  * @overview (Overview.Overview): The "scale" overview 
  * @expo (Expo.Expo): The "expo" overview
@@ -25,13 +23,10 @@
  * @keyboard (Keyboard.Keyboard): The keyboard object
  * @layoutManager (Layout.LayoutManager): The layout manager
  * @themeManager (ThemeManager.ThemeManager): The theme manager
- * @networkAgent (null): This object is no longer in use, but is kept
- *                       in case we change our mind
  * @dynamicWorkspaces (boolean): Whether dynamic workspaces are to be used.
  *                               This is not yet implemented
  * @nWorks (int): Number of workspaces
  * @tracker (Cinnamon.WindowTracker): The window tracker
- * @desktopShown (boolean): Whether we are in "show desktop" mode
  * @workspace_names (array): Names of workspace
  * @background (null): Unused
  * @deskletContainer (DeskletManager.DeskletContainer): The desklet container 
@@ -54,12 +49,11 @@ const Cinnamon = imports.gi.Cinnamon;
 const St = imports.gi.St;
 const PointerTracker = imports.misc.pointerTracker;
 
+const SoundManager = imports.ui.soundManager;
+const BackgroundManager = imports.ui.backgroundManager;
 const AppletManager = imports.ui.appletManager;
 const AutomountManager = imports.ui.automountManager;
-const AutorunManager = imports.ui.autorunManager;
 const DeskletManager = imports.ui.deskletManager;
-const EndSessionDialog = imports.ui.endSessionDialog;
-const PolkitAuthenticationAgent = imports.ui.polkitAuthenticationAgent;
 const ExtensionSystem = imports.ui.extensionSystem;
 const Keyboard = imports.ui.keyboard;
 const MessageTray = imports.ui.messageTray;
@@ -70,7 +64,6 @@ const PlacesManager = imports.ui.placesManager;
 const RunDialog = imports.ui.runDialog;
 const Layout = imports.ui.layout;
 const LookingGlass = imports.ui.lookingGlass;
-const NetworkAgent = imports.ui.networkAgent;
 const NotificationDaemon = imports.ui.notificationDaemon;
 const WindowAttentionHandler = imports.ui.windowAttentionHandler;
 const Scripting = imports.ui.scripting;
@@ -94,11 +87,12 @@ const LAYOUT_CLASSIC = "classic";
 const CIN_LOG_FOLDER = GLib.get_home_dir() + '/.cinnamon/';
 
 let automountManager = null;
-let autorunManager = null;
 
 let panel = null;
 let panel2 = null;
 
+let soundManager = null;
+let backgroundManager = null;
 let placesManager = null;
 let overview = null;
 let expo = null;
@@ -121,7 +115,6 @@ let keyboard = null;
 let layoutManager = null;
 let themeManager = null;
 let keybindingManager = null;
-let networkAgent = null;
 let _errorLogStack = [];
 let _startDate;
 let _defaultCssStylesheet = null;
@@ -129,7 +122,6 @@ let _cssStylesheet = null;
 let dynamicWorkspaces = null;
 let nWorks = null;
 let tracker = null;
-let desktopShown;
 
 let workspace_names = [];
 
@@ -141,11 +133,8 @@ let deskletContainer = null;
 
 let software_rendering = false;
 
-
 let lg_log_file;
 let can_log = false;
-
-
 
 // Override Gettext localization
 const Gettext = imports.gettext;
@@ -198,12 +187,22 @@ function _initUserSession() {
     
 }
 
+function _reparentActor(actor, newParent) {
+    let parent = actor.get_parent();
+    if (parent)
+      parent.remove_actor(actor);
+    if(newParent)
+        newParent.add_actor(actor);
+}
+
 /**
  * start:
  *
  * Starts cinnamon. Should not be called in JavaScript code
  */
 function start() {
+    global.reparentActor = _reparentActor;
+
     // Monkey patch utility functions into the global proxy;
     // This is easier and faster than indirecting down into global
     // if we want to call back up into JS.
@@ -240,7 +239,7 @@ function start() {
     }
 
     // Chain up async errors reported from C
-    global.connect('notify-error', function (global, msg, detail) { notifyError(msg, detail); });
+    global.connect('notify-error', function (global, msg, detail) { notifyError(msg, detail); });    
 
     Gio.DesktopAppInfo.set_desktop_env('GNOME');
 
@@ -261,7 +260,7 @@ function start() {
     // races for now we initialize it here.  It's better to
     // be predictable anyways.
     tracker = Cinnamon.WindowTracker.get_default();
-    Cinnamon.AppUsage.get_default();
+    Cinnamon.AppSystem.get_default();
 
     // The stage is always covered so Clutter doesn't need to clear it; however
     // the color is used as the default contents for the Muffin root background
@@ -278,9 +277,14 @@ function start() {
     }
     
     Gtk.IconTheme.get_default().append_search_path("/usr/share/cinnamon/icons/");
-    _defaultCssStylesheet = global.datadir + '/theme/cinnamon.css';
+    _defaultCssStylesheet = global.datadir + '/theme/cinnamon.css';    
+
+    soundManager = new SoundManager.SoundManager();
 
     themeManager = new ThemeManager.ThemeManager();
+
+    backgroundManager = new BackgroundManager.BackgroundManager();
+    
     deskletContainer = new DeskletManager.DeskletContainer();
 
     // Set up stage hierarchy to group all UI actors under one container.
@@ -293,31 +297,14 @@ function start() {
                     });
     St.set_ui_root(global.stage, uiGroup);
 
-    let parent = global.background_actor.get_parent();
-    if (parent) {
-      parent.remove_child(global.background_actor);
-    }
-    parent = global.bottom_window_group.get_parent();
-    if (parent) {
-      parent.remove_child(global.bottom_window_group);
-    }
-    parent = global.window_group.get_parent();
-    if (parent) {
-      parent.remove_child(global.window_group);
-    }
-    parent = global.overlay_group.get_parent();
-    if (parent) {
-      parent.remove_child(global.overlay_group);
-    }
-
-    uiGroup.add_actor(global.background_actor);
-    uiGroup.add_actor(global.bottom_window_group);
+    global.reparentActor(global.background_actor, uiGroup);
+    global.reparentActor(global.bottom_window_group, uiGroup);
     uiGroup.add_actor(deskletContainer.actor);
-    uiGroup.add_actor(global.window_group);
-    uiGroup.add_actor(global.overlay_group);
+    global.reparentActor(global.window_group, uiGroup);
+    global.reparentActor(global.overlay_group, uiGroup);
 
     global.stage.add_actor(uiGroup);
-    global.top_window_group.reparent(global.stage);
+    global.reparentActor(global.top_window_group, global.stage);
 
     layoutManager = new Layout.LayoutManager();
     let pointerTracker = new PointerTracker.PointerTracker();
@@ -362,8 +349,6 @@ function start() {
     automountManager = new AutomountManager.AutomountManager();
 
     keybindingManager = new Keybindings.KeybindingManager();
-    //autorunManager = new AutorunManager.AutorunManager();
-    //networkAgent = new NetworkAgent.NetworkAgent();
 
     Meta.later_add(Meta.LaterType.BEFORE_REDRAW, _checkWorkspaces);
 
@@ -385,9 +370,6 @@ function start() {
     // Provide the bus object for gnome-session to
     // initiate logouts.
     //EndSessionDialog.init();
-
-    // Attempt to become a PolicyKit authentication agent
-    PolkitAuthenticationAgent.init()
 
     _startDate = new Date();
 
@@ -411,14 +393,12 @@ function start() {
     global.screen.connect('window-left-monitor', _windowLeftMonitor);
     global.screen.connect('restacked', _windowsRestacked);
 
-    global.window_manager.connect('map', _onWindowMapped);
-
     _nWorkspacesChanged();
     
     AppletManager.init();
     DeskletManager.init();
 
-    if (software_rendering) {
+    if (software_rendering && !GLib.getenv('CINNAMON_2D')) {
         notifyCinnamon2d();
     }
 }
@@ -431,6 +411,11 @@ function notifyCinnamon2d() {
                    _("Cinnamon is currently running without video hardware acceleration and, as a result, you may observe much higher than normal CPU usage.\n\n") +
                    _("There could be a problem with your drivers or some other issue.  For the best experience, it is recommended that you only use this mode for") +
                    _(" troubleshooting purposes."), icon);
+}
+
+function loadSoundSettings() {
+
+
 }
 
 function enablePanels() {
@@ -585,12 +570,12 @@ function _staticWorkspaces() {
     let i;
     let dif = nWorks - global.screen.n_workspaces;
     if (dif > 0) {
-        for (i = 0; i < dif; i++)
+        for (let i = 0; i < dif; i++)
             global.screen.append_new_workspace(false, global.get_current_time());
     } else {
         if (nWorks == 0)
             return false;
-        for (i = 0; i > dif; i--){
+        for (let i = 0; i > dif; i--){
             let removeWorkspaceIndex = global.screen.n_workspaces - 1;
             let removeWorkspace = global.screen.get_workspace_by_index(removeWorkspaceIndex);
             let lastRemoved = removeWorkspace._lastRemovedWindow;
@@ -606,7 +591,7 @@ function _checkWorkspaces() {
     let i;
     let emptyWorkspaces = [];
 
-    for (i = 0; i < _workspaces.length; i++) {
+    for (let i = 0; i < _workspaces.length; i++) {
         let lastRemoved = _workspaces[i]._lastRemovedWindow;
         if (lastRemoved &&
             (lastRemoved.get_window_type() == Meta.WindowType.SPLASHSCREEN ||
@@ -618,7 +603,7 @@ function _checkWorkspaces() {
     }
 
     let windows = global.get_window_actors();
-    for (i = 0; i < windows.length; i++) {
+    for (let i = 0; i < windows.length; i++) {
         let win = windows[i];
 
         if (win.get_meta_window().is_on_all_workspaces())
@@ -647,7 +632,7 @@ function _checkWorkspaces() {
     }
 
     // Delete other empty workspaces; do it from the end to avoid index changes
-    for (i = emptyWorkspaces.length - 2; i >= 0; i--) {
+    for (let i = emptyWorkspaces.length - 2; i >= 0; i--) {
         if (emptyWorkspaces[i])
             global.screen.remove_workspace(_workspaces[i], global.get_current_time());
     }
@@ -693,10 +678,6 @@ function _windowsRestacked() {
     global.sync_pointer();
 }
 
-function _onWindowMapped() {
-    desktopShown = false;
-}
-
 function _queueCheckWorkspaces() {
     if (!dynamicWorkspaces)
         return false;
@@ -718,13 +699,11 @@ function _nWorkspacesChanged() {
 
     let lostWorkspaces = [];
     if (newNumWorkspaces > oldNumWorkspaces) {
-        let w;
-
         // Assume workspaces are only added at the end
-        for (w = oldNumWorkspaces; w < newNumWorkspaces; w++)
+        for (let w = oldNumWorkspaces; w < newNumWorkspaces; w++)
             _workspaces[w] = global.screen.get_workspace_by_index(w);
 
-        for (w = oldNumWorkspaces; w < newNumWorkspaces; w++) {
+        for (let w = oldNumWorkspaces; w < newNumWorkspaces; w++) {
             let workspace = _workspaces[w];
             workspace._windowAddedId = workspace.connect('window-added', _queueCheckWorkspaces);
             workspace._windowRemovedId = workspace.connect('window-removed', _windowRemoved);
@@ -1169,6 +1148,7 @@ function pushModal(actor, timestamp) {
             log('pushModal: invocation of begin_modal failed');
             return false;
         }
+        Meta.disable_unredirect_for_screen(global.screen);
     }
 
     global.set_stage_input_mode(Cinnamon.StageInputMode.FULLSCREEN);
@@ -1249,6 +1229,7 @@ function popModal(actor, timestamp) {
 
     global.end_modal(timestamp);
     global.set_stage_input_mode(Cinnamon.StageInputMode.NORMAL);
+    Meta.enable_unredirect_for_screen(global.screen);
 }
 
 /**
@@ -1485,17 +1466,4 @@ function getTabList(workspaceOpt, screenOpt) {
         }
     }
     return windows;
-}
-
-/**
- * toggleDesktop:
- *
- * Shows or unshows desktop
- */
-function toggleDesktop() {
-    if (desktopShown)
-        global.screen.unshow_desktop();
-    else
-        global.screen.show_desktop(global.get_current_time());
-    desktopShown = !desktopShown;
 }

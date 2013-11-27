@@ -22,10 +22,10 @@ const MAX_FILE_DELETED_BEFORE_INVALID = 10;
 
 const HISTORY_KEY = 'command-history';
 
-const LOCKDOWN_SCHEMA = 'org.gnome.desktop.lockdown';
+const LOCKDOWN_SCHEMA = 'org.cinnamon.desktop.lockdown';
 const DISABLE_COMMAND_LINE_KEY = 'disable-command-line';
 
-const TERMINAL_SCHEMA = 'org.gnome.desktop.default-applications.terminal';
+const TERMINAL_SCHEMA = 'org.cinnamon.desktop.default-applications.terminal';
 const EXEC_KEY = 'exec';
 const EXEC_ARG_KEY = 'exec-arg';
 
@@ -140,8 +140,7 @@ CommandCompleter.prototype = {
             return common;
         }
         function _getCommon(s1, s2) {
-            let k = 0;
-            for (; k < s1.length && k < s2.length; k++) {
+            for (var k = 0; k < s1.length && k < s2.length; k++) {
                 if (s1[k] != s2[k])
                     break;
             }

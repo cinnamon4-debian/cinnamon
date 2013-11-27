@@ -1,5 +1,5 @@
 AC_PREREQ(2.63)
-AC_INIT([cinnamon],[1.9.1],[https://bugzilla.gnome.org/enter_bug.cgi?product=cinnamon],[cinnamon])
+AC_INIT([cinnamon],[2.0.14],[https://bugzilla.gnome.org/enter_bug.cgi?product=cinnamon],[cinnamon])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([src/cinnamon-global.c])
@@ -62,8 +62,8 @@ AM_CONDITIONAL(BUILD_RECORDER, $build_recorder)
 
 CLUTTER_MIN_VERSION=1.7.5
 GOBJECT_INTROSPECTION_MIN_VERSION=0.10.1
-GJS_MIN_VERSION=1.29.18
-MUFFIN_MIN_VERSION=1.0.5
+GJS_MIN_VERSION=1.9.0
+MUFFIN_MIN_VERSION=1.9.1
 GTK_MIN_VERSION=3.0.0
 GIO_MIN_VERSION=2.29.10
 POLKIT_MIN_VERSION=0.100
@@ -74,7 +74,7 @@ PKG_CHECK_MODULES(CINNAMON, gio-2.0 >= $GIO_MIN_VERSION
                                gio-unix-2.0 dbus-glib-1 libxml-2.0
                                gtk+-3.0 >= $GTK_MIN_VERSION
                                libmuffin >= $MUFFIN_MIN_VERSION
-                               gjs-internals-1.0 >= $GJS_MIN_VERSION
+                               cjs-internals-1.0 >= $GJS_MIN_VERSION
 			       libgnome-menu-3.0 $recorder_modules gconf-2.0
                                gdk-x11-3.0 libsoup-2.4 gl
 			       clutter-x11-1.0 >= $CLUTTER_MIN_VERSION
@@ -88,7 +88,7 @@ PKG_CHECK_MODULES(CINNAMON_PERF_HELPER, gtk+-3.0 gio-2.0)
 
 PKG_CHECK_MODULES(CINNAMON_HOTPLUG_SNIFFER, gio-2.0 gdk-pixbuf-2.0)
 
-GJS_VERSION=`$PKG_CONFIG --modversion gjs-internals-1.0`
+GJS_VERSION=`$PKG_CONFIG --modversion cjs-internals-1.0`
 AC_DEFINE_UNQUOTED([GJS_VERSION], ["$GJS_VERSION"], [The version of GJS we're linking to])
 AC_SUBST([GJS_VERSION], ["$GJS_VERSION"])
 
@@ -104,11 +104,11 @@ AC_CHECK_FUNCS(JS_NewGlobalObject XFixesCreatePointerBarrier)
 CFLAGS=$saved_CFLAGS
 LIBS=$saved_LIBS
 
-PKG_CHECK_MODULES(ST, clutter-1.0 gtk+-3.0 libcroco-0.6 >= 0.6.2 gnome-desktop-3.0 >= 2.90.0 x11)
+PKG_CHECK_MODULES(ST, clutter-1.0 gtk+-3.0 libcroco-0.6 >= 0.6.2 cinnamon-desktop >= 1.0.0 x11)
 PKG_CHECK_MODULES(GDMUSER, dbus-glib-1 gtk+-3.0)
 PKG_CHECK_MODULES(TRAY, gtk+-3.0)
 PKG_CHECK_MODULES(GVC, libpulse libpulse-mainloop-glib gobject-2.0)
-PKG_CHECK_MODULES(DESKTOP_SCHEMAS, gsettings-desktop-schemas >= 0.1.7)
+PKG_CHECK_MODULES(DESKTOP_SCHEMAS, cinnamon-desktop >= 1.0.0)
 
 AC_MSG_CHECKING([for bluetooth support])
 PKG_CHECK_EXISTS([gnome-bluetooth-1.0 >= 3.1.0],
@@ -129,7 +129,7 @@ MUFFIN_TYPELIB_DIR=`$PKG_CONFIG --variable=typelibdir libmuffin`
 AC_SUBST(MUFFIN_GIR_DIR)
 AC_SUBST(MUFFIN_TYPELIB_DIR)
 
-GJS_CONSOLE=`$PKG_CONFIG --variable=gjs_console gjs-1.0`
+GJS_CONSOLE=`$PKG_CONFIG --variable=cjs_console cjs-1.0`
 AC_SUBST(GJS_CONSOLE)
 
 AC_CHECK_FUNCS(fdwalk)

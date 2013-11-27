@@ -296,6 +296,8 @@ MyApplet.prototype = {
             this.actor.add(this.myactor);
             this.actor.reactive = global.settings.get_boolean(PANEL_EDIT_MODE_KEY);
             global.settings.connect('changed::' + PANEL_EDIT_MODE_KEY, Lang.bind(this, this._onPanelEditModeChanged));
+
+            St.TextureCache.get_default().connect("icon-theme-changed", Lang.bind(this, this.reload));
         }
         catch (e) {
             global.logError(e);
@@ -368,14 +370,10 @@ MyApplet.prototype = {
 
     showAddLauncherDialog: function(timestamp, launcher){
         if (launcher) {
-            let cl = APPLET_DIR.get_child('cinnamon-add-panel-launcher.py').get_path() + ' ';
-            cl += '"' + launcher.getId() + '" ';
-            cl += '"' + launcher.getAppname() + '" ';
-            cl += '"' + launcher.getCommand() + '" ';
-            cl += '"' + launcher.getIcon() + '"';
-            Util.spawnCommandLine(cl);
+            global.logError(launcher.getId());
+            Util.spawnCommandLine("cinnamon-desktop-editor -mpanel-launcher -f" + launcher.getId());
         } else {
-            Util.spawnCommandLine(APPLET_DIR.get_child('cinnamon-add-panel-launcher.py').get_path());
+            Util.spawnCommandLine("cinnamon-desktop-editor -mpanel-launcher");
         }
     },
 

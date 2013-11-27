@@ -120,7 +120,7 @@ struct _StScrollViewPrivate
   guint         hscrollbar_visible : 1;
   guint         vscrollbar_visible : 1;
   gboolean      auto_scroll : 1;
-  guint         auto_scroll_timeout_id : 1;
+  guint         auto_scroll_timeout_id;
 };
 
 enum {
@@ -408,6 +408,7 @@ st_scroll_view_dispose (GObject *object)
 
   if (priv->setting_connect_id > 0) {
     g_signal_handler_disconnect (priv->settings, priv->setting_connect_id);
+    priv->setting_connect_id = 0;
   }
 
   g_signal_handlers_disconnect_by_func (ST_SCROLL_VIEW (object), motion_event_cb, ST_SCROLL_VIEW (object));
@@ -1296,6 +1297,10 @@ st_scroll_view_set_auto_scrolling (StScrollView *scroll,
                           G_CALLBACK (motion_event_cb), scroll);
       } else {
         g_signal_handlers_disconnect_by_func (scroll, motion_event_cb, scroll);
+        if (priv->auto_scroll_timeout_id > 0) {
+            g_source_remove (priv->auto_scroll_timeout_id);
+            priv->auto_scroll_timeout_id = 0;
+        }
       }
     }
 }

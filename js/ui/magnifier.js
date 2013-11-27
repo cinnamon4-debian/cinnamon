@@ -33,10 +33,10 @@ const MOUSE_POLL_FREQUENCY = 50;
 const CROSSHAIRS_CLIP_SIZE = [100, 100];
 
 // Settings
-const APPLICATIONS_SCHEMA       = 'org.gnome.desktop.a11y.applications';
+const APPLICATIONS_SCHEMA       = 'org.cinnamon.desktop.a11y.applications';
 const SHOW_KEY                  = 'screen-magnifier-enabled';
 
-const MAGNIFIER_SCHEMA          = 'org.gnome.desktop.a11y.magnifier';
+const MAGNIFIER_SCHEMA          = 'org.cinnamon.desktop.a11y.magnifier';
 const SCREEN_POSITION_KEY       = 'screen-position';
 const MAG_FACTOR_KEY            = 'mag-factor';
 const LENS_MODE_KEY             = 'lens-mode';
@@ -606,7 +606,7 @@ ZoomRegion.prototype = {
             this._updateMousePosition();
             global.top_window_group.raise_top();
         } else if (!activate && this.isActive()) {
-            global.top_window_group.reparent(global.stage);
+            global.reparentActor(global.top_window_group, global.stage);
             this._destroyActors();
         }
     },
@@ -898,7 +898,7 @@ ZoomRegion.prototype = {
     //// Private methods ////
 
     _createActors: function() {
-        global.top_window_group.reparent(Main.uiGroup);
+        global.reparentActor(global.top_window_group, Main.uiGroup);
         // The root actor for the zoom region
         this._magView = new St.Bin({ style_class: 'magnifier-zoom-region', x_fill: true, y_fill: true });
         global.stage.add_actor(this._magView);

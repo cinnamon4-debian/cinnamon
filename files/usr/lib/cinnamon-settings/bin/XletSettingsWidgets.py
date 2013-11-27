@@ -21,6 +21,7 @@ setting_dict = {
     "header"          :   "Header", # Not a setting, just a boldface header text
     "separator"       :   "Separator", # not a setting, a horizontal separator
     "entry"           :   "Entry",
+    "textview"        :   "TextView",    
     "checkbox"        :   "CheckButton",
     "spinbutton"      :   "SpinButton",
     "filechooser"     :   "FileChooser",
@@ -35,9 +36,9 @@ setting_dict = {
 
 
 class Factory():
-    def __init__(self, file_name, instance_id, multi_instance):
+    def __init__(self, file_name, instance_id, multi_instance, uuid):
         self.file = file_name
-        self.settings = Settings(file_name, self, instance_id, multi_instance)
+        self.settings = Settings(file_name, self, instance_id, multi_instance, uuid)
         self.widgets = collections.OrderedDict()
         self.file_obj = Gio.File.new_for_path(self.file)
         self.file_monitor = self.file_obj.monitor_file(Gio.FileMonitorFlags.SEND_MOVED, None)
@@ -110,11 +111,22 @@ class Factory():
 
 
 class Settings():
-    def __init__(self, file_name, factory, instance_id, multi_instance):
+    def __init__(self, file_name, factory, instance_id, multi_instance, uuid):
         self.file_name = file_name
         self.factory = factory
         self.instance_id = instance_id
         self.multi_instance = multi_instance
+        self.uuid = uuid
+        try:
+            self.t = gettext.translation(self.uuid, home+"/.local/share/locale").ugettext
+        except IOError:
+            try:
+                self.t = gettext.translation(self.uuid, "/usr/share/locale").ugettext
+            except IOError:
+                try:
+                    self.t = gettext.translation("cinnamon", "/usr/share/cinnamon/locale").ugettext
+                except IOError:
+                    self.t = None
         self.reload()
 
     def reload (self):
@@ -183,9 +195,13 @@ class Settings():
         self.save()
 
 
-class BaseWidget():
+class BaseWidget(object):
     def __init__(self, key, settings_obj, uuid):
         self.settings_obj = settings_obj
+        if self.settings_obj.t:
+            self.t = self.settings_obj.t
+        else:
+            self.t = None
         self.key = key
         self.uuid = uuid
         self.handler = None
@@ -223,20 +239,30 @@ class BaseWidget():
 
     def get_desc(self):
         try:
-            return self.settings_obj.get_data(self.key)["description"]
+            if self.t:
+                print self.t(self.settings_obj.get_data(self.key)["description"])
+                return self.t(self.settings_obj.get_data(self.key)["description"])
+            else:
+                return self.settings_obj.get_data(self.key)["description"]
         except:
             print ("Could not find description for key '%s' in xlet '%s'" % (self.key, self.uuid))
             return ""
 
     def get_tooltip(self):
         try:
-            return self.settings_obj.get_data(self.key)["tooltip"]
+            if self.t:
+                return self.t(self.settings_obj.get_data(self.key)["tooltip"])
+            else:
+                return self.settings_obj.get_data(self.key)["tooltip"]
         except:
             return ""
 
     def get_units(self):
         try:
-            return self.settings_obj.get_data(self.key)["units"]
+            if self.t:
+                return self.t(self.settings_obj.get_data(self.key)["units"])
+            else:
+                return self.settings_obj.get_data(self.key)["units"]
         except:
             print ("Could not find description for key '%s' in xlet '%s'" % (self.key, self.uuid))
             return ""
@@ -270,9 +296,18 @@ class BaseWidget():
 
     def get_options(self):
         try:
-            return self.settings_obj.get_data(self.key)["options"]
-        except:
+            if self.t:
+                ret = {}
+                d = self.settings_obj.get_data(self.key)["options"]
+                for key in d.keys():
+                    translated_key = self.t(key)
+                    ret[translated_key] = d[key]
+                return ret
+            else:
+                return self.settings_obj.get_data(self.key)["options"]
+        except Exception, detail:
             print ("Could not find options for key '%s' in xlet '%s'" % (self.key, self.uuid))
+            print detail
 
     def get_custom_val(self):
         try:
@@ -316,6 +351,12 @@ class BaseWidget():
             return self.settings_obj.get_data(self.key)["indent"]
         except:
             return False
+            
+    def get_height(self):
+        try:
+            return self.settings_obj.get_data(self.key)["height"]
+        except:
+            return 200            
 
 def set_tt(tt, *widgets):
     for widget in widgets:
@@ -456,6 +497,48 @@ class Entry(Gtk.HBox, BaseWidget):
 
     def update_dep_state(self, active):
         self.entry.set_sensitive(active)
+
+class TextView(Gtk.HBox, BaseWidget):
+    def __init__(self, key, settings_obj, uuid):
+        BaseWidget.__init__(self, key, settings_obj, uuid)
+        super(TextView, self).__init__()
+        self.label = Gtk.Label(self.get_desc())
+        self.label.set_alignment(xalign=1, yalign=0)
+        self.scrolledwindow = Gtk.ScrolledWindow(hadjustment=None, vadjustment=None)
+        self.scrolledwindow.set_size_request(width=-1, height=self.get_height())
+        self.scrolledwindow.set_policy(hscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
+                                       vscrollbar_policy=Gtk.PolicyType.AUTOMATIC)
+        self.scrolledwindow.set_shadow_type(type=Gtk.ShadowType.ETCHED_IN)
+        self.textview = Gtk.TextView()
+        self.textview.set_border_width(3)
+        self.textview.set_wrap_mode(wrap_mode=Gtk.WrapMode.NONE)
+        self.buffer = self.textview.get_buffer()
+        self.buffer.set_text(self.get_val())
+        self.pack_start(self.label, False, False, 2)
+        self.add(self.scrolledwindow)
+        self.scrolledwindow.add(self.textview)
+        self.handler = self.buffer.connect("changed", self.on_my_value_changed)
+        set_tt(self.get_tooltip(), self.label, self.textview)
+        self._value_changed_timer = None
+
+    def on_my_value_changed(self, widget):
+        if self._value_changed_timer:
+            GObject.source_remove(self._value_changed_timer)
+        self._value_changed_timer = GObject.timeout_add(300, self.update_settings_value)
+
+    def update_settings_value(self):
+        [start, end] = self.buffer.get_bounds()
+        self.set_val(self.buffer.get_text(start, end, False))
+        self._value_changed_timer = None
+        return False
+
+    def on_settings_file_changed(self):
+        self.textview.handler_block(self.handler)
+        self.buffer.set_text(self.get_val())
+        self.textview.handler_unblock(self.handler)
+
+    def update_dep_state(self, active):
+        self.textview.set_sensitive(active)        
 
 class ColorChooser(Gtk.HBox, BaseWidget):
     def __init__(self, key, settings_obj, uuid):
