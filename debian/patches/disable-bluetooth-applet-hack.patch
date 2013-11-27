@@ -7,9 +7,11 @@ Forwarded: https://github.com/linuxmint/Cinnamon/pull/987
 Applied-Upstream: no
 Last-Update: 2013-06-02
 
---- a/src/cinnamon-plugin.c
-+++ b/src/cinnamon-plugin.c
-@@ -382,17 +382,3 @@
+Index: cinnamon/src/cinnamon-plugin.c
+===================================================================
+--- cinnamon.orig/src/cinnamon-plugin.c	2013-11-27 11:47:24.247572659 +0100
++++ cinnamon/src/cinnamon-plugin.c	2013-11-27 11:47:24.239572981 +0100
+@@ -401,17 +401,3 @@
  
    return &info;
  }
@@ -27,9 +29,11 @@ Last-Update: 2013-06-02
 -  bluetooth_applet_get_type();
 -}
 -#endif
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -263,10 +263,12 @@
+Index: cinnamon/src/Makefile.am
+===================================================================
+--- cinnamon.orig/src/Makefile.am	2013-11-27 11:47:24.247572659 +0100
++++ cinnamon/src/Makefile.am	2013-11-27 11:47:24.239572981 +0100
+@@ -255,10 +255,12 @@
  EXTRA_DIST += cinnamon-enum-types.c.in
  
  libcinnamon_la_LDFLAGS = -avoid-version
@@ -43,8 +47,10 @@ Last-Update: 2013-06-02
  	libst-1.0.la       	\
  	libtray.la		\
  	libgvc.la		\
---- a/configure.ac
-+++ b/configure.ac
+Index: cinnamon/configure.ac
+===================================================================
+--- cinnamon.orig/configure.ac	2013-11-27 11:47:24.247572659 +0100
++++ cinnamon/configure.ac	2013-11-27 11:47:24.239572981 +0100
 @@ -119,10 +119,12 @@
  	 AC_DEFINE_UNQUOTED([BLUETOOTH_DIR],["$BLUETOOTH_DIR"],[Path to installed GnomeBluetooth typelib and library])
  	 AC_DEFINE([HAVE_BLUETOOTH],[1],[Define if you have libgnome-bluetooth-applet])

@@ -5,8 +5,10 @@ Forwarded: no
 Applied-Upstream: no
 Last-Update: 2013-06-02
 
---- a/files/generate_desktop_files
-+++ b/files/generate_desktop_files
+Index: cinnamon/files/generate_desktop_files
+===================================================================
+--- cinnamon.orig/files/generate_desktop_files	2013-11-27 11:54:22.830501843 +0100
++++ cinnamon/files/generate_desktop_files	2013-11-27 11:54:22.826502006 +0100
 @@ -26,12 +26,12 @@
  """)
  
@@ -38,9 +40,11 @@ Last-Update: 2013-06-02
  			language.install()			
  			desktopFile.writelines("Comment[%s]=%s\n" % (directory, _(menuComment)))
  		except:
---- a/files/usr/lib/cinnamon-settings/cinnamon-settings.py
-+++ b/files/usr/lib/cinnamon-settings/cinnamon-settings.py
-@@ -29,7 +29,7 @@
+Index: cinnamon/files/usr/lib/cinnamon-settings/cinnamon-settings.py
+===================================================================
+--- cinnamon.orig/files/usr/lib/cinnamon-settings/cinnamon-settings.py	2013-11-27 11:54:22.830501843 +0100
++++ cinnamon/files/usr/lib/cinnamon-settings/cinnamon-settings.py	2013-11-27 11:54:22.826502006 +0100
+@@ -32,7 +32,7 @@
      sys.exit(1)
  
  # i18n
@@ -49,9 +53,11 @@ Last-Update: 2013-06-02
  # i18n for menu item
  menuName = _("System Settings")
  menuComment = _("Control Center")
---- a/js/ui/main.js
-+++ b/js/ui/main.js
-@@ -149,7 +149,7 @@
+Index: cinnamon/js/ui/main.js
+===================================================================
+--- cinnamon.orig/js/ui/main.js	2013-11-27 11:54:22.830501843 +0100
++++ cinnamon/js/ui/main.js	2013-11-27 11:54:22.826502006 +0100
+@@ -138,7 +138,7 @@
  
  // Override Gettext localization
  const Gettext = imports.gettext;
@@ -60,19 +66,10 @@ Last-Update: 2013-06-02
  Gettext.textdomain('cinnamon');
  const _ = Gettext.gettext;
  
---- a/files/usr/share/cinnamon/applets/panel-launchers@cinnamon.org/cinnamon-add-panel-launcher.py
-+++ b/files/usr/share/cinnamon/applets/panel-launchers@cinnamon.org/cinnamon-add-panel-launcher.py
-@@ -11,7 +11,7 @@
- import sys
- import gettext
- 
--gettext.install("cinnamon", "/usr/share/cinnamon/locale")
-+gettext.install("cinnamon", "/usr/share/locale")
- Settings = Gio.Settings.new("org.cinnamon")
- 
- _ = gettext.gettext
---- a/src/Makefile.am
-+++ b/src/Makefile.am
+Index: cinnamon/src/Makefile.am
+===================================================================
+--- cinnamon.orig/src/Makefile.am	2013-11-27 11:54:22.830501843 +0100
++++ cinnamon/src/Makefile.am	2013-11-27 11:54:22.826502006 +0100
 @@ -80,7 +80,7 @@
  	$(CINNAMON_CFLAGS)			\
  	-I$(srcdir)/tray			\
@@ -82,8 +79,10 @@ Last-Update: 2013-06-02
  	-DDATADIR=\"$(datadir)\"		\
  	-DCINNAMON_LIBEXECDIR=\"$(libexecdir)\"	\
  	-DCINNAMON_DATADIR=\"$(pkgdatadir)\"	\
---- a/files/usr/lib/cinnamon-screensaver-lock-dialog/cinnamon-screensaver-lock-dialog.py
-+++ b/files/usr/lib/cinnamon-screensaver-lock-dialog/cinnamon-screensaver-lock-dialog.py
+Index: cinnamon/files/usr/lib/cinnamon-screensaver-lock-dialog/cinnamon-screensaver-lock-dialog.py
+===================================================================
+--- cinnamon.orig/files/usr/lib/cinnamon-screensaver-lock-dialog/cinnamon-screensaver-lock-dialog.py	2013-11-27 11:54:22.830501843 +0100
++++ cinnamon/files/usr/lib/cinnamon-screensaver-lock-dialog/cinnamon-screensaver-lock-dialog.py	2013-11-27 11:54:22.830501843 +0100
 @@ -9,7 +9,7 @@
  import socket
  
@@ -93,8 +92,10 @@ Last-Update: 2013-06-02
  
  class MainWindow:
    
---- a/files/usr/lib/cinnamon-settings/modules/cs_backgrounds.py
-+++ b/files/usr/lib/cinnamon-settings/modules/cs_backgrounds.py
+Index: cinnamon/files/usr/lib/cinnamon-settings/modules/cs_backgrounds.py
+===================================================================
+--- cinnamon.orig/files/usr/lib/cinnamon-settings/modules/cs_backgrounds.py	2013-11-27 11:54:22.830501843 +0100
++++ cinnamon/files/usr/lib/cinnamon-settings/modules/cs_backgrounds.py	2013-11-27 11:54:22.830501843 +0100
 @@ -11,7 +11,7 @@
  import subprocess
  import tempfile
@@ -104,8 +105,10 @@ Last-Update: 2013-06-02
  
  BACKGROUND_MODES = [
      ("wallpaper", _("Wallpaper")),
---- a/files/usr/lib/cinnamon-settings/modules/cs_keyboard.py
-+++ b/files/usr/lib/cinnamon-settings/modules/cs_keyboard.py
+Index: cinnamon/files/usr/lib/cinnamon-settings/modules/cs_keyboard.py
+===================================================================
+--- cinnamon.orig/files/usr/lib/cinnamon-settings/modules/cs_keyboard.py	2013-11-27 11:54:22.830501843 +0100
++++ cinnamon/files/usr/lib/cinnamon-settings/modules/cs_keyboard.py	2013-11-27 11:54:22.830501843 +0100
 @@ -5,7 +5,7 @@
  import cgi
  import gettext
@@ -113,5 +116,44 @@ Last-Update: 2013-06-02
 -gettext.install("cinnamon", "/usr/share/cinnamon/locale")
 +gettext.install("cinnamon", "/usr/share/locale")
  
- HAS_DEDICATED_TERMINAL_SHORTCUT = False
+ # Keybindings page - check if we need to store custom
+ # keybindings to gsettings key as well as GConf (In Mint 14 this is changed)
+Index: cinnamon/files/usr/bin/cinnamon-launcher
+===================================================================
+--- cinnamon.orig/files/usr/bin/cinnamon-launcher	2013-11-27 11:02:13.742492124 +0100
++++ cinnamon/files/usr/bin/cinnamon-launcher	2013-11-27 11:56:09.214223236 +0100
+@@ -7,7 +7,7 @@
+ import os, sys, gettext
+ from gi.repository import Gtk
  
+-gettext.install("cinnamon", "/usr/share/cinnamon/locale")
++gettext.install("cinnamon", "/usr/share/locale")
+ 
+ def confirm_restart():
+     d = Gtk.MessageDialog(None, 0, Gtk.MessageType.WARNING, Gtk.ButtonsType.YES_NO)
+Index: cinnamon/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py
+===================================================================
+--- cinnamon.orig/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py	2013-11-27 11:36:55.669187417 +0100
++++ cinnamon/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py	2013-11-27 11:56:28.465448948 +0100
+@@ -12,7 +12,7 @@
+ from cme import util
+ 
+ # i18n
+-gettext.install("cinnamon", "/usr/share/cinnamon/locale")
++gettext.install("cinnamon", "/usr/share/locale")
+ # i18n for menu item
+ 
+ _ = gettext.gettext
+Index: cinnamon/generate_additional_files.py
+===================================================================
+--- cinnamon.orig/generate_additional_files.py	2013-11-27 11:36:55.681186930 +0100
++++ cinnamon/generate_additional_files.py	2013-11-27 11:57:04.559997084 +0100
+@@ -3,7 +3,7 @@
+ import os, gettext
+ 
+ DOMAIN = "cinnamon"
+-PATH = "/usr/share/cinnamon/locale"
++PATH = "/usr/share/locale"
+ 
+ def generate(filename, prefix, name, comment, suffix):
+     gettext.install(DOMAIN, PATH)
