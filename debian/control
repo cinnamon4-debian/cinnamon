@@ -52,7 +52,7 @@ Build-Depends: debhelper (>= 9),
                libxfixes-dev (>= 1:5.0),
                libxss-dev,
                python-dev
-Standards-Version: 3.9.4
+Standards-Version: 3.9.5
 Vcs-Git: git://anonscm.debian.org/pkg-cinnamon/cinnamon.git
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=pkg-cinnamon/cinnamon.git
 Homepage: http://cinnamon.linuxmint.com

@@ -11,6 +11,7 @@ cinnamon (2.0.14-1~1) UNRELEASED; urgency=low
   * Refresh patches.
   * Update build dependencies.
   * Update install files.
+  * Bump Standards-Version to 3.9.5
 
  -- Maximiliano Curia <maxy@debian.org>  Wed, 27 Nov 2013 11:40:18 +0100
 
