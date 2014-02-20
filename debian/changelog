@@ -15,6 +15,7 @@ cinnamon (2.0.14-1~1) UNRELEASED; urgency=low
   * Update Vcs fields.
   * New maintainer.
   * Update rules to dh 9.
+  * Use iceweasel by default.
 
  -- Maximiliano Curia <maxy@debian.org>  Wed, 27 Nov 2013 11:40:18 +0100
 
