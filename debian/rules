@@ -6,9 +6,6 @@
 
 export DEB_LDFLAGS_MAINT_APPEND=-Wl,--as-needed
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
-DPKG_EXPORT_BUILDFLAGS = 1
-include /usr/share/dpkg/buildflags.mk
-
 
 # To avoid running configure twice (because gnome-autogen.sh)
 export NOCONFIGURE=yes
@@ -35,7 +32,6 @@ override_dh_auto_test:
 
 override_dh_install:
 	dh_install -X.la
-
 
 override_dh_strip:
 	dh_strip --dbg-package=cinnamon-dbg
