@@ -16,6 +16,7 @@ cinnamon (2.0.14-1~2) UNRELEASED; urgency=low
   * New maintainer.
   * Update rules to dh 9.
   * Use iceweasel by default.
+  * Do not depend on translations.
 
  -- Maximiliano Curia <maxy@debian.org>  Thu, 20 Feb 2014 23:50:46 +0100
 
