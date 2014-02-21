@@ -17,6 +17,7 @@ cinnamon (2.0.14-1~3) UNRELEASED; urgency=low
   * Update rules to dh 9.
   * Use iceweasel by default.
   * Do not depend on translations.
+  * Update the wm file.
 
  -- Maximiliano Curia <maxy@debian.org>  Fri, 21 Feb 2014 19:39:31 +0100
 
