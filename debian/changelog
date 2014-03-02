@@ -1,4 +1,4 @@
-cinnamon (2.0.14-1~3) UNRELEASED; urgency=low
+cinnamon (2.0.14-1~4) UNRELEASED; urgency=low
 
   [ Nicolas Bourdaud ]
   * New upstream cinnamon_1.9.1
@@ -18,6 +18,10 @@ cinnamon (2.0.14-1~3) UNRELEASED; urgency=low
   * Use iceweasel by default.
   * Do not depend on translations.
   * Update the wm file.
+
+  [ Margarita Manterola ]
+  * Added patch to fix the relocation of cinnamon-settings
+  * Added cinnamon-screensaver and nemo-autoload as dependencies for cinnamon.
 
  -- Maximiliano Curia <maxy@debian.org>  Fri, 21 Feb 2014 19:39:31 +0100
 

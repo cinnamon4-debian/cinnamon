@@ -1,0 +1,231 @@
+Index: cinnamon/files/usr/lib/cinnamon-settings/bin/ExtensionCore.py
+===================================================================
+--- cinnamon.orig/files/usr/lib/cinnamon-settings/bin/ExtensionCore.py	2014-03-03 00:13:12.933695372 +0100
++++ cinnamon/files/usr/lib/cinnamon-settings/bin/ExtensionCore.py	2014-03-03 00:13:12.929695277 +0100
+@@ -336,7 +336,7 @@
+         self.select_updated = Gtk.Button("  Select updated")
+ 
+         b, w, h = Gtk.icon_size_lookup(Gtk.IconSize.BUTTON)
+-        pb = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/lib/cinnamon-settings/data/update.svg", w, h)
++        pb = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/share/cinnamon/cinnamon-settings/data/update.svg", w, h)
+         img = Gtk.Image.new_from_pixbuf(pb)
+         img.set_padding(5, -1)
+         self.select_updated.set_image(img)
+@@ -519,11 +519,11 @@
+         enabled = model.get_value(iter, 2) > 0
+         if (enabled):
+             if not self.themes:
+-                img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/lib/cinnamon-settings/data/running.svg", ROW_SIZE, ROW_SIZE)
++                img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/share/cinnamon/cinnamon-settings/data/running.svg", ROW_SIZE, ROW_SIZE)
+             else:
+-                img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/lib/cinnamon-settings/data/installed.svg", ROW_SIZE, ROW_SIZE)
++                img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/share/cinnamon/cinnamon-settings/data/installed.svg", ROW_SIZE, ROW_SIZE)
+         else:
+-            img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/lib/cinnamon-settings/data/inactive.png", ROW_SIZE, ROW_SIZE)
++            img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/share/cinnamon/cinnamon-settings/data/inactive.png", ROW_SIZE, ROW_SIZE)
+         cell.set_property('pixbuf', img)
+ 
+     def comboshow_changed(self, widget):
+@@ -664,14 +664,14 @@
+ 
+         if installed:
+             if can_update:
+-                img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/lib/cinnamon-settings/data/update.svg", ROW_SIZE, ROW_SIZE)
++                img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/share/cinnamon/cinnamon-settings/data/update.svg", ROW_SIZE, ROW_SIZE)
+                 self.update_list[uuid] = True
+             else:
+-                img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/lib/cinnamon-settings/data/installed.svg", ROW_SIZE, ROW_SIZE)
++                img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/share/cinnamon/cinnamon-settings/data/installed.svg", ROW_SIZE, ROW_SIZE)
+                 if uuid in self.update_list.keys():
+                     del self.update_list[uuid]
+         else:
+-            img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/lib/cinnamon-settings/data/inactive.png", ROW_SIZE, ROW_SIZE)
++            img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/share/cinnamon/cinnamon-settings/data/inactive.png", ROW_SIZE, ROW_SIZE)
+             if uuid in self.update_list.keys():
+                 del self.update_list[uuid]
+ 
+@@ -801,12 +801,12 @@
+                 w = -1
+                 h = 60
+             if not os.path.exists(os.path.join(self.spices.get_cache_folder(), icon_filename)):
+-                img = GdkPixbuf.Pixbuf.new_from_file_at_size( ("/usr/lib/cinnamon-settings/data/icons/%ss.svg") % (self.collection_type), w, h)
++                img = GdkPixbuf.Pixbuf.new_from_file_at_size( ("/usr/share/cinnamon/cinnamon-settings/data/icons/%ss.svg") % (self.collection_type), w, h)
+             else:
+                 try:
+                     img = GdkPixbuf.Pixbuf.new_from_file_at_size(os.path.join(self.spices.get_cache_folder(), icon_filename), w, h)
+                 except:
+-                    img = GdkPixbuf.Pixbuf.new_from_file_at_size( ("/usr/lib/cinnamon-settings/data/icons/%ss.svg") % (self.collection_type), w, h)
++                    img = GdkPixbuf.Pixbuf.new_from_file_at_size( ("/usr/share/cinnamon/cinnamon-settings/data/icons/%ss.svg") % (self.collection_type), w, h)
+             self.gm_model.set_value(iter, 3, img)
+             self.gm_model.set_value(iter, 4, int(extensionData['score']))
+             self.gm_model.set_value(iter, 5, extensionData['name'])
+@@ -1117,7 +1117,7 @@
+                                     img = GdkPixbuf.Pixbuf.new_from_file_at_size("%s/%s/icon.png" % (directory, extension), ROW_SIZE, ROW_SIZE)                            
+                                 
+                                 if img is None:                                                
+-                                    img = GdkPixbuf.Pixbuf.new_from_file_at_size( ("/usr/lib/cinnamon-settings/data/icons/%ss.svg") % (self.collection_type), ROW_SIZE, ROW_SIZE)
++                                    img = GdkPixbuf.Pixbuf.new_from_file_at_size( ("/usr/share/cinnamon/cinnamon-settings/data/icons/%ss.svg") % (self.collection_type), ROW_SIZE, ROW_SIZE)
+                                                             
+                                 self.model.set_value(iter, 4, img)
+                                 self.model.set_value(iter, 5, extension_name)
+@@ -1127,16 +1127,16 @@
+                                 self.model.set_value(iter, 9, long(last_edited))
+ 
+                                 if (os.access(directory, os.W_OK)):
+-                                    img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/lib/cinnamon-settings/data/user.png", ROW_SIZE, ROW_SIZE)
++                                    img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/share/cinnamon/cinnamon-settings/data/user.png", ROW_SIZE, ROW_SIZE)
+                                 else:
+-                                    img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/lib/cinnamon-settings/data/system.svg", ROW_SIZE, ROW_SIZE)
++                                    img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/share/cinnamon/cinnamon-settings/data/system.svg", ROW_SIZE, ROW_SIZE)
+ 
+                                 self.model.set_value(iter, 10, img)
+ 
+                                 if (found):
+-                                    img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/lib/cinnamon-settings/data/running.svg", ROW_SIZE, ROW_SIZE)
++                                    img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/share/cinnamon/cinnamon-settings/data/running.svg", ROW_SIZE, ROW_SIZE)
+                                 else:
+-                                    img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/lib/cinnamon-settings/data/inactive.png", ROW_SIZE, ROW_SIZE)
++                                    img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/share/cinnamon/cinnamon-settings/data/inactive.png", ROW_SIZE, ROW_SIZE)
+ 
+                                 self.model.set_value(iter, 11, img)
+                                 self.model.set_value(iter, 12, schema_filename)
+@@ -1188,7 +1188,7 @@
+                             if os.path.exists(os.path.join(path, "thumbnail.png")):
+                                 icon_path = os.path.join(path, "thumbnail.png")
+                             else:
+-                                icon_path = "/usr/lib/cinnamon-settings/data/icons/themes.svg"
++                                icon_path = "/usr/share/cinnamon/cinnamon-settings/data/icons/themes.svg"
+                             img = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, -1, 60)
+ 
+                             self.model.set_value(iter, 0, theme_uuid)
+@@ -1203,15 +1203,15 @@
+                             self.model.set_value(iter, 9, long(theme_last_edited))
+ 
+                             if (os.access(directory, os.W_OK)):
+-                                img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/lib/cinnamon-settings/data/user.png", ROW_SIZE, ROW_SIZE)
++                                img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/share/cinnamon/cinnamon-settings/data/user.png", ROW_SIZE, ROW_SIZE)
+                             else:
+-                                img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/lib/cinnamon-settings/data/system.svg", ROW_SIZE, ROW_SIZE)
++                                img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/share/cinnamon/cinnamon-settings/data/system.svg", ROW_SIZE, ROW_SIZE)
+ 
+                             self.model.set_value(iter, 10, img)
+                             if (found):
+-                                img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/lib/cinnamon-settings/data/installed.svg", ROW_SIZE, ROW_SIZE)
++                                img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/share/cinnamon/cinnamon-settings/data/installed.svg", ROW_SIZE, ROW_SIZE)
+                             else:
+-                                img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/lib/cinnamon-settings/data/inactive.png", ROW_SIZE, ROW_SIZE)
++                                img = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/share/cinnamon/cinnamon-settings/data/inactive.png", ROW_SIZE, ROW_SIZE)
+                             self.model.set_value(iter, 11, img)
+                             self.model.set_value(iter, 13, SETTING_TYPE_NONE)
+                     except Exception, detail:
+Index: cinnamon/files/usr/lib/cinnamon-settings/bin/Spices.py
+===================================================================
+--- cinnamon.orig/files/usr/lib/cinnamon-settings/bin/Spices.py	2014-03-03 00:13:12.933695372 +0100
++++ cinnamon/files/usr/lib/cinnamon-settings/bin/Spices.py	2014-03-03 00:13:12.933695372 +0100
+@@ -410,9 +410,9 @@
+                            self.progresslabel.set_text(_("Installing %s...") % (title))
+                     elif "gschema.xml" in file.filename:
+                         sentence = _("Please enter your password to install the required settings schema for %s") % (uuid)
+-                        if os.path.exists("/usr/bin/gksu") and os.path.exists("/usr/lib/cinnamon-settings/bin/installSchema.py"):
++                        if os.path.exists("/usr/bin/gksu") and os.path.exists("/usr/share/cinnamon/cinnamon-settings/bin/installSchema.py"):
+                             launcher = "gksu  --message \"<b>%s</b>\"" % sentence
+-                            tool = "/usr/lib/cinnamon-settings/bin/installSchema.py %s" % (os.path.join(dirname, file.filename))
++                            tool = "/usr/share/cinnamon/cinnamon-settings/bin/installSchema.py %s" % (os.path.join(dirname, file.filename))
+                             command = "%s %s" % (launcher, tool)
+                             os.system(command)
+                             schema_filename = file.filename
+@@ -508,9 +508,9 @@
+             if not self.themes:
+                 if schema_filename != "":
+                     sentence = _("Please enter your password to remove the settings schema for %s") % (uuid)
+-                    if os.path.exists("/usr/bin/gksu") and os.path.exists("/usr/lib/cinnamon-settings/bin/removeSchema.py"):
++                    if os.path.exists("/usr/bin/gksu") and os.path.exists("/usr/share/cinnamon/cinnamon-settings/bin/removeSchema.py"):
+                         launcher = "gksu  --message \"<b>%s</b>\"" % sentence
+-                        tool = "/usr/lib/cinnamon-settings/bin/removeSchema.py %s" % (schema_filename)
++                        tool = "/usr/share/cinnamon/cinnamon-settings/bin/removeSchema.py %s" % (schema_filename)
+                         command = "%s %s" % (launcher, tool)
+                         os.system(command)
+                     else:
+Index: cinnamon/files/usr/lib/cinnamon-settings/bin/XletSettings.py
+===================================================================
+--- cinnamon.orig/files/usr/lib/cinnamon-settings/bin/XletSettings.py	2014-03-03 00:13:12.933695372 +0100
++++ cinnamon/files/usr/lib/cinnamon-settings/bin/XletSettings.py	2014-03-03 00:13:12.933695372 +0100
+@@ -25,7 +25,7 @@
+         self.type = _type
+         self.current_id = None
+         self.builder = Gtk.Builder()
+-        self.builder.add_from_file("/usr/lib/cinnamon-settings/bin/xlet-settings.ui")
++        self.builder.add_from_file("/usr/share/cinnamon/cinnamon-settings/bin/xlet-settings.ui")
+         self.content = self.builder.get_object("content")
+         self.back_to_list_button = self.builder.get_object("back_to_list")
+         self.highlight_button = self.builder.get_object("highlight_button")
+Index: cinnamon/files/usr/lib/cinnamon-settings/cinnamon-settings.py
+===================================================================
+--- cinnamon.orig/files/usr/lib/cinnamon-settings/cinnamon-settings.py	2014-03-03 00:13:12.933695372 +0100
++++ cinnamon/files/usr/lib/cinnamon-settings/cinnamon-settings.py	2014-03-03 00:18:26.725226329 +0100
+@@ -5,8 +5,8 @@
+ sys.setdefaultencoding('utf-8')
+ 
+ try:
+-    sys.path.append('/usr/lib/cinnamon-settings/modules')
+-    sys.path.append('/usr/lib/cinnamon-settings/bin')
++    sys.path.append('/usr/share/cinnamon/cinnamon-settings/modules')
++    sys.path.append('/usr/share/cinnamon/cinnamon-settings/bin')
+     import os
+     import glob
+     import gettext
+@@ -17,12 +17,12 @@
+     import grp
+     import pwd
+ # Standard setting pages... this can be expanded to include applet dirs maybe?
+-    mod_files = glob.glob('/usr/lib/cinnamon-settings/modules/*.py')
++    mod_files = glob.glob('/usr/share/cinnamon/cinnamon-settings/modules/*.py')
+     mod_files.sort()
+     if len(mod_files) is 0:
+         raise Exception("No settings modules found!!")
+     for i in range(len(mod_files)):
+-        mod_files[i] = mod_files[i].split('/')[5]
++        mod_files[i] = mod_files[i].split('/')[6]
+         mod_files[i] = mod_files[i].split('.')[0]
+         if mod_files[i][0:3] != "cs_":
+             raise Exception("Settings modules must have a prefix of 'cs_' !!")
+@@ -139,7 +139,7 @@
+     def __init__(self):
+ 
+         self.builder = Gtk.Builder()
+-        self.builder.add_from_file("/usr/lib/cinnamon-settings/cinnamon-settings.ui")
++        self.builder.add_from_file("/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.ui")
+         self.window = self.builder.get_object("main_window")
+         self.top_bar = self.builder.get_object("top_bar")
+         self.bottom_bar = self.builder.get_object("bottom_bar")
+@@ -211,7 +211,7 @@
+                 for category in CATEGORIES:
+                     if category["id"] == sp_cat:
+                         category["show"] = True
+-            iconFile = "/usr/lib/cinnamon-settings/data/icons/%s" % sp.icon
++            iconFile = "/usr/share/cinnamon/cinnamon-settings/data/icons/%s" % sp.icon
+             if os.path.exists(iconFile):
+                 img = GdkPixbuf.Pixbuf.new_from_file_at_size( iconFile, 48, 48)
+             else:
+@@ -353,7 +353,7 @@
+             widget = Gtk.Separator.new(Gtk.Orientation.HORIZONTAL)
+             self.side_view_container.pack_start(widget, False, False, 10)
+         box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 4)
+-        iconFile = "/usr/lib/cinnamon-settings/data/icons/%s" % category["icon"]
++        iconFile = "/usr/share/cinnamon/cinnamon-settings/data/icons/%s" % category["icon"]
+         if os.path.exists(iconFile):
+             img = GdkPixbuf.Pixbuf.new_from_file_at_size( iconFile, 30, 30)
+             box.pack_start(Gtk.Image.new_from_pixbuf(img), False, False, 4)
+Index: cinnamon/files/usr/lib/cinnamon-settings/modules/cs_backgrounds.py
+===================================================================
+--- cinnamon.orig/files/usr/lib/cinnamon-settings/modules/cs_backgrounds.py	2014-03-03 00:13:12.933695372 +0100
++++ cinnamon/files/usr/lib/cinnamon-settings/modules/cs_backgrounds.py	2014-03-03 00:13:12.933695372 +0100
+@@ -1,7 +1,7 @@
+ #!/usr/bin/env python
+ 
+ import sys
+-sys.path.append('/usr/lib/cinnamon-settings/bin')
++sys.path.append('/usr/share/cinnamon/cinnamon-settings/bin')
+ from SettingsWidgets import *
+ import os
+ from gi.repository import Gio, Gtk, GObject, Gdk, Pango
