@@ -8,3 +8,4 @@ install-python-files-in-share.patch
 fix-settings-path
 paneljs_icon_search_path
 policy_csu_path
+capi-py_ccc_search_path
