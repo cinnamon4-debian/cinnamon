@@ -9,9 +9,9 @@ Last-Update: 2013-06-02
 
 Index: cinnamon/files/usr/lib/cinnamon-settings/modules/cs_keyboard.py
 ===================================================================
---- cinnamon.orig/files/usr/lib/cinnamon-settings/modules/cs_keyboard.py	2013-11-27 12:01:36.841039701 +0100
-+++ cinnamon/files/usr/lib/cinnamon-settings/modules/cs_keyboard.py	2013-11-27 12:01:36.841039701 +0100
-@@ -231,7 +231,7 @@
+--- cinnamon.orig/files/usr/lib/cinnamon-settings/modules/cs_keyboard.py	2014-03-12 12:44:45.643845374 +0100
++++ cinnamon/files/usr/lib/cinnamon-settings/modules/cs_keyboard.py	2014-03-12 12:44:45.639845536 +0100
+@@ -233,7 +233,7 @@
          self.label = label
          self.action = action
          self.entries = []
