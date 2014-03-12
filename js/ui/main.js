@@ -76,6 +76,7 @@ const XdndHandler = imports.ui.xdndHandler;
 const StatusIconDispatcher = imports.ui.statusIconDispatcher;
 const Util = imports.misc.util;
 const Keybindings = imports.ui.keybindings;
+const Settings = imports.ui.settings;
 
 const DEFAULT_BACKGROUND_COLOR = new Clutter.Color();
 DEFAULT_BACKGROUND_COLOR.from_pixel(0x2266bbff);
@@ -122,6 +123,7 @@ let _cssStylesheet = null;
 let dynamicWorkspaces = null;
 let nWorks = null;
 let tracker = null;
+let settingsManager = null;
 
 let workspace_names = [];
 
@@ -283,6 +285,8 @@ function start() {
 
     themeManager = new ThemeManager.ThemeManager();
 
+    settingsManager = new Settings.SettingsManager();
+
     backgroundManager = new BackgroundManager.BackgroundManager();
     
     deskletContainer = new DeskletManager.DeskletContainer();
@@ -394,7 +398,7 @@ function start() {
     global.screen.connect('restacked', _windowsRestacked);
 
     _nWorkspacesChanged();
-    
+
     AppletManager.init();
     DeskletManager.init();
 
@@ -766,14 +770,18 @@ function setThemeStylesheet(cssStylesheet)
  */
 function loadTheme() {
     let themeContext = St.ThemeContext.get_for_stage (global.stage);
-
-    let cssStylesheet = _defaultCssStylesheet;
-    if (_cssStylesheet != null)
-        cssStylesheet = _cssStylesheet;
-
     let theme = new St.Theme ();
-    theme.load_stylesheet(cssStylesheet);
-    
+    let stylesheetLoaded = false;
+    if (_cssStylesheet != null) {
+        stylesheetLoaded = theme.load_stylesheet(_cssStylesheet);
+    }
+    if (!stylesheetLoaded) {
+        theme.load_stylesheet(_defaultCssStylesheet);
+        if (_cssStylesheet != null) {
+            global.logError("There was some problem parsing the theme: " + _cssStylesheet + ".  Falling back to the default theme.");
+        }
+    }
+
     themeContext.set_theme (theme);
 }
 
@@ -1419,6 +1427,9 @@ function queueDeferredWork(workId) {
  * Returns (boolean): whether the window is interesting
  */
 function isInteresting(metaWindow) {
+    if (metaWindow.get_title() == "JavaEmbeddedFrame")
+        return false;
+
     if (tracker.is_window_interesting(metaWindow)) {
         // The nominal case.
         return true;

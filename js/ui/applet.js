@@ -56,7 +56,7 @@ MenuItem.prototype = {
                                       reactive: true });
 
         this.icon = new St.Icon({ icon_name: icon,
-                              icon_type: St.IconType.FULLCOLOR,
+                              icon_type: St.IconType.SYMBOLIC,
                               style_class: 'popup-menu-icon' });
 
         table.add(this.icon,
@@ -185,7 +185,7 @@ Applet.prototype = {
     _init: function(orientation, panel_height, instance_id) {
         this.actor = new St.BoxLayout({ style_class: 'applet-box', reactive: true, track_hover: true });        
         this._applet_tooltip = new Tooltips.PanelItemTooltip(this, "", orientation);                                        
-        this.actor.connect('button-release-event', Lang.bind(this, this._onButtonReleaseEvent));  
+        this.actor.connect('button-press-event', Lang.bind(this, this._onButtonPressEvent));  
 
         this._menuManager = new PopupMenu.PopupMenuManager(this);
         this._applet_context_menu = new AppletContextMenu(this, orientation);
@@ -252,7 +252,9 @@ Applet.prototype = {
         return this.actor;
     },
 
-    _onButtonReleaseEvent: function (actor, event) {                      
+    _onButtonPressEvent: function (actor, event) {                      
+        if (!this._draggable.inhibit)
+            return false;
         if (event.get_button()==1){
             if (this._applet_context_menu.isOpen) {
                 this._applet_context_menu.toggle(); 
@@ -407,7 +409,7 @@ Applet.prototype = {
         let items = this._applet_context_menu._getMenuItems();
 
         if (this.context_menu_item_remove == null) {
-            this.context_menu_item_remove = new MenuItem(_("Remove this applet"), Gtk.STOCK_DELETE, Lang.bind(null, AppletManager._removeAppletFromPanel, this._uuid, this.instance_id));
+            this.context_menu_item_remove = new MenuItem(_("Remove this applet"), "list-remove", Lang.bind(null, AppletManager._removeAppletFromPanel, this._uuid, this.instance_id));
         }
 
         if (this.context_menu_separator == null) {
@@ -420,7 +422,7 @@ Applet.prototype = {
         
         if (!this._meta["hide-configuration"] && GLib.file_test(this._meta["path"] + "/settings-schema.json", GLib.FileTest.EXISTS)) {     
             if (this.context_menu_item_configure == null) {            
-                this.context_menu_item_configure = new MenuItem(_("Configure..."), Gtk.STOCK_PREFERENCES, Lang.bind(this, function() {
+                this.context_menu_item_configure = new MenuItem(_("Configure..."), "system-run", Lang.bind(this, function() {
                     Util.spawnCommandLine("cinnamon-settings applets " + this._uuid + " " + this.instance_id)
                 }));
             }
@@ -475,6 +477,8 @@ IconApplet.prototype = {
      * The icon will be full color
      */
     set_applet_icon_name: function (icon_name) {
+        if (this._applet_icon_box.child) this._applet_icon_box.child.destroy();
+        this._applet_icon_box.child = null;
         if (this._scaleMode) {
             this._applet_icon = new St.Icon({icon_name: icon_name, icon_size: this._panelHeight * COLOR_ICON_HEIGHT_FACTOR,
                                             icon_type: St.IconType.FULLCOLOR, reactive: true, track_hover: true, style_class: 'applet-icon' });
@@ -495,6 +499,8 @@ IconApplet.prototype = {
      * The icon will be symbolic
      */
     set_applet_icon_symbolic_name: function (icon_name) {
+        if (this._applet_icon_box.child) this._applet_icon_box.child.destroy();
+        this._applet_icon_box.child = null;
         if (this._scaleMode) {
             let height = (this._panelHeight / DEFAULT_PANEL_HEIGHT) * PANEL_SYMBOLIC_ICON_DEFAULT_HEIGHT;
             this._applet_icon = new St.Icon({icon_name: icon_name, icon_size: height, icon_type: St.IconType.SYMBOLIC, reactive: true, track_hover: true, style_class: 'system-status-icon' });
@@ -511,16 +517,45 @@ IconApplet.prototype = {
      * @icon_path (string): path of the icon
      * 
      * Sets the icon of the applet to the image file at @icon_path
+     * 
+     * The icon will be full color
      */
     set_applet_icon_path: function (icon_path) {
         if (this._applet_icon_box.child) this._applet_icon_box.child.destroy();
-
+        this._applet_icon_box.child = null;
         if (icon_path){
             let file = Gio.file_new_for_path(icon_path);
             let gicon = new Gio.FileIcon({ file: file });
             if (this._scaleMode) {
                 this._applet_icon = new St.Icon({gicon: gicon, icon_size: this._panelHeight * COLOR_ICON_HEIGHT_FACTOR,
                                                 icon_type: St.IconType.FULLCOLOR, reactive: true, track_hover: true, style_class: 'applet-icon' });
+            } else {
+                this._applet_icon = new St.Icon({gicon: gicon, icon_size: 22, icon_type: St.IconType.FULLCOLOR, reactive: true, track_hover: true, style_class: 'applet-icon' });
+            }
+            this._applet_icon_box.child = this._applet_icon;
+        }
+        this.__icon_type = -1;
+        this.__icon_name = icon_path;
+    },
+
+    /**
+     * set_applet_icon_symbolic_path:
+     * @icon_path (string): path of the icon
+     * 
+     * Sets the icon of the applet to the image file at @icon_path
+     * 
+     * The icon will be symbolic
+     */
+    set_applet_icon_symbolic_path: function(icon_path) {
+        if (this._applet_icon_box.child) this._applet_icon_box.child.destroy();
+        this._applet_icon_box.child = null;
+        if (icon_path){
+            let file = Gio.file_new_for_path(icon_path);
+            let gicon = new Gio.FileIcon({ file: file });
+            if (this._scaleMode) {
+                let height = (this._panelHeight / DEFAULT_PANEL_HEIGHT) * PANEL_SYMBOLIC_ICON_DEFAULT_HEIGHT;
+                this._applet_icon = new St.Icon({gicon: gicon, icon_size: height,
+                                                icon_type: St.IconType.SYMBOLIC, reactive: true, track_hover: true, style_class: 'applet-icon' });
             } else {
                 this._applet_icon = new St.Icon({gicon: gicon, icon_size: 22, icon_type: St.IconType.FULLCOLOR, reactive: true, track_hover: true, style_class: 'applet-icon' });
             }
@@ -632,10 +667,12 @@ TextIconApplet.prototype = {
      */
     set_applet_label: function (text) {
         this._applet_label.set_text(text);
-        if (text && text != "")
+        if ((text && text != "") && this._applet_icon_box.child) {
             this._applet_label.set_margin_left(6.0);
-        else
+        }
+        else {
             this._applet_label.set_margin_left(0);
+        }
     },
 
     /**
