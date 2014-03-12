@@ -1,17 +1,17 @@
-cinnamon (2.0.14-1~4) UNRELEASED; urgency=low
+cinnamon (2.0.14+git20140306-1~) UNRELEASED; urgency=medium
+
+  * New upstream release
 
   [ Nicolas Bourdaud ]
-  * New upstream cinnamon_1.9.1
-    - delete patch: delete-unused-imports.patch (applied upstream)
-    - delete patch: remove-background-bumpmap.patch (applied upstream)
-    - updated: no-mdmsetup-settings.patch
+  * Delete patch: delete-unused-imports.patch (applied upstream)
+  * Delete patch: remove-background-bumpmap.patch (applied upstream)
+  * Updated: no-mdmsetup-settings.patch
 
   [ Margarita Manterola ]
   * Added patch to fix the relocation of cinnamon-settings
   * Added cinnamon-screensaver and nemo-autoload as dependencies for cinnamon.
 
   [ Maximiliano Curia ]
-  * New upstream release cinnamon 2.0.14
   * Refresh patches.
   * Update build dependencies.
   * Update install files.
