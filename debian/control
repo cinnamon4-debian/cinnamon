@@ -62,7 +62,6 @@ Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
 Depends: caribou,
          cinnamon-common (= ${source:Version}),
-         cinnamon-control-center | gnome-control-center,
          cinnamon-desktop-data (>= 1.0.0),
          cinnamon-screensaver,
          cinnamon-session,
@@ -109,8 +108,7 @@ Depends: caribou,
          ${misc:Depends},
          ${python:Depends},
          ${shlibs:Depends}
-Recommends: gnome-control-center
-Breaks: gnome-control-center (<< 1:3.0)
+Recommends: cinnamon-control-center, cinnamon-bluetooth
 Provides: x-window-manager
 Description: Innovative and comfortable desktop
  Cinnamon is a desktop environment which provides advanced innovative
