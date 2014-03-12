@@ -8,3 +8,4 @@
 /usr/share/applications/cinnamon2d.desktop
 /usr/share/dbus-1/services/*.Cinnamon.*
 /usr/share/man/*/*cinnamon*
+/usr/share/polkit-1/actions/org.cinnamon.settings-users.policy
