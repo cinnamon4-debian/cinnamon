@@ -23,6 +23,7 @@ cinnamon (2.0.14+git20140306-1~) UNRELEASED; urgency=medium
   * Do not depend on translations.
   * Update the wm file.
   * New patch: paneljs_icon_search_path
+  * New patch: policy_csu_path
 
  -- Maximiliano Curia <maxy@debian.org>  Fri, 21 Feb 2014 19:39:31 +0100
 

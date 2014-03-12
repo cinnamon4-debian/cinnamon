@@ -1,0 +1,13 @@
+Index: cinnamon/files/usr/share/polkit-1/actions/org.cinnamon.settings-users.policy
+===================================================================
+--- cinnamon.orig/files/usr/share/polkit-1/actions/org.cinnamon.settings-users.policy	2014-03-12 12:38:19.283453704 +0100
++++ cinnamon/files/usr/share/polkit-1/actions/org.cinnamon.settings-users.policy	2014-03-12 13:16:56.870794249 +0100
+@@ -12,7 +12,7 @@
+       <allow_inactive>auth_admin</allow_inactive>
+       <allow_active>auth_admin</allow_active>
+     </defaults>
+-    <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/cinnamon-settings-users/cinnamon-settings-users.py</annotate>
++    <annotate key="org.freedesktop.policykit.exec.path">/usr/share/cinnamon/cinnamon-settings-users/cinnamon-settings-users.py</annotate>
+     <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
+   </action>
+ 
