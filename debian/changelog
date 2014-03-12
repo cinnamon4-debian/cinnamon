@@ -1,4 +1,4 @@
-cinnamon (2.0.14+git20140306-1~) UNRELEASED; urgency=medium
+cinnamon (2.0.14+git20140306-1~1) UNRELEASED; urgency=medium
 
   * New upstream release
 
@@ -26,7 +26,7 @@ cinnamon (2.0.14+git20140306-1~) UNRELEASED; urgency=medium
   * New patch: policy_csu_path
   * New patch: capi-py_ccc_search_path
 
- -- Maximiliano Curia <maxy@debian.org>  Fri, 21 Feb 2014 19:39:31 +0100
+ -- Maximiliano Curia <maxy@debian.org>  Wed, 12 Mar 2014 14:57:18 +0100
 
 cinnamon (1.7.4-2) unstable; urgency=low
 
