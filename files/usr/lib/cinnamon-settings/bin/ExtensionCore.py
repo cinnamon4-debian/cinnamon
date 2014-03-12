@@ -702,7 +702,7 @@ class ExtensionSidePage (SidePage):
             cell.set_property("active", False)
 
     def only_active(self, model, iterr, data=None):
-        query = self.search_entry.get_buffer().get_text()
+        query = self.search_entry.get_buffer().get_text().lower()
         extensionName = model.get_value(iterr, 5)
         
         enabled = model.get_value(iterr, 2)
@@ -718,16 +718,6 @@ class ExtensionSidePage (SidePage):
             return enabled == 0 and (query == "" or query in extensionName.lower())
         else:
             return False
-
-    def match_func(self, model, iterr, data=None):
-        query = self.search_entry.get_buffer().get_text()
-        value = model.get_value(iterr, 5)
-        
-        if query == "":
-            return True
-        elif query in value.lower():
-            return True
-        return False
 
     def on_entry_refilter(self, widget, data=None):
         self.modelfilter.refilter()
@@ -1015,8 +1005,9 @@ class ExtensionSidePage (SidePage):
 
     def _restore_default_extensions(self):
         if not self.themes:
-            os.system(('gsettings reset org.cinnamon next-%s-id') % (self.collection_type))
-            os.system(('gsettings reset org.cinnamon enabled-%ss') % (self.collection_type))
+            if self.show_prompt(_("This will restore the default set of enabled %s.  Are you sure you want to do this?") % (self.pl_noun)):
+                os.system(('gsettings reset org.cinnamon next-%s-id') % (self.collection_type))
+                os.system(('gsettings reset org.cinnamon enabled-%ss') % (self.collection_type))
         else:
             os.system("gsettings reset org.cinnamon.theme name")
 
