@@ -1,0 +1,22 @@
+Index: cinnamon/js/ui/panel.js
+===================================================================
+--- cinnamon.orig/js/ui/panel.js	2014-02-21 19:35:21.324516649 +0100
++++ cinnamon/js/ui/panel.js	2014-03-12 11:14:14.315893135 +0100
+@@ -602,7 +602,7 @@
+ Panel.prototype = {
+     _init : function(bottomPosition, isPrimary) {
+ 
+-        Gtk.IconTheme.get_default().append_search_path("/usr/lib/cinnamon-settings/data/icons/");
++        Gtk.IconTheme.get_default().append_search_path("/usr/share/cinnamon/cinnamon-settings/data/icons/");
+ 
+         this.bottomPosition = bottomPosition;
+         this.isPrimary = isPrimary;
+@@ -615,7 +615,7 @@
+             this.panel_sd_key = "panel2-show-delay";
+             this.panel_hd_key = "panel2-hide-delay";
+         }
+-    	this._hidden = false;
++        this._hidden = false;
+         this._disabled = false;
+         this._panelEditMode = false;
+         this._hidetime = 0;

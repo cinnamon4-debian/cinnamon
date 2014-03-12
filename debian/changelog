@@ -6,6 +6,10 @@ cinnamon (2.0.14-1~4) UNRELEASED; urgency=low
     - delete patch: remove-background-bumpmap.patch (applied upstream)
     - updated: no-mdmsetup-settings.patch
 
+  [ Margarita Manterola ]
+  * Added patch to fix the relocation of cinnamon-settings
+  * Added cinnamon-screensaver and nemo-autoload as dependencies for cinnamon.
+
   [ Maximiliano Curia ]
   * New upstream release cinnamon 2.0.14
   * Refresh patches.
@@ -18,10 +22,7 @@ cinnamon (2.0.14-1~4) UNRELEASED; urgency=low
   * Use iceweasel by default.
   * Do not depend on translations.
   * Update the wm file.
-
-  [ Margarita Manterola ]
-  * Added patch to fix the relocation of cinnamon-settings
-  * Added cinnamon-screensaver and nemo-autoload as dependencies for cinnamon.
+  * New patch: paneljs_icon_search_path
 
  -- Maximiliano Curia <maxy@debian.org>  Fri, 21 Feb 2014 19:39:31 +0100
 
