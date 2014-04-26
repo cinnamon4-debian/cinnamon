@@ -26,6 +26,7 @@ cinnamon (2.2.3-1~1) UNRELEASED; urgency=medium
   * Added patch to fix the relocation of cinnamon-settings
   * Added cinnamon-screensaver and nemo-autoload as dependencies for cinnamon.
   * Updated to 2.2.3
+  * Refreshed patches for 2.2.3
 
  -- Margarita Manterola <marga@debian.org>  Sat, 26 Apr 2014 13:27:12 +0200
 
