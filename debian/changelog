@@ -1,6 +1,6 @@
 cinnamon (2.2.3-1~1) UNRELEASED; urgency=medium
 
-  * New upstream release.
+  * New upstream release (Closes: #737565, #745319).
   * New maintainers (Closes: #743026)
 
   [ Nicolas Bourdaud ]
@@ -26,7 +26,7 @@ cinnamon (2.2.3-1~1) UNRELEASED; urgency=medium
   [ Margarita Manterola ]
   * Added patch to fix the relocation of cinnamon-settings
   * Added cinnamon-screensaver and nemo-autoload as dependencies for cinnamon.
-  * Updated to 2.2.3
+  * Updated to 2.2.3.
   * Refreshed patches for 2.2.3
 
  -- Margarita Manterola <marga@debian.org>  Sat, 26 Apr 2014 13:27:12 +0200
