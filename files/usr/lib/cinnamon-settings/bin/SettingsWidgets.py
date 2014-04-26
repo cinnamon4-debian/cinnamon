@@ -23,13 +23,14 @@ try:
     import tempfile
     import math
     import subprocess
+    import random
 
 except Exception, detail:
     print detail
     sys.exit(1)
 
 class SidePage:
-    def __init__(self, name, icon, keywords, advanced, content_box = None, size = None, is_c_mod = False, is_standalone = False, exec_name = None, module=None):
+    def __init__(self, name, icon, keywords, content_box = None, size = None, is_c_mod = False, is_standalone = False, exec_name = None, module=None):
         self.name = name
         self.icon = icon
         self.content_box = content_box
@@ -39,20 +40,27 @@ class SidePage:
         self.exec_name = exec_name
         self.module = module # Optionally set by the module so we can call on_module_selected() on it when we show it.
         self.keywords = keywords
-        self.advanced = advanced
         self.size = size
         self.topWindow = None
         self.builder = None
+        if self.module != None:
+            self.module.loaded = False
 
-    def add_widget(self, widget, advanced = False):
-        self.widgets.append(widget)
-        widget.advanced = advanced
+    def add_widget(self, widget):
+        self.widgets.append(widget)        
 
-    def build(self, mode_advanced):
+    def build(self):        
         # Clear all the widgets from the content box
         widgets = self.content_box.get_children()
         for widget in widgets:
             self.content_box.remove(widget)
+
+        random.shuffle(self.widgets)
+
+        if (self.module is not None):
+            self.module.on_module_selected()
+            self.module.loaded = True
+
         # Add our own widgets
         # C modules are sort of messy - they check the desktop type
         # (for Unity or GNOME) and show/hide UI items depending on
@@ -61,10 +69,10 @@ class SidePage:
         # top-level widget
         if not self.is_standalone:
             for widget in self.widgets:
-                if widget.advanced:
-                    if not mode_advanced:
-                        continue
-                self.content_box.pack_start(widget, False, False, 2)
+                if hasattr(widget, 'expand'):
+                    self.content_box.pack_start(widget, True, True, 2)
+                else:
+                    self.content_box.pack_start(widget, False, False, 2)
             if self.is_c_mod:
                 self.content_box.show()
                 children = self.content_box.get_children()
@@ -80,16 +88,18 @@ class SidePage:
                         else:
                             for c_widget in c_widgets:
                                 c_widget.show()
-            else:                
+            else:
                 self.content_box.show_all()
-                if (self.module is not None):
-                    self.module.on_module_selected()
+                try:
+                    self.check_third_arg()
+                except:
+                    pass
         else:
             subprocess.Popen(self.exec_name.split())
 
 class CCModule:
-    def __init__(self, label, mod_id, icon, category, advanced, keywords, content_box):
-        sidePage = SidePage(label, icon, keywords, advanced, content_box, False, True, False, mod_id)
+    def __init__(self, label, mod_id, icon, category, keywords, content_box):
+        sidePage = SidePage(label, icon, keywords, content_box, False, True, False, mod_id)
         self.sidePage = sidePage
         self.name = mod_id
         self.category = category
@@ -105,8 +115,8 @@ class CCModule:
             return False
 
 class SAModule:
-    def __init__(self, label, mod_id, icon, category, advanced, keywords, content_box):
-        sidePage = SidePage(label, icon, keywords, advanced, content_box, False, False, True, mod_id)
+    def __init__(self, label, mod_id, icon, category, keywords, content_box):
+        sidePage = SidePage(label, icon, keywords, content_box, False, False, True, mod_id)
         self.sidePage = sidePage
         self.name = mod_id
         self.category = category
@@ -151,10 +161,60 @@ def rec_mkdir(path):
         return
     os.mkdir(path)
 
+class Section(Gtk.Box):
+    def __init__(self, name):
+        self.name = name
+        super(Section, self).__init__()
+        self.set_orientation(Gtk.Orientation.VERTICAL)
+        self.set_border_width(6)
+        self.set_spacing(6)
+        self.label = Gtk.Label()
+        self.label.set_markup("<b>%s</b>" % self.name)
+        hbox = Gtk.Box()
+        hbox.set_orientation(Gtk.Orientation.HORIZONTAL)
+        hbox.pack_start(self.label, False, False, 0)
+        self.pack_start(hbox, False, True, 0)
+
+    def add(self, widget):
+        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        box.set_margin_left(40)
+        box.set_margin_right(10)
+        box.pack_start(widget, False, True, 0)
+        self.pack_start(box, False, False, 0)
+
+    def add_expand(self, widget):
+        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        box.set_margin_left(40)
+        box.set_margin_right(10)
+        box.pack_start(widget, True, True, 0)
+        self.pack_start(box, False, False, 0)
+
+    def add_indented(self, widget):
+        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        box.set_margin_left(80)
+        box.set_margin_right(10)
+        box.pack_start(widget, False, True, 0)
+        self.pack_start(box, False, False, 0)
+
+    def add_indented_expand(self, widget):
+        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        box.set_margin_left(80)
+        box.set_margin_right(10)
+        box.pack_start(widget, True, True, 0)
+        self.pack_start(box, False, False, 0)
+
+class SectionBg(Gtk.Viewport):
+    def __init__(self):
+        Gtk.Viewport.__init__(self)
+        self.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
+        style = self.get_style_context()
+        style.add_class("section-bg")
+        self.expand = True # Tells CS to give expand us to the whole window
+
 class IndentedHBox(Gtk.HBox):
     def __init__(self):
         super(IndentedHBox, self).__init__()
-        indent = Gtk.Label('\t')
+        indent = Gtk.Label.new('\t')
         self.pack_start(indent, False, False, 0)
 
     def add(self, item):
@@ -167,7 +227,7 @@ class GSettingsCheckButton(Gtk.CheckButton):
     def __init__(self, label, schema, key, dep_key):
         self.key = key
         self.dep_key = dep_key
-        super(GSettingsCheckButton, self).__init__(label)
+        super(GSettingsCheckButton, self).__init__(label = label)
         self.settings = Gio.Settings.new(schema)        
         self.set_active(self.settings.get_boolean(self.key))
         self.settings.connect("changed::"+self.key, self.on_my_setting_changed)
@@ -204,9 +264,9 @@ class GSettingsSpinButton(Gtk.HBox):
         self.max = max
         self.dep_key = dep_key
         super(GSettingsSpinButton, self).__init__()        
-        self.label = Gtk.Label(label)       
+        self.label = Gtk.Label.new(label)       
         self.content_widget = Gtk.SpinButton()
-        self.units = Gtk.Label(units)        
+        self.units = Gtk.Label.new(units)        
         if (label != ""):       
             self.pack_start(self.label, False, False, 2)
         self.pack_start(self.content_widget, False, False, 2)
@@ -266,7 +326,7 @@ class GSettingsEntry(Gtk.HBox):
         self.key = key
         self.dep_key = dep_key
         super(GSettingsEntry, self).__init__()
-        self.label = Gtk.Label(label)       
+        self.label = Gtk.Label.new(label)       
         self.content_widget = Gtk.Entry()
         self.pack_start(self.label, False, False, 5)        
         self.add(self.content_widget)     
@@ -305,7 +365,7 @@ class GSettingsFileChooser(Gtk.HBox):
         self.dep_key = dep_key
         self.show_none_cb = show_none_cb
         super(GSettingsFileChooser, self).__init__()
-        self.label = Gtk.Label(label)       
+        self.label = Gtk.Label.new(label)       
         self.content_widget = Gtk.FileChooserButton()
         self.pack_start(self.label, False, False, 2)
         self.add(self.content_widget)
@@ -366,7 +426,7 @@ class GSettingsFontButton(Gtk.HBox):
         self.settings = Gio.Settings.new(schema)
         self.value = self.settings.get_string(key)
         
-        self.label = Gtk.Label(label)
+        self.label = Gtk.Label.new(label)
 
         self.content_widget = Gtk.FontButton()
         self.content_widget.set_font_name(self.value)
@@ -404,7 +464,7 @@ class GSettingsFontButton(Gtk.HBox):
 #        self.settings = Gio.Settings.new(schema)
 #        self.value = self.settings.get_double(self.key)
 #        
-#        self.label = Gtk.Label(label)
+#        self.label = Gtk.Label.new(label)
 #
 #        #returned variant is range:(min, max)
 #        _min, _max = self.settings.get_range(self.key)[1]
@@ -450,9 +510,9 @@ class GSettingsRange(Gtk.HBox):
             self.value = self.settings.get_uint(self.key) * 1.0
         elif self.valtype == "double":
             self.value = self.settings.get_double(self.key) * 1.0
-        self.label = Gtk.Label(label)
+        self.label = Gtk.Label.new(label)
         self.label.set_alignment(1.0, 0.5)
-        self.label.set_size_request(100, -1)
+        self.label.set_size_request(150, -1)
         self.low_label = Gtk.Label()
         self.low_label.set_alignment(0.5, 0.5)
         self.low_label.set_size_request(60, -1)
@@ -573,12 +633,15 @@ class GSettingsRange(Gtk.HBox):
                 result =  (value * self._range) + self._min
         return round(result)
 
+    def add_mark(self, value, position, markup):
+        self.content_widget.add_mark((value - self._min) / self._range, position, markup)
+
 class GSettingsRangeSpin(Gtk.HBox):
     def __init__(self, label, schema, key, dep_key, **options):
         self.key = key
         self.dep_key = dep_key
         super(GSettingsRangeSpin, self).__init__()
-        self.label = Gtk.Label(label)
+        self.label = Gtk.Label.new(label)
         self.content_widget = Gtk.SpinButton()
 
         if (label != ""):
@@ -631,7 +694,7 @@ class GSettingsComboBox(Gtk.HBox):
         self.settings = Gio.Settings.new(schema)        
         self.value = self.settings.get_string(self.key)
                       
-        self.label = Gtk.Label(label)       
+        self.label = Gtk.Label.new(label)       
         self.model = Gtk.ListStore(str, str)
         selected = None
         for option in options:
@@ -689,7 +752,7 @@ class GSettingsIntComboBox(Gtk.HBox):
         else:
             self.value = self.settings.get_int(self.key)
 
-        self.label = Gtk.Label(label)
+        self.label = Gtk.Label.new(label)
         self.model = Gtk.ListStore(int, str)
         selected = None
         for option in options:
@@ -738,6 +801,54 @@ class GSettingsIntComboBox(Gtk.HBox):
         else:
             self.set_sensitive(not self.dep_settings.get_boolean(self.dep_key))
 
+class GSettingsUIntComboBox(Gtk.HBox):
+    def __init__(self, label, schema, key, options):
+        self.key = key
+        super(GSettingsUIntComboBox, self).__init__()
+        self.settings = Gio.Settings.new(schema)
+        self.value = self.settings.get_uint(self.key)
+
+        self.label = Gtk.Label.new(label)
+        self.model = Gtk.ListStore(int, str)
+        selected = None
+        for option in options:
+            iter = self.model.insert_before(None, None)
+            self.model.set_value(iter, 0, option[0])
+            self.model.set_value(iter, 1, option[1])
+            if (option[0] == self.value):
+                selected = iter
+
+        self.content_widget = Gtk.ComboBox.new_with_model(self.model)
+        renderer_text = Gtk.CellRendererText()
+        self.content_widget.pack_start(renderer_text, True)
+        self.content_widget.add_attribute(renderer_text, "text", 1)
+
+        if selected is not None:
+            self.content_widget.set_active_iter(selected)
+
+        if (label != ""):
+            self.pack_start(self.label, False, False, 2)
+        self.pack_start(self.content_widget, False, True, 2)
+        self.content_widget.connect('changed', self.on_my_value_changed)
+        self.content_widget.show_all()
+        self.dependency_invert = False
+        if self.dep_key is not None:
+            if self.dep_key[0] == '!':
+                self.dependency_invert = True
+                self.dep_key = self.dep_key[1:]
+            split = self.dep_key.split('/')
+            self.dep_settings = Gio.Settings.new(split[0])
+            self.dep_key = split[1]
+            self.dep_settings.connect("changed::"+self.dep_key, self.on_dependency_setting_changed)
+            self.on_dependency_setting_changed(self, None)
+
+    def on_my_value_changed(self, widget):
+        tree_iter = widget.get_active_iter()
+        if tree_iter != None:
+            value = self.model[tree_iter][0]
+            self.settings.set_uint(self.key, value)
+
+
 class GSettingsColorChooser(Gtk.ColorButton):
     def __init__(self, schema, key, dep_key):
         Gtk.ColorButton.__init__(self)
@@ -780,7 +891,7 @@ class GSettingsColorChooser(Gtk.ColorButton):
 #         self.settings = gconf.client_get_default()
 #         self.value = self.settings.get_string(key)
         
-#         self.label = Gtk.Label(label)
+#         self.label = Gtk.Label.new(label)
 
 #         self.content_widget = Gtk.FontButton()
 #         self.content_widget.set_font_name(self.value)
@@ -802,7 +913,7 @@ class GSettingsColorChooser(Gtk.ColorButton):
 #         if not self.value:
 #             self.value = init_value
                       
-#         self.label = Gtk.Label(label)       
+#         self.label = Gtk.Label.new(label)       
 #         self.model = Gtk.ListStore(str, str)
 #         selected = None
 #         for option in options:

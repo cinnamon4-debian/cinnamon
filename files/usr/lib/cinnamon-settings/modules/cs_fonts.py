@@ -1,22 +1,63 @@
 #!/usr/bin/env python
 
 from SettingsWidgets import *
+from gi.repository import Gtk
+
 
 class Module:
     def __init__(self, content_box):
         keywords = _("font, size, small, large")
-        advanced = False
-        sidePage = SidePage(_("Fonts"), "fonts.svg", keywords, advanced, content_box)
+        sidePage = SidePage(_("Fonts"), "cs-fonts", keywords, content_box, module=self)
         self.sidePage = sidePage
         self.name = "fonts"
         self.category = "appear"
-        self.comment = _("Configure system fonts")
-        sidePage.add_widget(GSettingsFontButton(_("Default font"), "org.cinnamon.desktop.interface", "font-name", None))
-        sidePage.add_widget(GSettingsFontButton(_("Document font"), "org.gnome.desktop.interface", "document-font-name", None))
-        sidePage.add_widget(GSettingsFontButton(_("Monospace font"), "org.gnome.desktop.interface", "monospace-font-name", None))
-        sidePage.add_widget(GSettingsFontButton(_("Window title font"), "org.cinnamon.desktop.wm.preferences", "titlebar-font", None))
-        sidePage.add_widget(GSettingsRangeSpin(_("Text scaling factor"), "org.cinnamon.desktop.interface", "text-scaling-factor", None, adjustment_step = 0.1), True)
-        sidePage.add_widget(GSettingsComboBox(_("Antialiasing"), "org.cinnamon.settings-daemon.plugins.xsettings", "antialiasing", None, [(i, i.title()) for i in ("none", "grayscale", "rgba")]), True)
-        sidePage.add_widget(GSettingsComboBox(_("Hinting"), "org.cinnamon.settings-daemon.plugins.xsettings", "hinting", None, [(i, i.title()) for i in ("none", "slight", "medium", "full")]), True)
-        
+        self.comment = _("Configure system fonts")        
 
+    def on_module_selected(self):
+        if not self.loaded:
+            print "Loading Fonts module"
+            bg = SectionBg()        
+            self.sidePage.add_widget(bg)
+            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            bg.add(vbox)
+            
+            section = Section(_("Font Selection"))
+            section.add(self.make_combo_group(GSettingsFontButton, _("Default font"), "org.cinnamon.desktop.interface", "font-name", None))
+            section.add(self.make_combo_group(GSettingsFontButton, _("Document font"), "org.gnome.desktop.interface", "document-font-name", None))
+            section.add(self.make_combo_group(GSettingsFontButton, _("Monospace font"), "org.gnome.desktop.interface", "monospace-font-name", None))
+            section.add(self.make_combo_group(GSettingsFontButton, _("Window title font"), "org.cinnamon.desktop.wm.preferences", "titlebar-font", None))
+            vbox.add(section)
+            
+            vbox.add(Gtk.Separator.new(Gtk.Orientation.HORIZONTAL))
+
+            section = Section(_("Font Settings"))        
+            section.add(self.make_combo_group(GSettingsRangeSpin, _("Text scaling factor"), "org.cinnamon.desktop.interface", "text-scaling-factor", None))
+            section.add(self.make_combo_group(GSettingsComboBox, _("Antialiasing"), "org.cinnamon.settings-daemon.plugins.xsettings", "antialiasing", None))
+            section.add(self.make_combo_group(GSettingsComboBox, _("Hinting"), "org.cinnamon.settings-daemon.plugins.xsettings", "hinting", None))
+            vbox.add(section)
+
+    def make_combo_group(self, widget, group_label, root, key, ex1):
+        self.size_groups = getattr(self, "size_groups", [Gtk.SizeGroup.new(Gtk.SizeGroupMode.HORIZONTAL) for x in range(2)])
+        
+        box = IndentedHBox()
+        label = Gtk.Label()
+        label.set_markup(group_label)
+        label.props.xalign = 0.0
+        self.size_groups[0].add_widget(label)
+        box.pack_start(label, False, False, 0)
+
+        if (key == "text-scaling-factor"):
+            w = widget("", root, key, None, adjustment_step = 0.1)
+        elif (key == "antialiasing"):
+            w = widget("", root, key, None, [(i, i.title()) for i in ("none", "grayscale", "rgba")])
+            w.set_tooltip_text(_("Antialiasing makes on screen text smoother and easier to read"))
+        elif (key == "hinting"):
+            w = widget("", root, key, None, [(i, i.title()) for i in ("none", "slight", "medium", "full")])
+            w.set_tooltip_text(_("Hinting allows for producing clear, legible text on screen."))
+        else:
+            w = widget("", root, key, None)
+
+        self.size_groups[1].add_widget(w)
+        box.pack_start(w, False, False, 15)
+        
+        return box

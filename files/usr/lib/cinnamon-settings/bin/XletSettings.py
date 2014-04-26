@@ -90,7 +90,7 @@ class XletSetting:
         if os.path.exists(path) and os.path.isdir(path):
             if os.path.exists("%s/metadata.json" % path):
                 raw_data = open("%s/metadata.json" % path).read()
-                self.applet_meta = json.loads(raw_data)
+                self.applet_meta = json.loads(raw_data.decode('utf-8'))
                 return True
         return False
 
@@ -105,7 +105,7 @@ class XletSetting:
                 for instance in instances:
                     raw_data = open("%s/%s" % (path, instance)).read()
                     try:
-                        js = json.loads(raw_data, object_pairs_hook=collections.OrderedDict)
+                        js = json.loads(raw_data.decode('utf-8'), object_pairs_hook=collections.OrderedDict)
                     except:
                         raise Exception("Failed to parse settings JSON data for %s %s" % (self.type, self.uuid))
                     instance_id = instance.split(".json")[0]
@@ -146,7 +146,12 @@ class XletSetting:
 
     def build_notebook(self):
         self.nb = Gtk.Notebook()
-        i = 1
+        i = 0
+        target_instance = -1
+        target_page = -1
+        if len(sys.argv) > 3:
+            target_instance = sys.argv[3]
+
         for instance_key in self.applet_settings.keys():
 
             view = Gtk.ScrolledWindow()
@@ -169,12 +174,19 @@ class XletSetting:
                     content_box.pack_start(widgets[widget_key], False, False, 2)
                 if len(widgets[widget_key].dependents) > 0:
                     widgets[widget_key].update_dependents()
-            self.nb.append_page(view, Gtk.Label(_("Instance %s") % i))
+            view.show()
+            self.nb.append_page(view, Gtk.Label.new(_("Instance %d") % (i + 1)))
             view.key = instance_key
+            if view.key == target_instance:
+                target_page = i
             i += 1
 
         self.content.pack_start(self.nb, True, True, 2)
         self.nb.set_scrollable(True)
+
+        if target_page != -1:
+            self.nb.set_current_page(target_page)
+
         self.nb.connect("switch-page", self.on_page_changed)
 
     def on_page_changed(self, nb, page, num):

@@ -101,6 +101,13 @@ AppMenuButtonRightClickMenu.prototype = {
         let itemOnAllWorkspaces = new PopupMenu.PopupMenuItem(_("Visible on all workspaces"));
         itemOnAllWorkspaces.connect('activate', Lang.bind(this, this._toggleOnAllWorkspaces));
 
+        let itemRestoreOpacity = new PopupMenu.PopupMenuItem(_("Restore to full opacity"));
+        itemRestoreOpacity.connect('activate', Lang.bind(this, this._onRestoreOpacity));
+
+        if (this.metaWindow.get_compositor_private().opacity == 255) {
+            itemRestoreOpacity.actor.hide()
+        }
+
         if (mw.is_on_all_workspaces()) {
             itemOnAllWorkspaces.label.set_text(_("Only on this workspace"));
             itemMoveToLeftWorkspace.actor.hide();
@@ -141,6 +148,7 @@ AppMenuButtonRightClickMenu.prototype = {
             itemCloseAllWindows,
             itemCloseOtherWindows,
             new PopupMenu.PopupSeparatorMenuItem(),
+            itemRestoreOpacity,
             itemMinimizeWindow,
             itemMaximizeWindow,
             itemCloseWindow
@@ -148,6 +156,10 @@ AppMenuButtonRightClickMenu.prototype = {
         (this.orientation == St.Side.BOTTOM ? items : items.reverse()).forEach(function(item) {
             this.addMenuItem(item);
         }, this);
+     },
+
+     _onRestoreOpacity: function(actor, event) {
+        this.metaWindow.get_compositor_private().set_opacity(255);
      },
 
      _onToggled: function(actor, isOpening){
@@ -613,7 +625,7 @@ AppMenuButton.prototype = {
         alloc.natural_size = naturalSize;
         [minSize, naturalSize] = this._label.get_preferred_width(forHeight);
 	alloc.min_size = alloc.min_size + Math.max(0, minSize - Math.floor(alloc.min_size / 2));
-        alloc.natural_size = 150;
+        alloc.natural_size = 150 * global.ui_scale;
     },
 
     _getContentPreferredHeight: function(actor, forWidth, alloc) {
@@ -648,7 +660,7 @@ AppMenuButton.prototype = {
         }
         this._iconBox.allocate(childBox, flags);
 
-        let iconWidth = this.iconSize;
+        let iconWidth = this.iconSize * global.ui_scale;
 
         [minWidth, minHeight, naturalWidth, naturalHeight] = this._label.get_preferred_size();
 
@@ -695,7 +707,7 @@ AppMenuButton.prototype = {
       let app = tracker.get_window_app(this.metaWindow);
 
       if (global.settings.get_boolean('panel-scale-text-icons') && global.settings.get_boolean('panel-resizable')) {
-        this.iconSize = Math.round(panel_height * ICON_HEIGHT_FACTOR);
+        this.iconSize = Math.round(panel_height * ICON_HEIGHT_FACTOR / global.ui_scale);
       }
       else {
         this.iconSize = DEFAULT_ICON_SIZE;
@@ -705,7 +717,13 @@ AppMenuButton.prototype = {
                             new St.Icon({ icon_name: 'application-default-icon',
                                          icon_type: St.IconType.FULLCOLOR,
                                          icon_size: this.iconSize });
+
+
+      let old_child = this._iconBox.get_child();
       this._iconBox.set_child(icon);
+      if (old_child != null) { 
+        old_child.destroy();
+      }      
     },
 
     getAttention: function() {

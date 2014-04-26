@@ -1,10 +1,10 @@
 [Desktop Entry]
 Name=Date & Time
 Comment=Manage date and time settings
-Icon=/usr/lib/cinnamon-settings/data/icons/date-time.svg
+Icon=cs-date-time
 Exec=cinnamon-settings calendar
 Type=Application
-OnlyShowIn=GNOME;
+OnlyShowIn=X-Cinnamon;
 Categories=Settings;
 Name[gl]=Data e hora
 Name[tr]=Tarih & Zaman
@@ -17,9 +17,9 @@ Name[ro]=Data și ora
 Name[ca]=Data i hora
 Name[cs]=Datum a čas
 Name[pt]=Data e Hora
-Name[en_GB]=Date & Time
 Name[hr]=Datum i Vrijeme
 Name[hu]=Dátum és idő
+Name[en_GB]=Date & Time
 Name[uk]=Дата та час
 Name[is]=Dagsetning og tími
 Name[it]=Data & Ora

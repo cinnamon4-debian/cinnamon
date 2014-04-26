@@ -34,6 +34,7 @@ preferred_app_defs = [
     ( "audio/x-vorbis+ogg",      "audio",                    _("M_usic") ),
     ( "video/x-ogm+ogg",         "video",                    _("_Video") ),
     ( "image/jpeg",              "image",                    _("_Photos") )
+    #TODO: Add default terminal selector
 ]
 
 removable_media_defs = [
@@ -68,20 +69,20 @@ class ColumnBox(Gtk.VBox):
     def __init__(self, title, content):
         super(ColumnBox, self).__init__()
         
-        label = Gtk.Label("")
+        label = Gtk.Label.new("")
         label.set_markup('<b>%s\n</b>' % title)
         label.set_alignment(0.5, 0.5)
         
         self.set_homogeneous(False)
-        self.pack_start(label, False, False, 0)
+        self.pack_start(label, False, False, 6)
         self.pack_end(content, True, True, 0)
 
 class ButtonTable(Gtk.Table):
     def __init__(self, lines):
-        super(ButtonTable, self).__init__(lines, 2, False)
+        super(ButtonTable, self).__init__(n_rows = lines, n_columns = 2, homogeneous = False)
         self.set_row_spacings(8)
         self.set_col_spacings(15)
-        self.attach(Gtk.Label(""), 2, 3, 0, lines, Gtk.AttachOptions.EXPAND|Gtk.AttachOptions.FILL, 0, 0, 0)
+        self.attach(Gtk.Label.new(""), 2, 3, 0, lines, Gtk.AttachOptions.EXPAND|Gtk.AttachOptions.FILL, 0, 0, 0)
         self.row = 0
         
     def addRow(self, label, button):
@@ -96,7 +97,7 @@ class ButtonTable(Gtk.Table):
     
 class MnemonicLabel(Gtk.Label):
     def __init__(self, text, widget):
-        super(MnemonicLabel, self).__init__("")
+        super(MnemonicLabel, self).__init__(label = "")
         self.set_text_with_mnemonic(text)
         
         self.set_alignment(1, 0.5)
@@ -128,8 +129,6 @@ class CustomAppChooserButton(Gtk.AppChooserButton):
         super(CustomAppChooserButton, self).__init__(content_type=content_type)
         self.media_settings = media_settings
         content_type = self.get_content_type()
-
-        self.set_show_default_item(True)
 
         #fetch preferences for this content type
         (pref_start_app, pref_ignore, pref_open_folder) = self.getPreferences()
@@ -204,10 +203,10 @@ class CustomAppChooserButton(Gtk.AppChooserButton):
 
 class OtherTypeDialog(Gtk.Dialog):
     def __init__(self, media_settings):
-        super(OtherTypeDialog, self).__init__(_("Other Media"),
-                                                None,
-                                                0,
-                                                (_("Close"), Gtk.ResponseType.OK))
+        super(OtherTypeDialog, self).__init__(title = _("Other Media"),
+                                              transient_for = None,
+                                              flags = 0)
+        self.add_button(_("Close"), Gtk.ResponseType.OK)
 
         self.set_default_size(350, 100)
         
@@ -233,7 +232,7 @@ class OtherTypeDialog(Gtk.Dialog):
         table.addRow(_("_Type:"), self.type_combo)
         self.table = table
         
-        self.vbox.pack_start(ColumnBox(_("Select how other media should be handled"), table), True, True, 2)
+        self.vbox.pack_start(ColumnBox(_("Select how other media should be handled"), table), True, True, 6)
         
         self.vbox.show()
 
@@ -307,22 +306,42 @@ class OtherTypeDialog(Gtk.Dialog):
 
         self.table.addRow(_("_Action:"), self.application_combo)
 
-
 class Module:
     def __init__(self, content_box):
-        keywords = _("media, defaults, applications, programs, removable, browser, email, calendar, music, videos, photos, images, cd, autostart")
-        advanced = False
-        sidePage = SidePage(_("Applications & Removable Media"), "default-applications.svg", keywords, advanced, content_box)
+        keywords = _("media, defaults, applications, programs, removable, browser, email, calendar, music, videos, photos, images, cd, autostart, autoplay")
+        sidePage = SidePage(_("Preferred Applications"), "cs-default-applications", keywords, content_box, 330, module=self)
         self.sidePage = sidePage
         self.name = "default"
         self.category = "prefs"
         self.comment = _("Manage default programs for common file types, and media actions")
 
-        hbox = Gtk.HBox()
-        hbox.set_homogeneous(True)
-        sidePage.add_widget(hbox, False)
-        hbox.pack_start(self.setupDefaultApps(), False, False, 0)
-        hbox.pack_start(self.setupMedia(), False, False, 0)
+    def on_module_selected(self):
+        if not self.loaded:
+            print "Loading Default module"
+
+            self.tabs = []
+            self.notebook = Gtk.Notebook()
+            self.viewbox1 = Gtk.VBox()
+            self.viewbox2 = Gtk.VBox()
+            
+            default = Gtk.ScrolledWindow()
+            default.add_with_viewport(self.viewbox1)
+            
+            media = Gtk.ScrolledWindow()
+            media.add_with_viewport(self.viewbox2)
+            
+            self.notebook.append_page(default, Gtk.Label.new(_("Preferred Applications")))
+            self.notebook.append_page(media, Gtk.Label.new(_("Removable Media")))
+
+            widget = self.setupDefaultApps()
+            self.viewbox1.pack_start(widget, False, False, 2)
+
+            widget = self.setupMedia()
+            self.viewbox2.pack_start(widget, False, False, 2)                        
+
+            self.notebook.expand = True
+            self.sidePage.add_widget(self.notebook)
+            
 
     def setupDefaultApps(self):
         table = ButtonTable(len(preferred_app_defs))
@@ -330,7 +349,7 @@ class Module:
         for d in preferred_app_defs:
             table.addRow(d[PREF_LABEL], DefaultAppChooserButton(d[PREF_CONTENT_TYPE], d[PREF_GEN_CONTENT_TYPE]))
 
-        return ColumnBox(_("Default Applications"), table)
+        return ColumnBox(_("Select preferred applications for file types"), table)
 
     def onMoreClicked(self, button):
         self.other_type_dialog.doShow(button.get_toplevel())
@@ -341,7 +360,8 @@ class Module:
         self.other_type_dialog = OtherTypeDialog(self.media_settings)
         
         hbox = Gtk.VBox()
-        hboxToggle = Gtk.VBox()
+        hbox.set_border_width(6)
+        hboxToggle = Gtk.VBox()        
         hbox.add(hboxToggle)
 
         table = ButtonTable(len(removable_media_defs)+1)
@@ -355,7 +375,7 @@ class Module:
         table.addRow(None, more)
 
         never = Gtk.CheckButton.new_with_mnemonic(_("_Never prompt or start programs on media insertion"))
-        hbox.add(never)
+        hbox.pack_start(never, False, False, 2)
         self.media_settings.bind(PREF_MEDIA_AUTORUN_NEVER, never, "active", Gio.SettingsBindFlags.DEFAULT)
         self.media_settings.bind(PREF_MEDIA_AUTORUN_NEVER, hboxToggle, "sensitive", Gio.SettingsBindFlags.INVERT_BOOLEAN)
 

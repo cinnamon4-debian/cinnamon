@@ -203,8 +203,8 @@ cinnamon_window_tracker_is_window_interesting (MetaWindow *window)
   return TRUE;
 }
 
-gchar *
-strip_extension (gchar *wm_class)
+static gchar *
+strip_extension (const gchar *wm_class)
 {
     char *result;
     if (g_str_has_suffix (wm_class, ".py") ||
@@ -230,22 +230,35 @@ get_app_from_window_wmclass (MetaWindow  *window)
 {
   CinnamonApp *app;
   CinnamonAppSystem *appsys;
-  char *wmclass;
-  char *with_desktop;
+  gchar *wmclass;
+  gchar *wmclass_with_desktop;
+  gchar *wmclass_stripped;
+
+  wmclass = wmclass_with_desktop = wmclass_stripped = NULL;
 
   appsys = cinnamon_app_system_get_default ();
-  wmclass = strip_extension(get_appid_from_window (window));
 
+  const char *window_wm_class;
+  window_wm_class = meta_window_get_wm_class (window);
+  if (window_wm_class) {
+    wmclass = g_ascii_strdown (window_wm_class, -1);
+    g_strdelimit (wmclass, " ", '-'); // This handles "Fedora Eclipse", probably others. Note g_strdelimit is modify-in-place.
+  }
+  
   if (!wmclass)
     return NULL;
 
-  with_desktop = g_strjoin (NULL, wmclass, ".desktop", NULL);
-  g_free (wmclass);
+  wmclass_stripped = strip_extension(wmclass);
 
-  app = cinnamon_app_system_lookup_heuristic_basename (appsys, with_desktop);
+  wmclass_with_desktop = g_strjoin (NULL, wmclass_stripped, ".desktop", NULL);
+  
+  g_free (wmclass);
+  g_free (wmclass_stripped);
+
+  app = cinnamon_app_system_lookup_heuristic_basename (appsys, wmclass_with_desktop);
   if (app != NULL)
     g_object_ref (app);
-  g_free (with_desktop);
+  g_free (wmclass_with_desktop);
 
   return app;
 }
@@ -846,7 +859,16 @@ cinnamon_startup_sequence_create_icon (CinnamonStartupSequence *sequence, guint 
   if (!icon_name)
     {
       texture = clutter_texture_new ();
-      clutter_actor_set_size (texture, size, size);
+
+      gint scale;
+      CinnamonGlobal *global;
+      StThemeContext *context;
+
+      global = cinnamon_global_get ();
+      context = st_theme_context_get_for_stage (cinnamon_global_get_stage (global));
+      g_object_get (context, "scale-factor", &scale, NULL);
+
+      clutter_actor_set_size (texture, size * scale, size * scale);
       return texture;
     }
 

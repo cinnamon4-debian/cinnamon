@@ -8,27 +8,31 @@ class Module:
     def __init__(self, content_box):
         keywords = _("themes, style")
         self.comment = _("Manage themes to change how your desktop looks")
-        advanced = False
         self.name = "themes"
         # for i18n replacement in ExtensionCore.py
         noun = _("theme")
         pl_noun = _("themes")
         # We do not translate Cinnamon
         target = "Cinnamon"
-        sidePage = ThemesViewSidePage(_("Themes"), "themes.svg", keywords, advanced, content_box, "theme", noun, pl_noun, target)
+        sidePage = ThemesViewSidePage(_("Themes"), "cs-themes", keywords, content_box, "theme", noun, pl_noun, target, self)
         self.sidePage = sidePage
-
         self.category = "appear"
+
+    def on_module_selected(self):
+        if not self.loaded:
+            print "Loading Themes module"
+            self.sidePage.load()
 
     def _setParentRef(self, window, builder):
         self.sidePage.window = window
         self.sidePage.builder = builder
 
+
 class ThemesViewSidePage (ExtensionSidePage):
 
-    def __init__(self, name, icon, keywords, advanced, content_box, collection_type, noun, pl_noun, target):
+    def __init__(self, name, icon, keywords, content_box, collection_type, noun, pl_noun, target, module):
         self.RemoveString = ""
-        ExtensionSidePage.__init__(self, name, icon, keywords, advanced, content_box, collection_type, noun, pl_noun, target)
+        ExtensionSidePage.__init__(self, name, icon, keywords, content_box, collection_type, noun, pl_noun, target, module)
 
     def toSettingString(self, uuid, instanceId):
         return uuid
@@ -37,7 +41,7 @@ class ThemesViewSidePage (ExtensionSidePage):
         return string
         
     def _make_group(self, group_label, root, key, schema):
-        self.size_groups = getattr(self, "size_groups", [SizeGroup(SizeGroupMode.HORIZONTAL) for x in range(2)])
+        self.size_groups = getattr(self, "size_groups", [SizeGroup.new(SizeGroupMode.HORIZONTAL) for x in range(2)])
         
         box = Gtk.HBox()
         label = Gtk.Label()
@@ -54,12 +58,13 @@ class ThemesViewSidePage (ExtensionSidePage):
 
     def getAdditionalPage(self):
         scrolledWindow = Gtk.ScrolledWindow()
-        scrolledWindow.label = Gtk.Label(_("Other settings"))
+        scrolledWindow.label = Gtk.Label.new(_("Other settings"))
 
         other_settings_box = Gtk.VBox()
         
         scrolledWindow.add_with_viewport(other_settings_box)
-        
+        other_settings_box.set_border_width(5)
+                
         other_settings_box.pack_start(self._make_group(_("Controls"), "org.cinnamon.desktop.interface", "gtk-theme", self._load_gtk_themes()), False, False, 2)
         other_settings_box.pack_start(self._make_group(_("Icons"), "org.cinnamon.desktop.interface", "icon-theme", self._load_icon_themes()), False, False, 2)
         other_settings_box.pack_start(self._make_group(_("Window borders"), "org.cinnamon.desktop.wm.preferences", "theme", self._load_window_themes()), False, False, 2)
