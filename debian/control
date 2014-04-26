@@ -2,6 +2,7 @@ Source: cinnamon
 Section: x11
 Priority: optional
 Maintainer: Maximiliano Curia <maxy@debian.org>
+Uploaders: Margarita Manterola <marga@debian.org>
 Build-Depends: debhelper (>= 9),
                dh-autoreconf,
                dpkg-dev (>= 1.16.1~),
