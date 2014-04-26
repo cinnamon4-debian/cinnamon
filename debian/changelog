@@ -1,4 +1,4 @@
-cinnamon (2.0.14+git20140306-1~1) UNRELEASED; urgency=medium
+cinnamon (2.2.3-1~1) UNRELEASED; urgency=medium
 
   * New upstream release
 
@@ -6,10 +6,6 @@ cinnamon (2.0.14+git20140306-1~1) UNRELEASED; urgency=medium
   * Delete patch: delete-unused-imports.patch (applied upstream)
   * Delete patch: remove-background-bumpmap.patch (applied upstream)
   * Updated: no-mdmsetup-settings.patch
-
-  [ Margarita Manterola ]
-  * Added patch to fix the relocation of cinnamon-settings
-  * Added cinnamon-screensaver and nemo-autoload as dependencies for cinnamon.
 
   [ Maximiliano Curia ]
   * Refresh patches.
@@ -26,7 +22,12 @@ cinnamon (2.0.14+git20140306-1~1) UNRELEASED; urgency=medium
   * New patch: policy_csu_path
   * New patch: capi-py_ccc_search_path
 
- -- Maximiliano Curia <maxy@debian.org>  Wed, 12 Mar 2014 14:57:18 +0100
+  [ Margarita Manterola ]
+  * Added patch to fix the relocation of cinnamon-settings
+  * Added cinnamon-screensaver and nemo-autoload as dependencies for cinnamon.
+  * Updated to 2.2.3
+
+ -- Margarita Manterola <marga@debian.org>  Sat, 26 Apr 2014 13:27:12 +0200
 
 cinnamon (1.7.4-2) unstable; urgency=low
 
