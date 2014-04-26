@@ -7,7 +7,7 @@
 #endif
 #include <stdlib.h>
 #include <string.h>
-
+#include <X11/Xlib.h>
 #include <clutter/clutter.h>
 #include <clutter/x11/clutter-x11.h>
 #include <dbus/dbus-glib.h>
@@ -220,15 +220,18 @@ center_pointer_on_screen ()
 int
 main (int argc, char **argv)
 {
+  XInitThreads();
   GOptionContext *ctx;
   GError *error = NULL;
   int ecode;
-
+  g_setenv ("CLUTTER_DISABLE_XINPUT", "1", TRUE);
   g_type_init ();
 
   bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
   bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
   textdomain (GETTEXT_PACKAGE);
+
+  g_setenv ("GDK_SCALE", "1", TRUE);
 
   ctx = meta_get_option_context ();
   g_option_context_add_main_entries (ctx, gnome_cinnamon_options, GETTEXT_PACKAGE);
@@ -248,6 +251,7 @@ main (int argc, char **argv)
   meta_init ();
   g_unsetenv ("NO_GAIL");
   g_unsetenv ("NO_AT_BRIDGE");
+  g_unsetenv ("CLUTTER_DISABLE_XINPUT");
 
   /* FIXME: Add gjs API to set this stuff and don't depend on the
    * environment.  These propagate to child processes.
@@ -279,6 +283,8 @@ main (int argc, char **argv)
 
   /* Initialize the global object */
   _cinnamon_global_init (NULL);
+
+  g_unsetenv ("GDK_SCALE");
 
   ecode = meta_run ();
 

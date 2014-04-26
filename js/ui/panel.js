@@ -90,7 +90,7 @@ AnimatedIcon.prototype = {
 
         this._timeoutId = 0;
         this._i = 0;
-        this._animations = St.TextureCache.get_default().load_sliced_image (global.datadir + '/theme/' + name, size, size);
+        this._animations = St.TextureCache.get_default().load_sliced_image (global.datadir + '/theme/' + name, size, size, null);
         this.actor.set_child(this._animations);
     },
 
@@ -98,11 +98,11 @@ AnimatedIcon.prototype = {
         this._animations.hide_all();
         this._animations.show();
         if (this._i && this._i < this._animations.get_n_children())
-            this._animations.get_nth_child(this._i++).show();
+            this._animations.get_child_at_index(this._i++).show();
         else {
             this._i = 1;
             if (this._animations.get_n_children())
-                this._animations.get_nth_child(0).show();
+                this._animations.get_child_at_index(0).show();
         }
         return true;
     },
@@ -408,10 +408,22 @@ SettingsLauncher.prototype = {
 
         this._menu = menu;
         this._keyword = keyword;
+        let table = new St.Table({ homogeneous: false,
+                                      reactive: true });
+
         this.label = new St.Label({ text: label });
-        this.addActor(this.label);
-        this._icon = new St.Icon({icon_name: icon, icon_size: 22, icon_type: St.IconType.FULLCOLOR });
-        this.addActor(this._icon, { expand: true });
+        this._icon = new St.Icon({icon_name: icon, icon_type: St.IconType.SYMBOLIC,
+                                  style_class: 'popup-menu-icon' });
+
+        table.add(this._icon,
+                  {row: 0, col: 0, col_span: 1, x_expand: false, x_align: St.Align.START});
+
+        table.add(this.label,
+                  {row: 0, col: 1, col_span: 1, x_align: St.Align.START});
+
+        this.label.set_margin_left(6.0)
+
+        this.addActor(table, { expand: true, span: 1, align: St.Align.START });
     },
 
     activate: function (event) {
@@ -423,28 +435,8 @@ SettingsLauncher.prototype = {
 };
 
 function populateSettingsMenu(menu) {
-    menu.settingsItem = new PopupMenu.PopupSubMenuMenuItem(_("Settings"));
 
-    let menuItem = new SettingsLauncher(_("Themes"), "themes", "themes", menu.settingsItem.menu);
-    menu.settingsItem.menu.addMenuItem(menuItem);
-
-    menuItem = new SettingsLauncher(_("Applets"), "applets", "applets", menu.settingsItem.menu);
-    menu.settingsItem.menu.addMenuItem(menuItem);
-
-    menuItem = new SettingsLauncher(_("Panel"), "panel", "panel", menu.settingsItem.menu);
-    menu.settingsItem.menu.addMenuItem(menuItem);
-	
-	/**
-		menuItem = new SettingsLauncher(_("Menu"), "menu", "menu", menu.settingsItem.menu);
-		menu.settingsItem.menu.addMenuItem(menuItem);
-    */
-
-    menuItem = new SettingsLauncher(_("All settings"), "", "preferences-system", menu.settingsItem.menu);
-    menu.settingsItem.menu.addMenuItem(menuItem);
-
-    menu.addMenuItem(menu.settingsItem);
-
-    menu.troubleshootItem = new PopupMenu.PopupSubMenuMenuItem(_("Troubleshoot"));
+    menu.troubleshootItem = new PopupMenu.PopupSubMenuMenuItem(_("Troubleshoot ..."), true);
     menu.troubleshootItem.menu.addAction(_("Restart Cinnamon"), function(event) {
         global.reexec_self();
     });
@@ -458,6 +450,8 @@ function populateSettingsMenu(menu) {
         confirm.open();
     });
 
+    menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+    
     menu.addMenuItem(menu.troubleshootItem);
 
     menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
@@ -485,13 +479,19 @@ PanelContextMenu.prototype = {
         Main.uiGroup.add_actor(this.actor);
         this.actor.hide();
 
-        populateSettingsMenu(this);
+        let applet_settings_item = new SettingsLauncher(_("Add applets to the panel"), "applets", "list-add", this);
+        this.addMenuItem(applet_settings_item);
 
-        let menuItem = new SettingsLauncher(_("Panel settings"), "panel", "panel", this);
+        let menuItem = new SettingsLauncher(_("Panel settings"), "panel", "emblem-system", this);
         this.addMenuItem(menuItem);
 
-        let applet_settings_item = new SettingsLauncher(_("Add applets to the panel"), "applets", "applets", this);
-        this.addMenuItem(applet_settings_item);
+        let menuItem = new SettingsLauncher(_("Themes"), "themes", "applications-graphics", this);
+        this.addMenuItem(menuItem);
+
+        let menuSetting = new SettingsLauncher(_("All settings"), "", "preferences-system", this);
+        this.addMenuItem(menuSetting);
+
+        populateSettingsMenu(this);
     }
 }
 
@@ -632,10 +632,10 @@ Panel.prototype = {
 
         if (global.settings.get_boolean('panel-resizable')) {
             if (bottomPosition) {
-                this.actor.set_height(global.settings.get_int('panel-bottom-height'));
+                this.actor.set_height(global.settings.get_int('panel-bottom-height') * global.ui_scale);
             }
             else {
-                this.actor.set_height(global.settings.get_int('panel-top-height'));
+                this.actor.set_height(global.settings.get_int('panel-top-height') * global.ui_scale);
             }
         }
         if (this.bottomPosition) {
@@ -697,7 +697,7 @@ Panel.prototype = {
                     this._shiftActor();
         }));
 
-        this.actor.connect('button-release-event', Lang.bind(this, this._onButtonReleaseEvent));
+        this.actor.connect('button-press-event', Lang.bind(this, this._onButtonPressEvent));
 
         global.settings.connect("changed::panel-edit-mode", Lang.bind(this, this._onPanelEditModeChanged));
         global.settings.connect("changed::panel-resizable", Lang.bind(this, this._processPanelSize));
@@ -730,7 +730,7 @@ Panel.prototype = {
         }
     },
 
-    _onButtonReleaseEvent: function (actor, event) {
+    _onButtonPressEvent: function (actor, event) {
         if (event.get_button()==1){
             if (this._context_menu.isOpen) {
                 this._context_menu.toggle();
@@ -799,17 +799,17 @@ Panel.prototype = {
         let panelResizable = global.settings.get_boolean("panel-resizable");
         if (panelResizable) {
             if (this.bottomPosition) {
-                panelHeight = global.settings.get_int("panel-bottom-height");
+                panelHeight = global.settings.get_int("panel-bottom-height") * global.ui_scale;
             }
             else {
-                panelHeight = global.settings.get_int("panel-top-height");
+                panelHeight = global.settings.get_int("panel-top-height") * global.ui_scale;
             }
         }
         else {
             let themeNode = this.actor.get_theme_node();
             panelHeight = themeNode.get_length("height");
             if (!panelHeight || panelHeight == 0) {
-                panelHeight = 25;
+                panelHeight = 25 * global.ui_scale;
             }
         }
         if (!this._themeFontSize) {
@@ -817,10 +817,10 @@ Panel.prototype = {
                 this._themeFontSize = themeNode.get_length("font-size");
             }
         if (global.settings.get_boolean("panel-scale-text-icons") && global.settings.get_boolean("panel-resizable")) {
-            let textheight = (panelHeight / Applet.DEFAULT_PANEL_HEIGHT) * Applet.PANEL_FONT_DEFAULT_HEIGHT;
-            this.actor.set_style('font-size: ' + textheight + 'px;');
+            let textheight = (panelHeight / (Applet.DEFAULT_PANEL_HEIGHT * global.ui_scale) * (Applet.PANEL_FONT_DEFAULT_HEIGHT * global.ui_scale));
+            this.actor.set_style('font-size: ' + textheight / global.ui_scale + 'px;');
         } else {
-            this.actor.set_style('font-size: ' + this._themeFontSize + 'px;');
+            this.actor.set_style('font-size: ' + this._themeFontSize / global.ui_scale + 'px;');
         }
         this.actor.set_height(panelHeight);
         this._processPanelAutoHide();

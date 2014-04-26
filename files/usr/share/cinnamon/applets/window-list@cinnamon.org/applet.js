@@ -18,6 +18,42 @@ const DEFAULT_ICON_SIZE = 16; // too bad this can't be defined in theme (cinnamo
 const SPINNER_ANIMATION_TIME = 1;
 const ICON_HEIGHT_FACTOR = .64;
 
+/* TODO: dragHelper will need to be reworked once more flexible panel configuration is merged */
+
+function dragHelper() {
+    this._init();
+}
+
+dragHelper.prototype = {
+    _init: function() {
+        this.dragging = false;
+        this.panel_show_id = 0;
+    },
+
+    temp_show_panels: function() {
+        if (Main.panel && !this.dragging)
+            Main.panel._enterPanel();
+        if (Main.panel2 && !this.dragging)
+            Main.panel2._enterPanel();
+        if (this.panel_show_id > 0) {
+            Mainloop.source_remove(this.panel_show_id);
+            this.panel_show_id = 0;
+        }
+        this.dragging = true;
+        this.panel_show_id = Mainloop.timeout_add(2000, Lang.bind(this, this.temp_unshow_panels));
+    },
+
+    temp_unshow_panels: function() {
+        if (Main.panel)
+            Main.panel._leavePanel();
+        if (Main.panel2)
+            Main.panel2._leavePanel();
+        this.dragging = false;
+        return false;
+    }
+}
+
+let drag_helper = new dragHelper();
 
 function AppMenuButtonRightClickMenu(actor, metaWindow, orientation) {
     this._init(actor, metaWindow, orientation);
@@ -65,6 +101,13 @@ AppMenuButtonRightClickMenu.prototype = {
         let itemOnAllWorkspaces = new PopupMenu.PopupMenuItem(_("Visible on all workspaces"));
         itemOnAllWorkspaces.connect('activate', Lang.bind(this, this._toggleOnAllWorkspaces));
 
+        let itemRestoreOpacity = new PopupMenu.PopupMenuItem(_("Restore to full opacity"));
+        itemRestoreOpacity.connect('activate', Lang.bind(this, this._onRestoreOpacity));
+
+        if (this.metaWindow.get_compositor_private().opacity == 255) {
+            itemRestoreOpacity.actor.hide()
+        }
+
         if (mw.is_on_all_workspaces()) {
             itemOnAllWorkspaces.label.set_text(_("Only on this workspace"));
             itemMoveToLeftWorkspace.actor.hide();
@@ -105,6 +148,7 @@ AppMenuButtonRightClickMenu.prototype = {
             itemCloseAllWindows,
             itemCloseOtherWindows,
             new PopupMenu.PopupSeparatorMenuItem(),
+            itemRestoreOpacity,
             itemMinimizeWindow,
             itemMaximizeWindow,
             itemCloseWindow
@@ -114,12 +158,15 @@ AppMenuButtonRightClickMenu.prototype = {
         }, this);
      },
 
+     _onRestoreOpacity: function(actor, event) {
+        this.metaWindow.get_compositor_private().set_opacity(255);
+     },
+
      _onToggled: function(actor, isOpening){
         if (!isOpening) {
-            this.removeAll();
             return;
         }
-
+        this.removeAll();
         this._populateMenu();
     },
     
@@ -242,7 +289,7 @@ AppMenuButton.prototype = {
       
         this.actor._delegate = this;
         this.actor.connect('button-release-event', Lang.bind(this, this._onButtonRelease));
-
+        this.actor.connect('button-press-event', Lang.bind(this, this._onButtonPress));
 		this.metaWindow = metaWindow;	
 
         this._applet = applet;
@@ -442,23 +489,30 @@ AppMenuButton.prototype = {
 
     _onButtonRelease: function(actor, event) {
         this._tooltip.hide();
-        if (!this._draggable) {
-            if ( Cinnamon.get_event_state(event) & Clutter.ModifierType.BUTTON1_MASK ) {
-                this._windowHandle(false);
-            }
-            return;
-        }
-        if ( Cinnamon.get_event_state(event) & Clutter.ModifierType.BUTTON1_MASK ) {
+        if (!this._draggable)
+            return false;
+
+        if (event.get_button() == 1) {
             if ( this.rightClickMenu.isOpen ) {
                 this.rightClickMenu.toggle();
             }
             this._windowHandle(false);
-        } else if (Cinnamon.get_event_state(event) & Clutter.ModifierType.BUTTON2_MASK) {
+        } else if (event.get_button() == 2)
             this.metaWindow.delete(global.get_current_time());
-        } else if (Cinnamon.get_event_state(event) & Clutter.ModifierType.BUTTON3_MASK) {
+        return true;
+    },
+
+    _onButtonPress: function(actor, event) {
+        this._tooltip.hide();
+        if (!this._draggable) {
+            return false;
+        }
+        if (event.get_button() == 3) {
             this.rightClickMenu.mouseEvent = event;
-            this.rightClickMenu.toggle();   
-        }   
+            this.rightClickMenu.toggle();
+            return true;
+        }
+        return false;
     },
 
     _windowHandle: function(fromDrag){
@@ -499,7 +553,7 @@ AppMenuButton.prototype = {
     handleDragOver: function(source, actor, x, y, time) {
         if (this._inEditMode) return DND.DragMotionResult.MOVE_DROP;
         if (source instanceof AppMenuButton) return DND.DragMotionResult.CONTINUE;
-        
+        drag_helper.temp_show_panels();
         if (typeof(this._applet.dragEnterTime) == 'undefined') {
             this._applet.dragEnterTime = time;
         } else {
@@ -571,7 +625,7 @@ AppMenuButton.prototype = {
         alloc.natural_size = naturalSize;
         [minSize, naturalSize] = this._label.get_preferred_width(forHeight);
 	alloc.min_size = alloc.min_size + Math.max(0, minSize - Math.floor(alloc.min_size / 2));
-        alloc.natural_size = 150;
+        alloc.natural_size = 150 * global.ui_scale;
     },
 
     _getContentPreferredHeight: function(actor, forWidth, alloc) {
@@ -606,7 +660,7 @@ AppMenuButton.prototype = {
         }
         this._iconBox.allocate(childBox, flags);
 
-        let iconWidth = this.iconSize;
+        let iconWidth = this.iconSize * global.ui_scale;
 
         [minWidth, minHeight, naturalWidth, naturalHeight] = this._label.get_preferred_size();
 
@@ -653,7 +707,7 @@ AppMenuButton.prototype = {
       let app = tracker.get_window_app(this.metaWindow);
 
       if (global.settings.get_boolean('panel-scale-text-icons') && global.settings.get_boolean('panel-resizable')) {
-        this.iconSize = Math.round(panel_height * ICON_HEIGHT_FACTOR);
+        this.iconSize = Math.round(panel_height * ICON_HEIGHT_FACTOR / global.ui_scale);
       }
       else {
         this.iconSize = DEFAULT_ICON_SIZE;
@@ -663,7 +717,13 @@ AppMenuButton.prototype = {
                             new St.Icon({ icon_name: 'application-default-icon',
                                          icon_type: St.IconType.FULLCOLOR,
                                          icon_size: this.iconSize });
+
+
+      let old_child = this._iconBox.get_child();
       this._iconBox.set_child(icon);
+      if (old_child != null) { 
+        old_child.destroy();
+      }      
     },
 
     getAttention: function() {
@@ -713,8 +773,11 @@ MyAppletBox.prototype = {
     
     handleDragOver: function(source, actor, x, y, time) {
         if (this._inEditMode) return DND.DragMotionResult.MOVE_DROP;
-        if (!(source instanceof AppMenuButton)) return DND.DragMotionResult.NO_DROP;
-        
+        if (!(source instanceof AppMenuButton))  {
+            drag_helper.temp_show_panels();
+            return DND.DragMotionResult.NO_DROP;
+        }
+
         let children = this.actor.get_children();
         let windowPos = children.indexOf(source.actor);
         

@@ -1,5 +1,5 @@
 AC_PREREQ(2.63)
-AC_INIT([cinnamon],[2.0.14],[https://bugzilla.gnome.org/enter_bug.cgi?product=cinnamon],[cinnamon])
+AC_INIT([cinnamon],[2.2.3],[https://bugzilla.gnome.org/enter_bug.cgi?product=cinnamon],[cinnamon])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([src/cinnamon-global.c])
@@ -44,15 +44,15 @@ AC_SUBST(PYTHON)
 
 # We need at least this, since gst_plugin_register_static() was added
 # in 0.10.16, but nothing older than 0.10.21 has been tested.
-GSTREAMER_MIN_VERSION=0.10.16
+GSTREAMER_MIN_VERSION=0.11.92
 
 recorder_modules=
 build_recorder=false
 AC_MSG_CHECKING([for GStreamer (needed for recording functionality)])
-if $PKG_CONFIG --exists gstreamer-0.10 '>=' $GSTREAMER_MIN_VERSION ; then
+if $PKG_CONFIG --exists gstreamer-1.0 '>=' $GSTREAMER_MIN_VERSION ; then
    AC_MSG_RESULT(yes)
    build_recorder=true
-   recorder_modules="gstreamer-0.10 gstreamer-base-0.10 x11"
+   recorder_modules="gstreamer-1.0 gstreamer-base-1.0 x11"
    PKG_CHECK_MODULES(TEST_CINNAMON_RECORDER, $recorder_modules clutter-1.0 xfixes)
 else
    AC_MSG_RESULT(no)
@@ -75,7 +75,7 @@ PKG_CHECK_MODULES(CINNAMON, gio-2.0 >= $GIO_MIN_VERSION
                                gtk+-3.0 >= $GTK_MIN_VERSION
                                libmuffin >= $MUFFIN_MIN_VERSION
                                cjs-internals-1.0 >= $GJS_MIN_VERSION
-			       libgnome-menu-3.0 $recorder_modules gconf-2.0
+			       libcinnamon-menu-3.0 $recorder_modules gconf-2.0
                                gdk-x11-3.0 libsoup-2.4 gl
 			       clutter-x11-1.0 >= $CLUTTER_MIN_VERSION
                                libstartup-notification-1.0 >= $STARTUP_NOTIFICATION_MIN_VERSION
@@ -222,6 +222,7 @@ AC_ARG_VAR([BROWSER_PLUGIN_DIR],[Where to install the plugin to])
 AC_CONFIG_FILES([
   Makefile
   data/Makefile
+  data/icons/Makefile
   js/Makefile
   js/misc/config.js
   src/Makefile

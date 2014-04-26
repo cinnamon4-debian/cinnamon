@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Preferred Applications
+Icon=cs-default-applications
+Exec=cinnamon-settings default
+Type=Application
+OnlyShowIn=X-Cinnamon;
+Categories=Settings;

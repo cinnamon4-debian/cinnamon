@@ -10,7 +10,7 @@ try:
     import os
     import glob
     import gettext
-    from gi.repository import Gio, Gtk, GObject, GdkPixbuf, GLib, Pango, Gdk
+    from gi.repository import Gio, Gtk, GObject, GdkPixbuf, GLib, Pango, Gdk, cairo
     import SettingsWidgets
     import capi
     import time
@@ -36,10 +36,6 @@ gettext.install("cinnamon", "/usr/share/cinnamon/locale")
 # i18n for menu item
 menuName = _("System Settings")
 menuComment = _("Control Center")
-NormalMode = _("Switch to Normal Mode")
-AdvancedMode = _("Switch to Advanced Mode")
-
-ADVANCED_GSETTING = "cinnamon-settings-advanced"
 
 WIN_WIDTH = 800
 WIN_HEIGHT = 600
@@ -52,34 +48,33 @@ MAX_PIX_WIDTH = 160
 
 CATEGORIES = [
 #        Display name                         ID              Show it? Always False to start              Icon
-    {"label": _("Appearance"),            "id": "appear",      "show": False,                       "icon": "cat-appearance.svg"},
-    {"label": _("Preferences"),           "id": "prefs",       "show": False,                       "icon": "cat-prefs.svg"},
-    {"label": _("Hardware"),              "id": "hardware",    "show": False,                       "icon": "cat-hardware.svg"},
-    {"label": _("Administration"),        "id": "admin",       "show": False,                       "icon": "cat-admin.svg"}
+    {"label": _("Appearance"),            "id": "appear",      "show": False,                       "icon": "cs-cat-appearance"},
+    {"label": _("Preferences"),           "id": "prefs",       "show": False,                       "icon": "cs-cat-prefs"},
+    {"label": _("Hardware"),              "id": "hardware",    "show": False,                       "icon": "cs-cat-hardware"},
+    {"label": _("Administration"),        "id": "admin",       "show": False,                       "icon": "cs-cat-admin"}
 ]
 
 CONTROL_CENTER_MODULES = [
-#         Label                              Module ID                Icon                         Category      Advanced?                      Keywords for filter
-    [_("Networking"),                       "network",            "network.svg",                 "hardware",      False,          _("network, wireless, wifi, ethernet, broadband, internet")],
-    [_("Display"),                          "display",            "display.svg",                 "hardware",      False,          _("display, screen, monitor, layout, resolution, dual, lcd")],
-    [_("Regional Settings"),                "region",             "region.svg",                     "prefs",      False,          _("region, layout, keyboard, language")],
-    [_("Bluetooth"),                        "bluetooth",          "bluetooth.svg",               "hardware",      False,          _("bluetooth, dongle, transfer, mobile")], 
-    [_("Universal Access"),                 "universal-access",   "universal-access.svg",           "prefs",      False,          _("magnifier, talk, access, zoom, keys, contrast")],
-    [_("Power Management"),                 "power",              "power.svg",                   "hardware",      False,          _("power, suspend, hibernate, laptop, desktop")],
-    [_("Sound"),                            "sound",              "sound.svg",                   "hardware",      False,          _("sound, speakers, headphones, test")],
-    [_("Color"),                            "color",              "color.svg",                   "hardware",      True,           _("color, profile, display, printer, output")]
+#         Label                              Module ID                Icon                         Category      Keywords for filter
+    [_("Networking"),                       "network",            "cs-network",                 "hardware",      _("network, wireless, wifi, ethernet, broadband, internet")],
+    [_("Display"),                          "display",            "cs-display",                 "hardware",      _("display, screen, monitor, layout, resolution, dual, lcd")],
+    [_("Bluetooth"),                        "bluetooth",          "cs-bluetooth",               "hardware",      _("bluetooth, dongle, transfer, mobile")], 
+    [_("Accessibility"),                 "universal-access",   "cs-universal-access",           "prefs",         _("magnifier, talk, access, zoom, keys, contrast")],
+    [_("Sound"),                            "sound",              "cs-sound",                   "hardware",      _("sound, speakers, headphones, test")],
+    [_("Color"),                            "color",              "cs-color",                   "hardware",      _("color, profile, display, printer, output")],
+    [_("Graphics Tablet"),                  "wacom",              "cs-tablet",                  "hardware",      _("wacom, digitize, tablet, graphics, calibrate, stylus")]
 ]
 
 STANDALONE_MODULES = [
-#         Label                          Executable                          Icon                Category        Advanced?               Keywords for filter
-    [_("Printers"),                      "system-config-printer",        "printer.svg",         "hardware",       False,          _("printers, laser, inkjet")],    
-    [_("Firewall"),                      "gufw",                         "firewall.svg",        "admin",          True,           _("firewall, block, filter, programs")],
-    [_("Languages"),                     "gnome-language-selector",      "language.svg",        "prefs",          False,          _("language, install, foreign")],
-    [_("Login Screen"),                  "gksu /usr/sbin/mdmsetup",      "login.svg",           "admin",          True,           _("login, mdm, gdm, manager, user, password, startup, switch")],
-    [_("Startup Programs"),              "cinnamon-session-properties",  "startup-programs.svg","prefs",          False,          _("startup, programs, boot, init, session")],
-    [_("Device Drivers"),                "mintdrivers",                  "drivers.svg",         "admin",          False,          _("video, driver, wifi, card, hardware, proprietary, nvidia, radeon, nouveau, fglrx")],
-    [_("Software Sources"),              "mintsources",                  "sources.svg",         "admin",          True,           _("ppa, repository, package, source, download")],
-    [_("Users and Groups"),              "cinnamon-settings-users",      "user-accounts.svg",   "admin",          True,           _("user, users, account, accounts, group, groups, password")]
+#         Label                          Executable                          Icon                Category        Keywords for filter
+    [_("Printers"),                      "system-config-printer",        "cs-printer",         "hardware",       _("printers, laser, inkjet")],    
+    [_("Firewall"),                      "gufw",                         "cs-firewall",        "admin",          _("firewall, block, filter, programs")],
+    [_("Languages"),                     "mintlocale",                   "cs-language",        "prefs",          _("language, install, foreign")],
+    [_("Login Screen"),                  "gksu /usr/sbin/mdmsetup",      "cs-login",           "admin",          _("login, mdm, gdm, manager, user, password, startup, switch")],
+    [_("Startup Programs"),              "cinnamon-session-properties",  "cs-startup-programs","prefs",          _("startup, programs, boot, init, session")],
+    [_("Device Drivers"),                "mintdrivers",                  "cs-drivers",         "admin",          _("video, driver, wifi, card, hardware, proprietary, nvidia, radeon, nouveau, fglrx")],
+    [_("Software Sources"),              "mintsources",                  "cs-sources",         "admin",          _("ppa, repository, package, source, download")],
+    [_("Users and Groups"),              "cinnamon-settings-users",      "cs-user-accounts",   "admin",          _("user, users, account, accounts, group, groups, password")]
 ]
 
 def print_timing(func):
@@ -94,7 +89,6 @@ def print_timing(func):
 def touch(fname, times=None):
     with file(fname, 'a'):
         os.utime(fname, times)
-
 
 class MainWindow:
 
@@ -114,14 +108,13 @@ class MainWindow:
             self.side_view_sw.hide()
             self.search_entry.hide()
             self.window.set_title(sidePage.name)
-            sidePage.build(self.advanced_mode)
+            sidePage.build()
             self.content_box_sw.show()
             self.button_back.show()
             self.current_sidepage = sidePage
             self.maybe_resize(sidePage)
-            GObject.timeout_add(250, self.fade_in)
         else:
-            sidePage.build(self.advanced_mode)
+            sidePage.build()
 
     def maybe_resize(self, sidePage):
         if not sidePage.size:
@@ -143,14 +136,12 @@ class MainWindow:
         self.builder.add_from_file("/usr/lib/cinnamon-settings/cinnamon-settings.ui")
         self.window = self.builder.get_object("main_window")
         self.top_bar = self.builder.get_object("top_bar")
-        self.bottom_bar = self.builder.get_object("bottom_bar")
         self.side_view = {}
         self.side_view_container = self.builder.get_object("category_box")
         self.side_view_sw = self.builder.get_object("side_view_sw")
         self.side_view_sw.show_all()
         self.content_box = self.builder.get_object("content_box")
         self.content_box_sw = self.builder.get_object("content_box_sw")
-        self.button_cancel = self.builder.get_object("button_cancel")
         self.button_back = self.builder.get_object("button_back")
         self.button_back.set_label(_("All Settings"))
         self.button_back.hide()
@@ -160,20 +151,13 @@ class MainWindow:
         self.search_entry.connect("icon-press", self.onClearSearchBox)
         self.window.connect("destroy", self.quit)
         self.window.connect("key-press-event", self.on_keypress)
+        self.window.show()
 
         self.builder.connect_signals(self)
         self.window.set_has_resize_grip(False)
         self.sidePages = []
         self.settings = Gio.Settings.new("org.cinnamon")
-        self.current_cat_widget = None
-
-        self.advanced_mode = self.force_advanced() or self.settings.get_boolean(ADVANCED_GSETTING)
-        self.mode_button = self.builder.get_object("mode_button")
-        self.mode_button.set_size_request(self.get_mode_size(), -1)
-        if self.advanced_mode:
-            self.mode_button.set_label(NormalMode)
-        else:
-            self.mode_button.set_label(AdvancedMode)
+        self.current_cat_widget = None            
 
         self.current_sidepage = None
         self.c_manager = capi.CManager()
@@ -191,12 +175,12 @@ class MainWindow:
                 traceback.print_exc()
 
         for item in CONTROL_CENTER_MODULES:
-            ccmodule = SettingsWidgets.CCModule(item[0], item[1], item[2], item[3], item[4], item[5], self.content_box)
+            ccmodule = SettingsWidgets.CCModule(item[0], item[1], item[2], item[3], item[4], self.content_box)
             if ccmodule.process(self.c_manager):
                 self.sidePages.append((ccmodule.sidePage, ccmodule.name, ccmodule.category))
 
         for item in STANDALONE_MODULES:
-            samodule = SettingsWidgets.SAModule(item[0], item[1], item[2], item[3], item[4], item[5], self.content_box)
+            samodule = SettingsWidgets.SAModule(item[0], item[1], item[2], item[3], item[4], self.content_box)
             if samodule.process():
                 self.sidePages.append((samodule.sidePage, samodule.name, samodule.category))
 
@@ -208,16 +192,16 @@ class MainWindow:
         for sidepage in self.sidePages:
             sp, sp_id, sp_cat = sidepage
             if not self.store.has_key(sp_cat):  #       Label         Icon          sidePage     Category
-                self.store[sidepage[2]] = Gtk.ListStore(str,    GdkPixbuf.Pixbuf,    object,     str)
+                self.store[sidepage[2]] = Gtk.ListStore(str,          str,    object,     str)
                 for category in CATEGORIES:
                     if category["id"] == sp_cat:
                         category["show"] = True
-            iconFile = "/usr/lib/cinnamon-settings/data/icons/%s" % sp.icon
-            if os.path.exists(iconFile):
-                img = GdkPixbuf.Pixbuf.new_from_file_at_size( iconFile, 48, 48)
-            else:
-                img = None
-            sidePagesIters[sp_id] = self.store[sp_cat].append([sp.name, img, sp, sp_cat])
+
+            # Don't allow item names (and their translations) to be more than 30 chars long. It looks ugly and it creates huge gaps in the icon views
+            name = sp.name            
+            if len(name) > 30:
+                name = "%s..." % name[:30]
+            sidePagesIters[sp_id] = self.store[sp_cat].append([name, sp.icon, sp, sp_cat])
 
         self.min_label_length = 0
         self.min_pix_length = 0
@@ -243,10 +227,8 @@ class MainWindow:
         # set up larger components.
         self.window.set_title(_("System Settings"))
         self.window.connect("destroy", self.quit)
-        self.button_cancel.connect("clicked", self.quit)
         self.button_back.connect('clicked', self.back_to_icon_view)
-        self.window.set_opacity(0)
-        self.window.show()
+
         self.calculate_bar_heights()
 
         # Select the first sidePage
@@ -255,47 +237,17 @@ class MainWindow:
             self.findPath(first_page_iter)
         else:
             self.search_entry.grab_focus()
-            self.fade_in()
 
     def on_keypress(self, widget, event):
         if event.keyval == Gdk.KEY_BackSpace and type(self.window.get_focus()) != Gtk.Entry and \
                                                  type(self.window.get_focus()) != Gtk.TreeView:
             self.back_to_icon_view(None)
             return True
-        return False
-
-    def fade_in(self):
-        self.window.set_opacity(1.0)
-
-    def force_advanced(self):
-        ret = False
-        user_name = pwd.getpwuid(os.getuid()).pw_name
-
-        groups = grp.getgrall()
-        for group in groups:
-            (name, pw, gid, mem) = group
-            if name in ("adm", "sudo"):
-                for user in mem:
-                    if user_name == user:
-                        ret = True
-
-        if os.path.exists(os.path.join(GLib.get_user_config_dir(), ".cs_no_default")):
-            ret = False
-
-        return ret
-
-    def get_mode_size(self):
-        self.mode_button.set_label(AdvancedMode)
-        amw, apw = self.mode_button.get_preferred_width()
-        self.mode_button.set_label(NormalMode)
-        nmw, npw = self.mode_button.get_preferred_width()
-        return max(apw, npw)
+        return False    
 
     def calculate_bar_heights(self):
         h = 0
         m, n = self.top_bar.get_preferred_size()
-        h += n.height
-        m, n = self.bottom_bar.get_preferred_size()
         h += n.height
         self.bar_heights = h
 
@@ -308,10 +260,7 @@ class MainWindow:
 
     def filter_visible_function(self, model, iter, user_data = None):
         sidePage = model.get_value(iter, 2)
-        text = self.search_entry.get_text().lower()
-        if sidePage.advanced:
-            if not self.advanced_mode:
-                return False
+        text = self.search_entry.get_text().lower()       
         if sidePage.name.lower().find(text) > -1 or \
            sidePage.keywords.lower().find(text) > -1:
             return True
@@ -346,6 +295,11 @@ class MainWindow:
             iter = model.iter_next(iter)
         return min_width_chars, min_width_pixels
 
+    def pixbuf_data_func(self, column, cell, model, iter, data=None):
+        wrapper = model.get_value(iter, 1)
+        if wrapper:
+            cell.set_property('surface', wrapper.surface)
+
     def prepCategory(self, category):
         self.storeFilter[category["id"]].refilter()
         if not self.anyVisibleInCategory(category):
@@ -353,13 +307,10 @@ class MainWindow:
         if self.first_category_done:
             widget = Gtk.Separator.new(Gtk.Orientation.HORIZONTAL)
             self.side_view_container.pack_start(widget, False, False, 10)
+
         box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 4)
-        iconFile = "/usr/lib/cinnamon-settings/data/icons/%s" % category["icon"]
-        if os.path.exists(iconFile):
-            img = GdkPixbuf.Pixbuf.new_from_file_at_size( iconFile, 30, 30)
-            box.pack_start(Gtk.Image.new_from_pixbuf(img), False, False, 4)
-        else:
-            img = None
+        img = Gtk.Image.new_from_icon_name(category["icon"], Gtk.IconSize.BUTTON)
+        box.pack_start(img, False, False, 4)
 
         widget = Gtk.Label()
         widget.set_use_markup(True)
@@ -372,13 +323,20 @@ class MainWindow:
         area = widget.get_area()
 
         widget.set_item_width(self.min_pix_length)
+        widget.set_item_padding(0)
+        widget.set_column_spacing(18)
+        widget.set_row_spacing(18)
+        widget.set_margin(20)
+
         pixbuf_renderer = Gtk.CellRendererPixbuf()
         text_renderer = Gtk.CellRendererText(ellipsize=Pango.EllipsizeMode.NONE, wrap_mode=Pango.WrapMode.WORD_CHAR, wrap_width=0, width_chars=self.min_label_length, alignment=Pango.Alignment.CENTER)
 
         text_renderer.set_alignment(.5, 0)
         area.pack_start(pixbuf_renderer, True, True, False)
         area.pack_start(text_renderer, True, True, False)
-        area.add_attribute(pixbuf_renderer, "pixbuf", 1)
+        area.add_attribute(pixbuf_renderer, "icon-name", 1)
+        pixbuf_renderer.set_property("stock-size", Gtk.IconSize.DIALOG)
+
         area.add_attribute(text_renderer, "text", 0)
 
         css_provider = Gtk.CssProvider()
@@ -510,10 +468,7 @@ class MainWindow:
         for key in self.store.keys():
             path = self.store[key].get_path(name)
             if path is not None:
-                GObject.idle_add(self.do_side_view, key, path)
-
-    def do_side_view(self, key, path):
-        self.go_to_sidepage(key, path)
+                self.go_to_sidepage(key, path)
 
     def setParentRefs (self, mod):
         try:
@@ -543,33 +498,7 @@ class MainWindow:
         self.side_view_sw.show()
         self.search_entry.show()
         self.search_entry.grab_focus()
-        self.current_sidepage = None
-
-    def on_menu_button_clicked(self, widget):
-        if self.advanced_mode:
-            self.mode_button.set_label(AdvancedMode)
-            self.on_normal_mode()
-        else:
-            self.mode_button.set_label(NormalMode)
-            self.on_advanced_mode()
-        touch(os.path.join(GLib.get_user_config_dir(), ".cs_no_default"))
-        return True
-
-    def on_advanced_mode(self):
-        self.advanced_mode = True
-        self.settings.set_boolean(ADVANCED_GSETTING, True)
-        if self.current_sidepage is not None:
-            self.current_sidepage.build(self.advanced_mode)
-            self.maybe_resize(self.current_sidepage)
-        self.displayCategories()
-
-    def on_normal_mode(self):
-        self.advanced_mode = False
-        self.settings.set_boolean(ADVANCED_GSETTING, False)
-        if self.current_sidepage is not None:
-            self.current_sidepage.build(self.advanced_mode)
-            self.maybe_resize(self.current_sidepage)
-        self.displayCategories()
+        self.current_sidepage = None   
     
     def quit(self, *args):
         Gtk.main_quit()
@@ -577,7 +506,6 @@ class MainWindow:
 
 if __name__ == "__main__":
     import signal
-    GObject.threads_init()
     signal.signal(signal.SIGINT, MainWindow().quit)
     Gtk.main()
 

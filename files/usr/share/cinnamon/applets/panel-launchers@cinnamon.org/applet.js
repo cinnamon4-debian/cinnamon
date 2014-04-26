@@ -174,14 +174,14 @@ PanelAppLauncher.prototype = {
     _animateIcon: function(step){
         if (step>=3) return;
         Tweener.addTween(this.icon,
-                         { width: this.icon_anim_height,
-                           height: this.icon_anim_height,
+                         { width: this.icon_anim_height * global.ui_scale,
+                           height: this.icon_anim_height * global.ui_scale,
                            time: 0.2,
                            transition: 'easeOutQuad',
                            onComplete: function(){
                                Tweener.addTween(this.icon,
-                                                { width: this.icon_height,
-                                                  height: this.icon_height,
+                                                { width: this.icon_height * global.ui_scale,
+                                                  height: this.icon_height * global.ui_scale,
                                                   time: 0.2,
                                                   transition: 'easeOutQuad',
                                                   onComplete: function(){
@@ -214,6 +214,9 @@ PanelAppLauncher.prototype = {
 
     _onButtonPress: function(actor, event) {
         pressLauncher = this.getAppname();
+
+        if (event.get_button() == 3)
+            this._menu.toggle();
     },
 
     _onButtonRelease: function(actor, event) {
@@ -222,8 +225,6 @@ PanelAppLauncher.prototype = {
             if (button==1) {
                 if (this._menu.isOpen) this._menu.toggle();
                 else this.launch();
-            }else if (button==3) {
-                this._menu.toggle();
             }
         }
     },

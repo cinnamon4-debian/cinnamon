@@ -116,7 +116,8 @@
       <range min="20" />
       <_summary>Panel size</_summary>
       <_description>
-        User-defined panel-height for top panel
+        User-defined panel-height for top panel.  Note, this value may be the true value in use at runtime, depending
+        on any scaling that may be occurring (for hidpi screens, for instance).
       </_description>
     </key>
     
@@ -125,7 +126,8 @@
       <range min="20" />
       <_summary>Panel size</_summary>
       <_description>
-        User-defined panel-height for bottom panel
+        User-defined panel-height for bottom panel.  Note, this value may be the true value in use at runtime, depending
+        on any scaling that may be occurring (for hidpi screens, for instance).
       </_description>
     </key>
     
@@ -336,7 +338,7 @@
     </key>
 
     <key name="overview-corner" type="as">
-      <default>['expo:true:false', 'scale:false:false', 'scale:false:false', 'scale:false:false']</default>
+      <default>['expo:false:false', 'scale:false:false', 'scale:false:false', 'scale:false:false']</default>
       <_summary>Properties of overview corners</_summary>
       <_description>Properties of overview corners, in the form functionality:hover:icon. The order in which properties are displayed is top left, top right, bottom left, bottom right.</_description>
     </key>
@@ -534,7 +536,6 @@
     <child name="theme" schema="org.cinnamon.theme"/>   
     <child name="recorder" schema="org.cinnamon.recorder"/>
     <child name="keyboard" schema="org.cinnamon.keyboard"/>
-    <child name="power" schema="org.cinnamon.power" />
     <child name="desklets" schema="org.cinnamon.desklets" />
     <child name="sounds" schema="org.cinnamon.sounds" />
 
@@ -577,15 +578,7 @@
       </_description>
     </key>
   </schema>
-  
-  <schema id="org.cinnamon.power" path="/org/cinnamon/power/" gettext-domain="@GETTEXT_PACKAGE">
-      <key name="power-label" type="s">
-          <default>'percent'</default>
-          <_summary>Display percentage in power applet</_summary>
-          <_description>Display battery remaining as percentage or time in power applet.</_description>
-    </key>
-  </schema>
-
+    
   <schema id="org.cinnamon.recorder" path="/org/cinnamon/recorder/"
           gettext-domain="@GETTEXT_PACKAGE@">
     <key name="framerate" type="i">
@@ -802,9 +795,25 @@
    
     <key name="login-file" type="s">
       <default>""</default>
-      <summary>Which sound to play when switching windows</summary>
+      <summary>Which sound to play when logging in</summary>
       <description>
         Which sound to play during login.
+      </description>
+    </key> 
+
+    <key name="logout-enabled" type="b">
+      <default>false</default>
+      <summary>Whether to play a sound during logout</summary>
+      <description>
+        Whether to play a sound during logout.
+      </description>
+    </key> 
+   
+    <key name="logout-file" type="s">
+      <default>""</default>
+      <summary>Which sound to play when logging out</summary>
+      <description>
+        Which sound to play during logout.
       </description>
     </key>          
 

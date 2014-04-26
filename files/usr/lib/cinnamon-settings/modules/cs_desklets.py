@@ -7,25 +7,30 @@ from SettingsWidgets import *
 class Module:
     def __init__(self, content_box):
         keywords = _("desklet, desktop, slideshow")
-        advanced = False
         self.name = "desklets"
+        self.comment = _("Manage your Cinnamon desklets")
         # for i18n replacement in ExtensionCore.py
         noun = _("desklet")
         pl_noun = _("desklets")
         target = _("desktop")
-        sidePage = DeskletsViewSidePage(_("Desklets"), "desklets.svg", keywords, advanced, content_box, "desklet", noun, pl_noun, target)
+        sidePage = DeskletsViewSidePage(_("Desklets"), "cs-desklets", keywords, content_box, "desklet", noun, pl_noun, target, self)
         self.sidePage = sidePage
-
         self.category = "prefs"
+
+    def on_module_selected(self):
+        if not self.loaded:
+            print "Loading Desklets module"
+            self.sidePage.load()
 
     def _setParentRef(self, window, builder):
         self.sidePage.window = window
         self.sidePage.builder = builder
 
+
 class DeskletsViewSidePage (ExtensionSidePage):
-    def __init__(self, name, icon, keywords, advanced, content_box, collection_type, noun, pl_noun, target):
+    def __init__(self, name, icon, keywords, content_box, collection_type, noun, pl_noun, target, module):
         self.RemoveString = _("You can remove specific instances from the desktop via that desklet's context menu")
-        ExtensionSidePage.__init__(self, name, icon, keywords, advanced, content_box, collection_type, noun, pl_noun, target)
+        ExtensionSidePage.__init__(self, name, icon, keywords, content_box, collection_type, noun, pl_noun, target, module)
 
     def toSettingString(self, uuid, instanceId):
         return ("%s:%d:0:100") % (uuid, instanceId)
@@ -36,13 +41,13 @@ class DeskletsViewSidePage (ExtensionSidePage):
 
     def getAdditionalPage(self):
         scrolled_window = Gtk.ScrolledWindow()
-        scrolled_window.label = Gtk.Label(_("General Desklets Settings"))
+        scrolled_window.label = Gtk.Label.new(_("General Desklets Settings"))
         config_vbox = Gtk.VBox()
         scrolled_window.add_with_viewport(config_vbox)
         config_vbox.set_border_width(5)
 
         dec = [[0, _("No decoration")], [1, _("Border only")], [2, _("Border and header")]]
-        dec_combo = GSettingsIntComboBox(_("Decoration of desklets"), "org.cinnamon", "desklet-decorations", dec)
+        dec_combo = GSettingsIntComboBox(_("Decoration of desklets"), "org.cinnamon", "desklet-decorations", None, dec)
 
         label = Gtk.Label()
         label.set_markup("<i><small>%s\n%s</small></i>" % (_("Note: Some desklets require the border/header to be always present"), _("Such requirements override the settings selected here")))

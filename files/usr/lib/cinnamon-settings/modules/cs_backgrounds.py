@@ -4,7 +4,7 @@ import sys
 sys.path.append('/usr/lib/cinnamon-settings/bin')
 from SettingsWidgets import *
 import os
-from gi.repository import Gio, Gtk, GObject, Gdk, Pango
+from gi.repository import Gio, Gtk, GObject, Gdk, Pango, GLib
 import dbus
 import imtools
 import gettext
@@ -38,13 +38,133 @@ BACKGROUND_PICTURE_OPTIONS = [
 BACKGROUND_ICONS_SIZE = 200
 
 class Module:
+    
     def __init__(self, content_box):
         keywords = _("background, picture, screenshot, slideshow")
-        advanced = False
-        sidePage = BackgroundSidePage(_("Backgrounds"), "backgrounds.svg", keywords, advanced, content_box)
-        self.sidePage = sidePage
+        self.sidePage = SidePage(_("Backgrounds"), "cs-backgrounds", keywords, content_box, 500, module=self)        
         self.name = "backgrounds"
         self.category = "appear"
+        self.comment = _("Change your desktop's background")
+
+    def on_module_selected(self):
+        if not self.loaded:
+            print "Loading Backgrounds module"
+
+            self._gnome_background_schema = Gio.Settings(schema = "org.cinnamon.desktop.background")
+            self._cinnamon_background_schema = Gio.Settings(schema = "org.cinnamon.background")
+            self._add_wallpapers_dialog = AddWallpapersDialog()            
+            self._cinnamon_background_schema.connect("changed::mode", self._on_mode_changed)
+
+            topbox = Gtk.HBox()
+            self.sidePage.add_widget(topbox)
+            topbox.set_spacing(5)
+            
+            # Hide the background mode selection for now since we only support one mode at the moment.. 
+            #l = Gtk.Label.new(_("Mode"))
+            #topbox.pack_start(l, False, False, 0)
+            #self.background_mode = GSettingsComboBox("", "org.cinnamon.background", "mode", None, BACKGROUND_MODES).content_widget
+            #self.background_mode.unparent()
+            #topbox.pack_start(self.background_mode, False, False, 0)
+                            
+            self.remove_wallpaper_button = Gtk.Button.new_with_label(_("Remove"))
+            imageremove = Gtk.Image()
+            imageremove.set_from_icon_name('remove', Gtk.IconSize.BUTTON)
+            if imageremove.get_pixbuf() == None:
+                imageremove.set_from_stock(Gtk.STOCK_REMOVE, Gtk.IconSize.BUTTON)
+            self.remove_wallpaper_button.set_image(imageremove)
+            self.remove_wallpaper_button.get_image().show()
+            self.remove_wallpaper_button.set_no_show_all(True)
+            self.remove_wallpaper_button.set_tooltip_text(_("Remove wallpaper"))
+            self.remove_wallpaper_button.connect("clicked", lambda w: self._remove_selected_wallpaper())
+            self.remove_wallpaper_button.set_sensitive(False)
+            topbox.pack_end(self.remove_wallpaper_button, False, False, 0)
+            self.add_wallpaper_button = Gtk.Button.new_with_label(_("Add"))
+            imageadd = Gtk.Image()
+            imageadd.set_from_icon_name('add', Gtk.IconSize.BUTTON)
+            if imageadd.get_pixbuf() == None:
+                imageadd.set_from_stock(Gtk.STOCK_ADD, Gtk.IconSize.BUTTON)
+            self.add_wallpaper_button.set_image(imageadd)
+            self.add_wallpaper_button.get_image().show()
+            self.add_wallpaper_button.set_tooltip_text(_("Add wallpapers"))
+            self.add_wallpaper_button.connect("clicked", lambda w: self._add_wallpapers())
+            self.add_wallpaper_button.set_no_show_all(True)
+            topbox.pack_end(self.add_wallpaper_button, False, False, 0)
+                    
+            self.mainbox = Gtk.EventBox()
+            self.mainbox.set_visible_window(False)
+            self.sidePage.add_widget(self.mainbox)
+            self.mainbox.expand = True
+            
+            self.wallpaper_pane = BackgroundWallpaperPane(self, self._gnome_background_schema)
+            self.slideshow_pane = BackgroundSlideshowPane(self, self._gnome_background_schema, self._cinnamon_background_schema)
+            if self._cinnamon_background_schema["mode"] == "slideshow":
+                self.mainbox.add(self.slideshow_pane)
+            else:
+                self.mainbox.add(self.wallpaper_pane)
+                self.add_wallpaper_button.show()
+                self.remove_wallpaper_button.show()
+
+            advanced_options_box = Gtk.HBox()
+            advanced_options_box.set_spacing(10)
+
+            self.sidePage.add_widget(advanced_options_box)
+
+            l = Gtk.Label.new(_("Picture aspect"))
+            l.set_alignment(0, 0.5)
+            advanced_options_box.pack_start(l, False, False, 0)
+            self.picture_options = GSettingsComboBox("", "org.cinnamon.desktop.background", "picture-options", None, BACKGROUND_PICTURE_OPTIONS)
+            advanced_options_box.pack_start(self.picture_options, False, False, 0)
+
+            l = Gtk.Label.new(_("Gradient"))
+            l.set_alignment(0, 0.5)
+            advanced_options_box.pack_start(l, False, False, 0)
+            self.color_shading_type = GSettingsComboBox("", "org.cinnamon.desktop.background", "color-shading-type", None, BACKGROUND_COLOR_SHADING_TYPES)
+            advanced_options_box.pack_start(self.color_shading_type, False, False, 0)
+
+            hbox = Gtk.HBox()
+            l = Gtk.Label.new(_("Colors"))
+            hbox.pack_start(l, False, False, 2)
+            self.primary_color = GSettingsColorChooser("org.cinnamon.desktop.background", "primary-color", None)
+            hbox.pack_start(self.primary_color, False, False, 2)
+            self.secondary_color = GSettingsColorChooser("org.cinnamon.desktop.background", "secondary-color", None)
+            hbox.pack_start(self.secondary_color, False, False, 2)
+            advanced_options_box.pack_start(hbox, False, False, 0)
+
+    def _on_mode_changed(self, settings, key):
+        for i in self.mainbox.get_children():
+            self.mainbox.remove(i)
+        if self._cinnamon_background_schema["mode"] == "slideshow":
+            self.mainbox.add(self.slideshow_pane)
+            self.add_wallpaper_button.hide()
+            self.remove_wallpaper_button.hide()
+            self.slideshow_pane.update_list()
+        else:
+            self.mainbox.add(self.wallpaper_pane)
+            self.add_wallpaper_button.show()
+            self.remove_wallpaper_button.show()
+        self.mainbox.show_all()        
+
+    def _add_wallpapers(self):
+        filenames = self._add_wallpapers_dialog.run()
+        if filenames:
+            dest_dir = os.path.join(os.getenv("HOME"), ".cinnamon", "backgrounds")
+            if not os.path.exists(dest_dir):
+                rec_mkdir(dest_dir)
+            for filename in filenames:
+                dest_filename = os.path.join(dest_dir, os.path.split(filename)[1])
+                fs = open(filename)
+                fd = open(dest_filename, "w")
+                fd.write(fs.read())
+                fs.close()
+                fd.close()
+            
+            self.wallpaper_pane.update_icon_view()
+    
+    def _remove_selected_wallpaper(self):
+        wallpaper = self.wallpaper_pane.get_selected_wallpaper()
+        os.unlink(wallpaper["filename"])
+        self.wallpaper_pane.update_icon_view()
+
 
 class PixCache(object):
     
@@ -160,7 +280,7 @@ class ThreadedIconView(Gtk.IconView):
         self._loading_lock.release()
         
         if start_loading:
-            GObject.timeout_add(100, self._check_loading_progress)
+            GLib.timeout_add(100, self._check_loading_progress)
             thread.start_new_thread(self._do_load, ())
     
     def _check_loading_progress(self):
@@ -349,11 +469,18 @@ class BackgroundWallpaperPane (Gtk.VBox):
 
 class AddWallpapersDialog(Gtk.FileChooserDialog):
     def __init__(self, parent = None):
-        Gtk.FileChooserDialog.__init__(self, _("Add wallpapers"), parent, Gtk.FileChooserAction.OPEN)
+        Gtk.FileChooserDialog.__init__(self, title = _("Add wallpapers"), transient_for = parent, action = Gtk.FileChooserAction.OPEN)
         self.add_button(Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
         self.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL)
         self.set_select_multiple(True)
-    
+        filter = Gtk.FileFilter();
+        filter.add_pixbuf_formats ();
+        self.set_filter(filter);
+
+        preview = Gtk.Image()
+        self.set_preview_widget(preview)
+        self.connect("update-preview", self.update_icon_preview_cb, preview)
+
     def run(self):
         self.show_all()
         resp = Gtk.FileChooserDialog.run(self)
@@ -364,6 +491,17 @@ class AddWallpapersDialog(Gtk.FileChooserDialog):
             res = []
         return res
 
+    def update_icon_preview_cb(self, chooser, preview):
+        filename = chooser.get_preview_filename()
+        if filename is None:
+            return
+        chooser.set_preview_widget_active(False)
+        if os.path.isfile(filename):
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(filename, 128, 128)
+            if pixbuf is not None:
+                preview.set_from_pixbuf(pixbuf)
+                chooser.set_preview_widget_active(True)
+
 class BackgroundSlideshowPane(Gtk.Table):
     def __init__(self, sidepage, gnome_background_schema, cinnamon_background_schema):
         Gtk.Table.__init__(self)
@@ -372,7 +510,7 @@ class BackgroundSlideshowPane(Gtk.Table):
         
         self._cinnamon_background_schema = cinnamon_background_schema
         
-        l = Gtk.Label(_("Folder"))
+        l = Gtk.Label.new(_("Folder"))
         l.set_alignment(0, 0.5)
         self.attach(l, 0, 1, 0, 1, xoptions = Gtk.AttachOptions.FILL, yoptions = 0)
         self.folder_selector = Gtk.FileChooserButton()
@@ -380,12 +518,12 @@ class BackgroundSlideshowPane(Gtk.Table):
         self.folder_selector.connect("file-set", self._on_folder_selected)
         self.folder_selector.set_filename(self._cinnamon_background_schema["slideshow-folder"])
         self.attach(self.folder_selector, 1, 2, 0, 1, xoptions = Gtk.AttachOptions.FILL | Gtk.AttachOptions.EXPAND, yoptions = 0)
-        self.recursive_cb = Gtk.CheckButton(_("Recursive listing"))
+        self.recursive_cb = Gtk.CheckButton.new_with_label(_("Recursive listing"))
         self.recursive_cb.set_active(self._cinnamon_background_schema.get_boolean("slideshow-recursive"))
         self.recursive_cb.connect("toggled", self._on_recursive_toggled)
         self.attach(self.recursive_cb, 2, 3, 0, 1, xoptions = Gtk.AttachOptions.FILL, yoptions = 0)
         
-        l = Gtk.Label(_("Delay"))
+        l = Gtk.Label.new(_("Delay"))
         l.set_alignment(0, 0.5)
         self.attach(l, 0, 1, 1, 2, xoptions = Gtk.AttachOptions.FILL, yoptions = 0)
         self.delay_button = Gtk.SpinButton()
@@ -448,131 +586,4 @@ class BackgroundSlideshowPane(Gtk.Table):
             f.close()
             Gio.Settings("org.cinnamon.desktop.background").set_string("picture-uri", "file://" + filename)
 
-class BackgroundSidePage (SidePage):
-    def __init__(self, name, icon, keywords, advanced, content_box):
-        SidePage.__init__(self, name, icon, keywords, advanced, content_box, -1)
-        self._gnome_background_schema = Gio.Settings("org.cinnamon.desktop.background")
-        self._cinnamon_background_schema = Gio.Settings("org.cinnamon.background")
-        self._add_wallpapers_dialog = AddWallpapersDialog()
-        
-        self._cinnamon_background_schema.connect("changed::mode", self._on_mode_changed)
-    
-    def _on_mode_changed(self, settings, key):
-        for i in self.mainbox.get_children():
-            self.mainbox.remove(i)
-        if self._cinnamon_background_schema["mode"] == "slideshow":
-            self.mainbox.add(self.slideshow_pane)
-            self.add_wallpaper_button.hide()
-            self.remove_wallpaper_button.hide()
-            self.slideshow_pane.update_list()
-        else:
-            self.mainbox.add(self.wallpaper_pane)
-            self.add_wallpaper_button.show()
-            self.remove_wallpaper_button.show()
-        self.mainbox.show_all()
-    
-    def build(self, advanced):
-        # Clear all the widgets from the content box
-        widgets = self.content_box.get_children()
-        for widget in widgets:
-            self.content_box.remove(widget)
-        
-        topbox = Gtk.HBox()
-        self.content_box.pack_start(topbox, False, False, 3)
-        topbox.set_spacing(5)
-        
-        # Hide the background mode selection for now since we only support one mode at the moment.. 
-        #l = Gtk.Label(_("Mode"))
-        #topbox.pack_start(l, False, False, 0)
-        #self.background_mode = GSettingsComboBox("", "org.cinnamon.background", "mode", None, BACKGROUND_MODES).content_widget
-        #self.background_mode.unparent()
-        #topbox.pack_start(self.background_mode, False, False, 0)
-                        
-        self.remove_wallpaper_button = Gtk.Button(_("Remove"))
-        imageremove = Gtk.Image()
-        imageremove.set_from_icon_name('remove', Gtk.IconSize.BUTTON)
-        if imageremove.get_pixbuf() == None:
-            imageremove.set_from_stock(Gtk.STOCK_REMOVE, Gtk.IconSize.BUTTON)
-        self.remove_wallpaper_button.set_image(imageremove)
-        self.remove_wallpaper_button.get_image().show()
-        self.remove_wallpaper_button.set_no_show_all(True)
-        self.remove_wallpaper_button.set_tooltip_text(_("Remove wallpaper"))
-        self.remove_wallpaper_button.connect("clicked", lambda w: self._remove_selected_wallpaper())
-        self.remove_wallpaper_button.set_sensitive(False)
-        topbox.pack_end(self.remove_wallpaper_button, False, False, 0)
-        self.add_wallpaper_button = Gtk.Button(_("Add"))
-        imageadd = Gtk.Image()
-        imageadd.set_from_icon_name('add', Gtk.IconSize.BUTTON)
-        if imageadd.get_pixbuf() == None:
-            imageadd.set_from_stock(Gtk.STOCK_ADD, Gtk.IconSize.BUTTON)
-        self.add_wallpaper_button.set_image(imageadd)
-        self.add_wallpaper_button.get_image().show()
-        self.add_wallpaper_button.set_tooltip_text(_("Add wallpapers"))
-        self.add_wallpaper_button.connect("clicked", lambda w: self._add_wallpapers())
-        self.add_wallpaper_button.set_no_show_all(True)
-        topbox.pack_end(self.add_wallpaper_button, False, False, 0)
-                
-        self.mainbox = Gtk.EventBox()
-        self.mainbox.set_visible_window(False)
-        self.content_box.pack_start(self.mainbox, True, True, 3)
-        
-        self.wallpaper_pane = BackgroundWallpaperPane(self, self._gnome_background_schema)
-        self.slideshow_pane = BackgroundSlideshowPane(self, self._gnome_background_schema, self._cinnamon_background_schema)
-        if self._cinnamon_background_schema["mode"] == "slideshow":
-            self.mainbox.add(self.slideshow_pane)
-        else:
-            self.mainbox.add(self.wallpaper_pane)
-            self.add_wallpaper_button.show()
-            self.remove_wallpaper_button.show()
-                
-        expander = Gtk.Expander()
-        expander.set_label(_("Advanced options"))
-               
-        self.content_box.pack_start(expander, False, True, 3)
-        
-        advanced_options_box = Gtk.HBox()
-        expander.add(advanced_options_box)
-        advanced_options_box.set_spacing(10)
-        
-        l = Gtk.Label(_("Picture aspect"))
-        l.set_alignment(0, 0.5)
-        advanced_options_box.pack_start(l, False, False, 0)
-        self.picture_options = GSettingsComboBox("", "org.cinnamon.desktop.background", "picture-options", None, BACKGROUND_PICTURE_OPTIONS)
-        advanced_options_box.pack_start(self.picture_options, False, False, 0)
-        
-        l = Gtk.Label(_("Gradient"))
-        l.set_alignment(0, 0.5)
-        advanced_options_box.pack_start(l, False, False, 0)
-        self.color_shading_type = GSettingsComboBox("", "org.cinnamon.desktop.background", "color-shading-type", None, BACKGROUND_COLOR_SHADING_TYPES)
-        advanced_options_box.pack_start(self.color_shading_type, False, False, 0)
-        
-        hbox = Gtk.HBox()
-        l = Gtk.Label(_("Colors"))
-        hbox.pack_start(l, False, False, 2)
-        self.primary_color = GSettingsColorChooser("org.cinnamon.desktop.background", "primary-color", None)
-        hbox.pack_start(self.primary_color, False, False, 2)
-        self.secondary_color = GSettingsColorChooser("org.cinnamon.desktop.background", "secondary-color", None)
-        hbox.pack_start(self.secondary_color, False, False, 2)
-        advanced_options_box.pack_start(hbox, False, False, 0)
-        self.content_box.show_all()
 
-    def _add_wallpapers(self):
-        filenames = self._add_wallpapers_dialog.run()
-        if filenames:
-            dest_dir = os.path.join(os.getenv("HOME"), ".cinnamon", "backgrounds")
-            if not os.path.exists(dest_dir):
-                rec_mkdir(dest_dir)
-            for filename in filenames:
-                dest_filename = os.path.join(dest_dir, os.path.split(filename)[1])
-                fs = open(filename)
-                fd = open(dest_filename, "w")
-                fd.write(fs.read())
-                fs.close()
-                fd.close()
-            
-            self.wallpaper_pane.update_icon_view()
-    
-    def _remove_selected_wallpaper(self):
-        wallpaper = self.wallpaper_pane.get_selected_wallpaper()
-        os.unlink(wallpaper["filename"])
-        self.wallpaper_pane.update_icon_view()
