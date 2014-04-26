@@ -1,6 +1,6 @@
 cinnamon (2.2.3-1~1) UNRELEASED; urgency=medium
 
-  * New upstream release (Closes: #737565, #745319).
+  * New upstream release (Closes: #719538, #737565, #745319).
   * New maintainers (Closes: #743026)
 
   [ Nicolas Bourdaud ]
