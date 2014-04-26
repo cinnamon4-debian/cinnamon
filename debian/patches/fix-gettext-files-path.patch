@@ -7,8 +7,8 @@ Last-Update: 2013-06-02
 
 Index: cinnamon/files/generate_desktop_files
 ===================================================================
---- cinnamon.orig/files/generate_desktop_files	2014-03-12 12:39:52.631683174 +0100
-+++ cinnamon/files/generate_desktop_files	2014-03-12 12:39:52.623683498 +0100
+--- cinnamon.orig/files/generate_desktop_files	2014-04-26 13:33:01.994248508 +0200
++++ cinnamon/files/generate_desktop_files	2014-04-26 13:33:01.990248411 +0200
 @@ -26,12 +26,12 @@
  """)
  
@@ -42,8 +42,8 @@ Index: cinnamon/files/generate_desktop_files
  		except:
 Index: cinnamon/files/usr/lib/cinnamon-settings/cinnamon-settings.py
 ===================================================================
---- cinnamon.orig/files/usr/lib/cinnamon-settings/cinnamon-settings.py	2014-03-12 12:39:52.631683174 +0100
-+++ cinnamon/files/usr/lib/cinnamon-settings/cinnamon-settings.py	2014-03-12 12:39:52.627683336 +0100
+--- cinnamon.orig/files/usr/lib/cinnamon-settings/cinnamon-settings.py	2014-04-26 13:33:01.994248508 +0200
++++ cinnamon/files/usr/lib/cinnamon-settings/cinnamon-settings.py	2014-04-26 13:33:01.990248411 +0200
 @@ -32,7 +32,7 @@
      sys.exit(1)
  
@@ -55,9 +55,9 @@ Index: cinnamon/files/usr/lib/cinnamon-settings/cinnamon-settings.py
  menuComment = _("Control Center")
 Index: cinnamon/js/ui/main.js
 ===================================================================
---- cinnamon.orig/js/ui/main.js	2014-03-12 12:39:52.631683174 +0100
-+++ cinnamon/js/ui/main.js	2014-03-12 12:39:52.627683336 +0100
-@@ -140,7 +140,7 @@
+--- cinnamon.orig/js/ui/main.js	2014-04-26 13:33:01.994248508 +0200
++++ cinnamon/js/ui/main.js	2014-04-26 13:33:01.990248411 +0200
+@@ -142,7 +142,7 @@
  
  // Override Gettext localization
  const Gettext = imports.gettext;
@@ -68,8 +68,8 @@ Index: cinnamon/js/ui/main.js
  
 Index: cinnamon/src/Makefile.am
 ===================================================================
---- cinnamon.orig/src/Makefile.am	2014-03-12 12:39:52.631683174 +0100
-+++ cinnamon/src/Makefile.am	2014-03-12 12:39:52.627683336 +0100
+--- cinnamon.orig/src/Makefile.am	2014-04-26 13:33:01.994248508 +0200
++++ cinnamon/src/Makefile.am	2014-04-26 13:33:01.990248411 +0200
 @@ -80,7 +80,7 @@
  	$(CINNAMON_CFLAGS)			\
  	-I$(srcdir)/tray			\
@@ -81,8 +81,8 @@ Index: cinnamon/src/Makefile.am
  	-DCINNAMON_DATADIR=\"$(pkgdatadir)\"	\
 Index: cinnamon/files/usr/lib/cinnamon-screensaver-lock-dialog/cinnamon-screensaver-lock-dialog.py
 ===================================================================
---- cinnamon.orig/files/usr/lib/cinnamon-screensaver-lock-dialog/cinnamon-screensaver-lock-dialog.py	2014-03-12 12:39:52.631683174 +0100
-+++ cinnamon/files/usr/lib/cinnamon-screensaver-lock-dialog/cinnamon-screensaver-lock-dialog.py	2014-03-12 12:39:52.627683336 +0100
+--- cinnamon.orig/files/usr/lib/cinnamon-screensaver-lock-dialog/cinnamon-screensaver-lock-dialog.py	2014-04-26 13:33:01.994248508 +0200
++++ cinnamon/files/usr/lib/cinnamon-screensaver-lock-dialog/cinnamon-screensaver-lock-dialog.py	2014-04-26 13:33:01.994248508 +0200
 @@ -8,7 +8,7 @@
  import socket
  
@@ -94,8 +94,8 @@ Index: cinnamon/files/usr/lib/cinnamon-screensaver-lock-dialog/cinnamon-screensa
    
 Index: cinnamon/files/usr/lib/cinnamon-settings/modules/cs_backgrounds.py
 ===================================================================
---- cinnamon.orig/files/usr/lib/cinnamon-settings/modules/cs_backgrounds.py	2014-03-12 12:39:52.631683174 +0100
-+++ cinnamon/files/usr/lib/cinnamon-settings/modules/cs_backgrounds.py	2014-03-12 12:39:52.627683336 +0100
+--- cinnamon.orig/files/usr/lib/cinnamon-settings/modules/cs_backgrounds.py	2014-04-26 13:33:01.994248508 +0200
++++ cinnamon/files/usr/lib/cinnamon-settings/modules/cs_backgrounds.py	2014-04-26 13:33:01.994248508 +0200
 @@ -11,7 +11,7 @@
  import subprocess
  import tempfile
@@ -107,8 +107,8 @@ Index: cinnamon/files/usr/lib/cinnamon-settings/modules/cs_backgrounds.py
      ("wallpaper", _("Wallpaper")),
 Index: cinnamon/files/usr/lib/cinnamon-settings/modules/cs_keyboard.py
 ===================================================================
---- cinnamon.orig/files/usr/lib/cinnamon-settings/modules/cs_keyboard.py	2014-03-12 12:39:52.631683174 +0100
-+++ cinnamon/files/usr/lib/cinnamon-settings/modules/cs_keyboard.py	2014-03-12 12:39:52.627683336 +0100
+--- cinnamon.orig/files/usr/lib/cinnamon-settings/modules/cs_keyboard.py	2014-04-26 13:33:01.994248508 +0200
++++ cinnamon/files/usr/lib/cinnamon-settings/modules/cs_keyboard.py	2014-04-26 13:33:01.994248508 +0200
 @@ -5,7 +5,7 @@
  import cgi
  import gettext
@@ -120,8 +120,8 @@ Index: cinnamon/files/usr/lib/cinnamon-settings/modules/cs_keyboard.py
  # keybindings to gsettings key as well as GConf (In Mint 14 this is changed)
 Index: cinnamon/files/usr/bin/cinnamon-launcher
 ===================================================================
---- cinnamon.orig/files/usr/bin/cinnamon-launcher	2014-03-12 12:39:52.631683174 +0100
-+++ cinnamon/files/usr/bin/cinnamon-launcher	2014-03-12 12:39:52.627683336 +0100
+--- cinnamon.orig/files/usr/bin/cinnamon-launcher	2014-04-26 13:33:01.994248508 +0200
++++ cinnamon/files/usr/bin/cinnamon-launcher	2014-04-26 13:33:01.994248508 +0200
 @@ -7,7 +7,7 @@
  import os, sys, gettext
  from gi.repository import Gtk
@@ -133,8 +133,8 @@ Index: cinnamon/files/usr/bin/cinnamon-launcher
      d = Gtk.MessageDialog(None, 0, Gtk.MessageType.WARNING, Gtk.ButtonsType.YES_NO)
 Index: cinnamon/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py
 ===================================================================
---- cinnamon.orig/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py	2014-03-12 12:39:52.631683174 +0100
-+++ cinnamon/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py	2014-03-12 12:39:52.627683336 +0100
+--- cinnamon.orig/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py	2014-04-26 13:33:01.994248508 +0200
++++ cinnamon/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py	2014-04-26 13:33:01.994248508 +0200
 @@ -12,7 +12,7 @@
  from cme import util
  
@@ -146,8 +146,8 @@ Index: cinnamon/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py
  _ = gettext.gettext
 Index: cinnamon/generate_additional_files.py
 ===================================================================
---- cinnamon.orig/generate_additional_files.py	2014-03-12 12:39:52.631683174 +0100
-+++ cinnamon/generate_additional_files.py	2014-03-12 12:39:52.627683336 +0100
+--- cinnamon.orig/generate_additional_files.py	2014-04-26 13:33:01.994248508 +0200
++++ cinnamon/generate_additional_files.py	2014-04-26 13:33:01.994248508 +0200
 @@ -3,7 +3,7 @@
  import os, gettext
  
