@@ -313,7 +313,6 @@ class Module:
         self.sidePage = sidePage
         self.name = "default"
         self.category = "prefs"
-        self.comment = _("Manage default programs for common file types, and media actions")
 
     def on_module_selected(self):
         if not self.loaded:

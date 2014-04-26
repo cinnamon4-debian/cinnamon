@@ -831,16 +831,6 @@ class GSettingsUIntComboBox(Gtk.HBox):
         self.pack_start(self.content_widget, False, True, 2)
         self.content_widget.connect('changed', self.on_my_value_changed)
         self.content_widget.show_all()
-        self.dependency_invert = False
-        if self.dep_key is not None:
-            if self.dep_key[0] == '!':
-                self.dependency_invert = True
-                self.dep_key = self.dep_key[1:]
-            split = self.dep_key.split('/')
-            self.dep_settings = Gio.Settings.new(split[0])
-            self.dep_key = split[1]
-            self.dep_settings.connect("changed::"+self.dep_key, self.on_dependency_setting_changed)
-            self.on_dependency_setting_changed(self, None)
 
     def on_my_value_changed(self, widget):
         tree_iter = widget.get_active_iter()

@@ -1716,7 +1716,7 @@ msgstr ""
 msgid "_Action:"
 msgstr ""
 
-#: files/usr/lib/cinnamon-settings/modules/cs_default.py:313
+#: files/usr/lib/cinnamon-settings/modules/cs_default.py:311
 msgid ""
 "media, defaults, applications, programs, removable, browser, email, "
 "calendar, music, videos, photos, images, cd, autostart, autoplay"
@@ -1760,18 +1760,14 @@ msgid "desklet"
 msgstr ""
 
 #: files/usr/lib/cinnamon-settings/modules/cs_desklets.py:14
-msgid "desklet"
-msgstr ""
-
-#: files/usr/lib/cinnamon-settings/modules/cs_desklets.py:15
 msgid "desklets"
 msgstr ""
 
-#: files/usr/lib/cinnamon-settings/modules/cs_desklets.py:16
+#: files/usr/lib/cinnamon-settings/modules/cs_desklets.py:15
 msgid "desktop"
 msgstr ""
 
-#: files/usr/lib/cinnamon-settings/modules/cs_desklets.py:17
+#: files/usr/lib/cinnamon-settings/modules/cs_desklets.py:16
 msgid "Desklets"
 msgstr ""
 
@@ -1938,14 +1934,10 @@ msgid "extension"
 msgstr ""
 
 #: files/usr/lib/cinnamon-settings/modules/cs_extensions.py:12
-msgid "extension"
-msgstr ""
-
-#: files/usr/lib/cinnamon-settings/modules/cs_extensions.py:13
 msgid "extensions"
 msgstr ""
 
-#: files/usr/lib/cinnamon-settings/modules/cs_extensions.py:16
+#: files/usr/lib/cinnamon-settings/modules/cs_extensions.py:15
 msgid "Extensions"
 msgstr ""
 
@@ -3164,10 +3156,6 @@ msgid "theme"
 msgstr ""
 
 #: files/usr/lib/cinnamon-settings/modules/cs_themes.py:14
-msgid "theme"
-msgstr ""
-
-#: files/usr/lib/cinnamon-settings/modules/cs_themes.py:15
 msgid "themes"
 msgstr ""
 
@@ -3412,12 +3400,8 @@ msgstr ""
 
 #: files/usr/lib/cinnamon-settings/modules/cs_windows.py:58
 msgid ""
-"Enforce displaying the alt-tab switcher on the primary monitor instead of "
-"the active one"
-msgstr ""
-
-#: files/usr/lib/cinnamon-settings/modules/cs_windows.py:55
-msgid "Window drag/resize threshold"
+"Show an alert in the window list when a window from another workspace "
+"requires attention"
 msgstr ""
 
 #: files/usr/lib/cinnamon-settings/modules/cs_windows.py:59
