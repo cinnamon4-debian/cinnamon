@@ -1,0 +1,7 @@
+
+2014-04-28 maxy
+ - cinnamon-settings-users.py uses pkexec which requires an policy kit
+   authentication agent running (policykit-1-gnome), but the autostart desktop
+   file has a OnlyShowIn=GNOME;XFCE;Unity; file, so we should request to add:
+   X-Cinnamon to that list.
+

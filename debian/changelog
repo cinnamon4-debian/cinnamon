@@ -23,6 +23,7 @@ cinnamon (2.2.3-1~5) UNRELEASED; urgency=medium
   * New patch: policy_csu_path
   * New patch: capi-py_ccc_search_path
   * New patch: start_cinnamon
+  * New patch: add_policykit-1-gnome_to_session
 
   [ Margarita Manterola ]
   * Added patch to fix the relocation of cinnamon-settings
@@ -34,8 +35,6 @@ cinnamon (2.2.3-1~5) UNRELEASED; urgency=medium
   * Updated libgstreamer dependency to 1.0.
   * Install missing icons
   * Added a bunch of patches to change /usr/lib to /usr/share/cinnamon
-
-  [ Maximiliano Curia ]
 
  -- Maximiliano Curia <maxy@debian.org>  Sun, 27 Apr 2014 21:53:05 +0200
 
