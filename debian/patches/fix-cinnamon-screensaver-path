@@ -1,0 +1,13 @@
+Index: cinnamon/files/usr/lib/cinnamon-screensaver-lock-dialog/cinnamon-screensaver-lock-dialog.py
+===================================================================
+--- cinnamon.orig/files/usr/lib/cinnamon-screensaver-lock-dialog/cinnamon-screensaver-lock-dialog.py	2014-04-27 17:51:35.052869107 +0200
++++ cinnamon/files/usr/lib/cinnamon-screensaver-lock-dialog/cinnamon-screensaver-lock-dialog.py	2014-04-27 18:01:41.155186081 +0200
+@@ -25,7 +25,7 @@
+             real_name = username        
+ 
+         self.builder = Gtk.Builder()
+-        self.builder.add_from_file("/usr/lib/cinnamon-screensaver-lock-dialog/cinnamon-screensaver-lock-dialog.ui")
++        self.builder.add_from_file("/usr/share/cinnamon/cinnamon-screensaver-lock-dialog/cinnamon-screensaver-lock-dialog.ui")
+         
+         self.window = self.builder.get_object("main_dialog")
+         self.button_cancel = self.builder.get_object("button_cancel")

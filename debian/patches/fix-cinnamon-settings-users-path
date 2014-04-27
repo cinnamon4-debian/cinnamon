@@ -8,4 +8,16 @@ Index: cinnamon/files/usr/bin/cinnamon-settings-users
  
 -os.system("pkexec /usr/lib/cinnamon-settings-users/cinnamon-settings-users.py")
 +os.system("pkexec /usr/share/cinnamon/cinnamon-settings-users/cinnamon-settings-users.py")
- 
+
+Index: cinnamon/files/usr/lib/cinnamon-settings-users/cinnamon-settings-users.py
+===================================================================
+--- cinnamon.orig/files/usr/lib/cinnamon-settings-users/cinnamon-settings-users.py	2014-04-27 11:56:10.574581618 +0200
++++ cinnamon/files/usr/lib/cinnamon-settings-users/cinnamon-settings-users.py	2014-04-27 17:48:50.240914893 +0200
+@@ -365,7 +365,7 @@
+     def __init__(self):
+         try:
+             self.builder = Gtk.Builder()
+-            self.builder.add_from_file("/usr/lib/cinnamon-settings-users/cinnamon-settings-users.ui")
++            self.builder.add_from_file("/usr/share/cinnamon/cinnamon-settings-users/cinnamon-settings-users.ui")
+             self.window = self.builder.get_object("main_window")
+             self.window.connect("destroy", Gtk.main_quit)            

@@ -1,0 +1,51 @@
+Index: cinnamon/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py
+===================================================================
+--- cinnamon.orig/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py	2014-04-27 17:51:35.052869107 +0200
++++ cinnamon/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py	2014-04-27 17:57:01.632698817 +0200
+@@ -8,7 +8,7 @@
+ from optparse import OptionParser
+ import shutil
+ 
+-sys.path.insert(0,'/usr/lib/cinnamon-menu-editor')
++sys.path.insert(0,'/usr/share/cinnamon/cinnamon-menu-editor')
+ from cme import util
+ 
+ # i18n
+@@ -222,7 +222,7 @@
+         self.dialog.destroy()
+ 
+ class LauncherEditor(ItemEditor):
+-    ui_file = '/usr/lib/cinnamon-desktop-editor/launcher-editor.ui'
++    ui_file = '/usr/share/cinnamon/cinnamon-desktop-editor/launcher-editor.ui'
+ 
+     def build_ui(self):
+         self.icon_picker = IconPicker(self.dialog,
+@@ -271,7 +271,7 @@
+ 
+ 
+ class DirectoryEditor(ItemEditor):
+-    ui_file = '/usr/lib/cinnamon-desktop-editor/directory-editor.ui'
++    ui_file = '/usr/share/cinnamon/cinnamon-desktop-editor/directory-editor.ui'
+ 
+     def build_ui(self):
+         self.icon_picker = IconPicker(self.dialog,
+@@ -302,7 +302,7 @@
+ 
+ 
+ class PanelLauncherEditor(ItemEditor):
+-    ui_file = '/usr/lib/cinnamon-desktop-editor/launcher-editor.ui'
++    ui_file = '/usr/share/cinnamon/cinnamon-desktop-editor/launcher-editor.ui'
+ 
+     def build_ui(self):
+         self.icon_picker = IconPicker(self.dialog,
+Index: cinnamon/files/usr/bin/cinnamon-desktop-editor
+===================================================================
+--- cinnamon.orig/files/usr/bin/cinnamon-desktop-editor	2014-04-27 11:56:10.570581524 +0200
++++ cinnamon/files/usr/bin/cinnamon-desktop-editor	2014-04-27 18:02:51.184798454 +0200
+@@ -2,5 +2,5 @@
+ 
+ import os, sys
+ 
+-os.execvp("/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py", ("",) + tuple(sys.argv[1:]))
++os.execvp("/usr/share/cinnamon/cinnamon-desktop-editor/cinnamon-desktop-editor.py", ("",) + tuple(sys.argv[1:]))
+ 
