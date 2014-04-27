@@ -29,6 +29,8 @@ cinnamon (2.2.3-1~1) UNRELEASED; urgency=medium
   * Updated to 2.2.3.
   * Refreshed patches for 2.2.3
   * Added myself to Uploaders.
+  * Move libgnome-menu dependencies to libcinnamon-menu.
+  * Updated libgstreamer dependency to 1.0.
 
  -- Margarita Manterola <marga@debian.org>  Sat, 26 Apr 2014 13:27:12 +0200
 
