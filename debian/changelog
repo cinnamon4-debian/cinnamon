@@ -1,4 +1,4 @@
-cinnamon (2.2.3-1~4) UNRELEASED; urgency=medium
+cinnamon (2.2.3-1~5) UNRELEASED; urgency=medium
 
   * New upstream release (Closes: #719538, #737565, #745319).
   * New maintainers (Closes: #743026)
@@ -35,7 +35,9 @@ cinnamon (2.2.3-1~4) UNRELEASED; urgency=medium
   * Install missing icons
   * Added a bunch of patches to change /usr/lib to /usr/share/cinnamon
 
- -- Margarita Manterola <marga@debian.org>  Sat, 26 Apr 2014 13:27:12 +0200
+  [ Maximiliano Curia ]
+
+ -- Maximiliano Curia <maxy@debian.org>  Sun, 27 Apr 2014 21:53:05 +0200
 
 cinnamon (1.7.4-2) unstable; urgency=low
 
