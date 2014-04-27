@@ -1,0 +1,11 @@
+Index: cinnamon/files/usr/bin/cinnamon-settings-users
+===================================================================
+--- cinnamon.orig/files/usr/bin/cinnamon-settings-users	2014-04-27 11:56:10.570581524 +0200
++++ cinnamon/files/usr/bin/cinnamon-settings-users	2014-04-27 17:38:36.254163533 +0200
+@@ -2,5 +2,5 @@
+ 
+ import os
+ 
+-os.system("pkexec /usr/lib/cinnamon-settings-users/cinnamon-settings-users.py")
++os.system("pkexec /usr/share/cinnamon/cinnamon-settings-users/cinnamon-settings-users.py")
+ 
