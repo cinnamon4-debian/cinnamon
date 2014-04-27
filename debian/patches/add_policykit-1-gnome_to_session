@@ -1,7 +1,7 @@
 Index: cinnamon/files/usr/share/applications/cinnamon-polkit-gnome-authentication-agent-1.desktop
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ cinnamon/files/usr/share/applications/cinnamon-polkit-gnome-authentication-agent-1.desktop	2014-04-28 00:42:14.397738538 +0200
++++ cinnamon/files/usr/share/applications/cinnamon-polkit-gnome-authentication-agent-1.desktop	2014-04-28 00:52:44.833128576 +0200
 @@ -0,0 +1,87 @@
 +[Desktop Entry]
 +Name=PolicyKit Authentication Agent
@@ -92,11 +92,23 @@ Index: cinnamon/files/usr/share/applications/cinnamon-polkit-gnome-authenticatio
 +OnlyShowIn=X-Cinnamon;
 Index: cinnamon/files/usr/share/cinnamon-session/sessions/cinnamon.session
 ===================================================================
---- cinnamon.orig/files/usr/share/cinnamon-session/sessions/cinnamon.session	2014-04-28 00:43:32.843666803 +0200
-+++ cinnamon/files/usr/share/cinnamon-session/sessions/cinnamon.session	2014-04-28 00:43:47.648030283 +0200
+--- cinnamon.orig/files/usr/share/cinnamon-session/sessions/cinnamon.session	2014-04-28 00:52:44.837128673 +0200
++++ cinnamon/files/usr/share/cinnamon-session/sessions/cinnamon.session	2014-04-28 00:52:44.837128673 +0200
 @@ -1,6 +1,6 @@
  [Cinnamon Session]
  Name=Cinnamon
+-RequiredComponents=cinnamon;cinnamon-settings-daemon;cinnamon-screensaver;nemo-autostart;nm-applet;
++RequiredComponents=cinnamon;cinnamon-polkit-gnome-authentication-agent-1;cinnamon-settings-daemon;cinnamon-screensaver;nemo-autostart;nm-applet;
+ DesktopName=X-Cinnamon
+ 
+ 
+Index: cinnamon/files/usr/share/cinnamon-session/sessions/cinnamon2d.session
+===================================================================
+--- cinnamon.orig/files/usr/share/cinnamon-session/sessions/cinnamon2d.session	2014-04-27 12:07:58.355636089 +0200
++++ cinnamon/files/usr/share/cinnamon-session/sessions/cinnamon2d.session	2014-04-28 00:53:27.982173842 +0200
+@@ -1,6 +1,6 @@
+ [Cinnamon Session]
+ Name=Cinnamon (Software Rendering)
 -RequiredComponents=cinnamon;cinnamon-settings-daemon;cinnamon-screensaver;nemo-autostart;nm-applet;
 +RequiredComponents=cinnamon;cinnamon-polkit-gnome-authentication-agent-1;cinnamon-settings-daemon;cinnamon-screensaver;nemo-autostart;nm-applet;
  DesktopName=X-Cinnamon
