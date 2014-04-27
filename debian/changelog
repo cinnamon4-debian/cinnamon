@@ -22,6 +22,7 @@ cinnamon (2.2.3-1~4) UNRELEASED; urgency=medium
   * New patch: paneljs_icon_search_path
   * New patch: policy_csu_path
   * New patch: capi-py_ccc_search_path
+  * New patch: start_cinnamon
 
   [ Margarita Manterola ]
   * Added patch to fix the relocation of cinnamon-settings

@@ -9,6 +9,7 @@ fix-settings-path
 paneljs_icon_search_path
 policy_csu_path
 capi-py_ccc_search_path
+start_cinnamon
 fix-cinnamon-settings-users-path
 fix-cinnamon-desktop-editor-path
 fix-cinnamon-menu-editor-path

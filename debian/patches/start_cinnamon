@@ -1,0 +1,26 @@
+Index: cinnamon/data/cinnamon.desktop.in.in
+===================================================================
+--- cinnamon.orig/data/cinnamon.desktop.in.in	2014-04-27 12:07:58.319635089 +0200
++++ cinnamon/data/cinnamon.desktop.in.in	2014-04-27 21:48:27.776842798 +0200
+@@ -8,7 +8,7 @@
+ X-GNOME-Bugzilla-Component=general
+ X-GNOME-Bugzilla-Version=@VERSION@
+ Categories=GNOME;GTK;System;Core;
+-OnlyShowIn=GNOME;
++OnlyShowIn=GNOME;X-Cinnamon;
+ NoDisplay=true
+ X-GNOME-Autostart-Phase=WindowManager
+ X-GNOME-Provides=panel;windowmanager;
+Index: cinnamon/files/usr/share/applications/cinnamon2d.desktop
+===================================================================
+--- cinnamon.orig/files/usr/share/applications/cinnamon2d.desktop	2014-04-27 12:07:58.355636089 +0200
++++ cinnamon/files/usr/share/applications/cinnamon2d.desktop	2014-04-27 21:48:36.045056343 +0200
+@@ -4,7 +4,7 @@
+ Comment=Window management and application launching
+ Exec=/usr/bin/cinnamon2d
+ Categories=GNOME;GTK;System;Core;
+-OnlyShowIn=X-Cinnamon;
++OnlyShowIn=GNOME;X-Cinnamon;
+ NoDisplay=true
+ X-GNOME-Autostart-Phase=WindowManager
+ X-GNOME-Provides=panel;windowmanager;
