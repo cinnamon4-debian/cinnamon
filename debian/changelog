@@ -1,4 +1,4 @@
-cinnamon (2.2.3-1~7) UNRELEASED; urgency=medium
+cinnamon (2.2.3-1) experimental; urgency=medium
 
   * New upstream release (Closes: #719538, #737565, #745319).
   * New maintainers (Closes: #743026)
@@ -38,7 +38,9 @@ cinnamon (2.2.3-1~7) UNRELEASED; urgency=medium
 
   [ Maximiliano Curia ]
 
- -- Maximiliano Curia <maxy@debian.org>  Mon, 28 Apr 2014 00:46:32 +0200
+  [ Margarita Manterola ]
+
+ -- Margarita Manterola <marga@debian.org>  Mon, 28 Apr 2014 22:27:12 +0200
 
 cinnamon (1.7.4-2) unstable; urgency=low
 
