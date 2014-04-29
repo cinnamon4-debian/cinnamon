@@ -36,10 +36,6 @@ cinnamon (2.2.3-1) experimental; urgency=medium
   * Install missing icons
   * Added a bunch of patches to change /usr/lib to /usr/share/cinnamon
 
-  [ Maximiliano Curia ]
-
-  [ Margarita Manterola ]
-
  -- Margarita Manterola <marga@debian.org>  Mon, 28 Apr 2014 22:27:12 +0200
 
 cinnamon (1.7.4-2) unstable; urgency=low
