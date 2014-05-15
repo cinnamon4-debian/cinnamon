@@ -198,10 +198,10 @@ class MainWindow:
                         category["show"] = True
 
             # Don't allow item names (and their translations) to be more than 30 chars long. It looks ugly and it creates huge gaps in the icon views
-            name = sp.name            
+            name = unicode(sp.name,'utf-8')
             if len(name) > 30:
                 name = "%s..." % name[:30]
-            sidePagesIters[sp_id] = self.store[sp_cat].append([name, sp.icon, sp, sp_cat])
+            sidePagesIters[sp_id] = (self.store[sp_cat].append([name, sp.icon, sp, sp_cat]), sp_cat)
 
         self.min_label_length = 0
         self.min_pix_length = 0
@@ -233,8 +233,12 @@ class MainWindow:
 
         # Select the first sidePage
         if len(sys.argv) > 1 and sys.argv[1] in sidePagesIters.keys():
-            first_page_iter = sidePagesIters[sys.argv[1]]
-            self.findPath(first_page_iter)
+            (iter, cat) = sidePagesIters[sys.argv[1]]
+            path = self.store[cat].get_path(iter)
+            if path:
+                self.go_to_sidepage(cat, path)
+            else:
+                self.search_entry.grab_focus()
         else:
             self.search_entry.grab_focus()
 
@@ -463,12 +467,6 @@ class MainWindow:
             visible = cat == category["id"]
             iter = self.storeFilter[id].iter_next(iter)
         return visible
-
-    def findPath (self, name):
-        for key in self.store.keys():
-            path = self.store[key].get_path(name)
-            if path is not None:
-                self.go_to_sidepage(key, path)
 
     def setParentRefs (self, mod):
         try:
