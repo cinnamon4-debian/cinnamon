@@ -113,21 +113,21 @@
     
     <key name="panel-top-height" type="i">
       <default>25</default>
-      <range min="20" />
+      <range min="20" max="100" />
       <_summary>Panel size</_summary>
       <_description>
-        User-defined panel-height for top panel.  Note, this value may be the true value in use at runtime, depending
-        on any scaling that may be occurring (for hidpi screens, for instance).
+        User-defined panel-height for top panel.  Note, this value may or may not be the true value in use at runtime, depending
+        on any scaling that may be occurring (on hidpi screens, for instance).
       </_description>
     </key>
-    
+
     <key name="panel-bottom-height" type="i">
       <default>25</default>
-      <range min="20" />
+      <range min="20" max="100"/>
       <_summary>Panel size</_summary>
       <_description>
-        User-defined panel-height for bottom panel.  Note, this value may be the true value in use at runtime, depending
-        on any scaling that may be occurring (for hidpi screens, for instance).
+        User-defined panel-height for bottom panel.  Note, this value may or may not be the true value in use at runtime, depending
+        on any scaling that may be occurring (on hidpi screens, for instance).
       </_description>
     </key>
     
@@ -338,7 +338,7 @@
     </key>
 
     <key name="overview-corner" type="as">
-      <default>['expo:false:false', 'scale:false:false', 'scale:false:false', 'scale:false:false']</default>
+      <default>['expo:false:false', 'scale:false:false', 'scale:false:false', 'desktop:false:false']</default>
       <_summary>Properties of overview corners</_summary>
       <_description>Properties of overview corners, in the form functionality:hover:icon. The order in which properties are displayed is top left, top right, bottom left, bottom right.</_description>
     </key>
@@ -364,7 +364,7 @@
     </key>
 
     <key name="favorite-apps" type="as">
-      <default>[ 'firefox.desktop', 'mintInstall.desktop', 'cinnamon-settings.desktop', 'xchat.desktop', 'gnome-terminal.desktop', 'nemo.desktop' ]</default>
+      <default>[ 'firefox.desktop', 'mintInstall.desktop', 'cinnamon-settings.desktop', 'hexchat.desktop', 'gnome-terminal.desktop', 'nemo.desktop' ]</default>
       <_summary>List of desktop file IDs for favorite applications</_summary>
       <_description>
         The applications corresponding to these identifiers
@@ -503,6 +503,14 @@
       </description>
     </key>
 
+    <key name="prevent-focus-stealing" type="b">
+      <default>false</default>
+      <summary>Prevents windows that request user attention from stealing focus</summary>
+      <description>
+        When enabled, even if a window requires attention, it is not activated.
+      </description>
+    </key>
+
     <key name="desklet-decorations" type="i">
       <default>1</default>
       <_summary>The decoration level of the desklets</_summary>
@@ -553,6 +561,13 @@
       <_description>
         Hide the snap OSD.
       </_description>
+    </key>
+
+    <key type="i" name="active-display-scale">
+      <range min="1" max="4" />
+      <default>1</default>
+      <summary>Utility read-only setting used by st library</summary>
+      <description>Current scale factor</description>
     </key>
 
   </schema>

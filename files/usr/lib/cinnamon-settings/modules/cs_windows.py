@@ -23,7 +23,7 @@ class Module:
             bg.add(vbox)
 
             section = Section(_("Alt-Tab"))  
-            alttab_styles = [["icons", _("Icons only")],["icons+thumbnails", _("Icons and thumbnails")],["icons+preview", _("Icons and window preview")],["preview", _("Window preview (no icons)")],["coverflow", _("Coverflow (3D)")],["timeline", _("Timeline (3D)")]]
+            alttab_styles = [["icons", _("Icons only")], ["thumbnails", _("Thumbnails only")],["icons+thumbnails", _("Icons and thumbnails")],["icons+preview", _("Icons and window preview")],["preview", _("Window preview (no icons)")],["coverflow", _("Coverflow (3D)")],["timeline", _("Timeline (3D)")]]
             alttab_styles_combo = self._make_combo_group(_("Alt-Tab switcher style"), "org.cinnamon", "alttab-switcher-style", alttab_styles)
             section.add(alttab_styles_combo)
             section.add(GSettingsCheckButton(_("Display the alt-tab switcher on the primary monitor instead of the active one"), "org.cinnamon", "alttab-switcher-enforce-primary-monitor", None))
@@ -65,6 +65,7 @@ class Module:
             section.add(self._make_combo_group(_("Window focus mode"), "org.cinnamon.desktop.wm.preferences", "focus-mode", [(i, i.title()) for i in ("click","sloppy","mouse")]))
             section.add(GSettingsCheckButton(_("Automatically raise focused windows"), "org.cinnamon.desktop.wm.preferences", "auto-raise", None))
             section.add(GSettingsCheckButton(_("Bring windows which require attention to the current workspace"), "org.cinnamon", "bring-windows-to-current-workspace", None))        
+            section.add(GSettingsCheckButton(_("Prevent focus stealing"), "org.cinnamon", "prevent-focus-stealing", None))        
             section.add(GSettingsCheckButton(_("Attach dialog windows to their parent window's titlebar"), "org.cinnamon.muffin", "attach-modal-dialogs", None))
             vbox.add(section)
 

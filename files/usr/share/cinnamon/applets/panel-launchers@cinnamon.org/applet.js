@@ -106,8 +106,8 @@ PanelAppLauncher.prototype = {
         this._iconBottomClip = 0;
 
         if (global.settings.get_boolean(PANEL_SCALE_TEXT_ICONS_KEY) && global.settings.get_boolean(PANEL_RESIZABLE_KEY)) {
-            this.icon_height = Math.floor(panel_height * ICON_HEIGHT_FACTOR);
-            this.icon_anim_height = Math.floor(panel_height * ICON_ANIM_FACTOR);
+            this.icon_height = Math.floor((panel_height * ICON_HEIGHT_FACTOR) / global.ui_scale);
+            this.icon_anim_height = Math.floor((panel_height * ICON_ANIM_FACTOR) / global.ui_scale);
         } else {
             this.icon_height = DEFAULT_ICON_SIZE;
             this.icon_anim_height = DEFAULT_ANIM_SIZE;
@@ -317,7 +317,7 @@ MyApplet.prototype = {
         let desktopFiles = global.settings.get_strv(PANEL_LAUNCHERS_KEY);
         let appSys = Cinnamon.AppSystem.get_default();
         let apps = new Array();
-        for (var i in desktopFiles){
+        for (let i = 0; i < desktopFiles.length; i++){
             let app = appSys.lookup_app(desktopFiles[i]);
             let appinfo;
             if (!app) appinfo = Gio.DesktopAppInfo.new_from_filename(CUSTOM_LAUNCHERS_PATH+"/"+desktopFiles[i]);
@@ -335,7 +335,7 @@ MyApplet.prototype = {
         this._launchers = new Array();
 
         let apps = this.loadApps();
-        for (var i in apps){
+        for (let i = 0; i < apps.length; i++){
             let app = apps[i];
             let launcher = new PanelAppLauncher(this, app[0], app[1], this.orientation, this._panelHeight);
             this.myactor.add(launcher.actor);
@@ -371,7 +371,6 @@ MyApplet.prototype = {
 
     showAddLauncherDialog: function(timestamp, launcher){
         if (launcher) {
-            global.logError(launcher.getId());
             Util.spawnCommandLine("cinnamon-desktop-editor -mpanel-launcher -f" + launcher.getId());
         } else {
             Util.spawnCommandLine("cinnamon-desktop-editor -mpanel-launcher");
