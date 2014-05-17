@@ -1,7 +1,7 @@
 Index: cinnamon/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py
 ===================================================================
---- cinnamon.orig/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py	2014-04-27 17:51:35.052869107 +0200
-+++ cinnamon/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py	2014-04-27 17:57:01.632698817 +0200
+--- cinnamon.orig/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py	2014-05-17 12:34:48.173989997 +0200
++++ cinnamon/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py	2014-05-17 12:34:48.169990160 +0200
 @@ -8,7 +8,7 @@
  from optparse import OptionParser
  import shutil
@@ -11,7 +11,7 @@ Index: cinnamon/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py
  from cme import util
  
  # i18n
-@@ -222,7 +222,7 @@
+@@ -249,7 +249,7 @@
          self.dialog.destroy()
  
  class LauncherEditor(ItemEditor):
@@ -20,7 +20,7 @@ Index: cinnamon/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py
  
      def build_ui(self):
          self.icon_picker = IconPicker(self.dialog,
-@@ -271,7 +271,7 @@
+@@ -299,7 +299,7 @@
  
  
  class DirectoryEditor(ItemEditor):
@@ -29,7 +29,7 @@ Index: cinnamon/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py
  
      def build_ui(self):
          self.icon_picker = IconPicker(self.dialog,
-@@ -302,7 +302,7 @@
+@@ -330,7 +330,7 @@
  
  
  class PanelLauncherEditor(ItemEditor):
@@ -40,8 +40,8 @@ Index: cinnamon/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py
          self.icon_picker = IconPicker(self.dialog,
 Index: cinnamon/files/usr/bin/cinnamon-desktop-editor
 ===================================================================
---- cinnamon.orig/files/usr/bin/cinnamon-desktop-editor	2014-04-27 11:56:10.570581524 +0200
-+++ cinnamon/files/usr/bin/cinnamon-desktop-editor	2014-04-27 18:02:51.184798454 +0200
+--- cinnamon.orig/files/usr/bin/cinnamon-desktop-editor	2014-05-17 12:34:48.173989997 +0200
++++ cinnamon/files/usr/bin/cinnamon-desktop-editor	2014-05-17 12:34:48.169990160 +0200
 @@ -2,5 +2,5 @@
  
  import os, sys
