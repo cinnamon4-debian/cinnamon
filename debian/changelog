@@ -1,8 +1,8 @@
-cinnamon (2.2.10-1~) UNRELEASED; urgency=medium
+cinnamon (2.2.10-1) experimental; urgency=medium
 
   * New upstream release.
 
- -- Margarita Manterola <marga@debian.org>  Sat, 24 May 2014 15:54:46 +0200
+ -- Margarita Manterola <marga@debian.org>  Sat, 24 May 2014 19:28:40 +0200
 
 cinnamon (2.2.9-1) experimental; urgency=medium
 
