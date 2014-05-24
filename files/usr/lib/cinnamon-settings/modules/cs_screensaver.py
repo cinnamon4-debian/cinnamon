@@ -19,7 +19,7 @@ LOCK_DELAY_OPTIONS = [
 class Module:
     def __init__(self, content_box):
         keywords = _("screensaver, lock, password, away, message")
-        sidePage = SidePage(_("Lock Screen"), "cs-screensaver", keywords, content_box, module=self)
+        sidePage = SidePage(_("Screen Locker"), "cs-screensaver", keywords, content_box, module=self)
         self.sidePage = sidePage
         self.name = "screensaver"
         self.category = "prefs"
@@ -53,7 +53,7 @@ class Module:
             section = Section(_("Away Message"))
             widget = GSettingsEntry(_("Show this message when the screen is locked: "), "org.cinnamon.screensaver", "default-message", None)
             widget.set_tooltip_text(_("This is the default message displayed on your lock screen"))
-            section.add(widget)
+            section.add_expand(widget)
             widget = GSettingsCheckButton(_("Ask for a custom message when locking the screen from the menu"), "org.cinnamon.screensaver", "ask-for-away-message", None)
             widget.set_tooltip_text(_("This option allows you to type a message each time you lock the screen from the menu"))
             section.add(widget)
