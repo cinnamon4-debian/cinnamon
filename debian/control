@@ -112,6 +112,7 @@ Depends: caribou,
          ${python:Depends},
          ${shlibs:Depends}
 Recommends: cinnamon-control-center, cinnamon-bluetooth
+Suggests: python-opencv
 Provides: x-window-manager
 Description: Innovative and comfortable desktop
  Cinnamon is a desktop environment which provides advanced innovative
