@@ -1,19 +1,19 @@
 Index: cinnamon/files/usr/bin/cinnamon-settings-users
 ===================================================================
---- cinnamon.orig/files/usr/bin/cinnamon-settings-users	2014-04-27 11:56:10.570581524 +0200
-+++ cinnamon/files/usr/bin/cinnamon-settings-users	2014-04-27 17:38:36.254163533 +0200
+--- cinnamon.orig/files/usr/bin/cinnamon-settings-users	2014-05-30 11:58:56.182049868 +0200
++++ cinnamon/files/usr/bin/cinnamon-settings-users	2014-05-30 11:58:56.178050028 +0200
 @@ -2,5 +2,5 @@
  
  import os
  
 -os.system("gksu /usr/lib/cinnamon-settings-users/cinnamon-settings-users.py")
 +os.system("gksu /usr/share/cinnamon/cinnamon-settings-users/cinnamon-settings-users.py")
-
+ 
 Index: cinnamon/files/usr/lib/cinnamon-settings-users/cinnamon-settings-users.py
 ===================================================================
---- cinnamon.orig/files/usr/lib/cinnamon-settings-users/cinnamon-settings-users.py	2014-04-27 11:56:10.574581618 +0200
-+++ cinnamon/files/usr/lib/cinnamon-settings-users/cinnamon-settings-users.py	2014-04-27 17:48:50.240914893 +0200
-@@ -365,7 +365,7 @@
+--- cinnamon.orig/files/usr/lib/cinnamon-settings-users/cinnamon-settings-users.py	2014-05-30 11:58:56.182049868 +0200
++++ cinnamon/files/usr/lib/cinnamon-settings-users/cinnamon-settings-users.py	2014-05-30 11:58:56.178050028 +0200
+@@ -372,7 +372,7 @@
      def __init__(self):
          try:
              self.builder = Gtk.Builder()
@@ -21,3 +21,4 @@ Index: cinnamon/files/usr/lib/cinnamon-settings-users/cinnamon-settings-users.py
 +            self.builder.add_from_file("/usr/share/cinnamon/cinnamon-settings-users/cinnamon-settings-users.ui")
              self.window = self.builder.get_object("main_window")
              self.window.connect("destroy", Gtk.main_quit)            
+ 

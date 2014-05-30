@@ -1,5 +1,6 @@
 cinnamon (2.2.13-1~) UNRELEASED; urgency=medium
 
+  [ Margarita Manterola ]
   * New upstream release.
   * Add python-opencv as a Suggests (used for taking pictures of the user).
 
@@ -7,6 +8,9 @@ cinnamon (2.2.13-1~) UNRELEASED; urgency=medium
   * mention closing of #720466, #747779 by 2.2.3-1
   * cinnamon-screensaver 2.2.3 solves one security issue reported to cinnamon.
     (Closes: #738828 CVE-2014-1949)
+
+  [ Maximiliano Curia ]
+  * Refresh patches.
 
  -- Margarita Manterola <marga@debian.org>  Thu, 29 May 2014 16:31:21 +0200
 
@@ -108,7 +112,7 @@ cinnamon (1.7.2-1) unstable; urgency=low
   * New upstream cinnamon_1.7.2
     - Fix clock text dropshadow. (Closes: #694688)
   * Add python-pyinotify dependency. (Closes: #702239)
-  * Improve cinnamon-screensaver-lock-dialog manpage. (Closes: #702237) 
+  * Improve cinnamon-screensaver-lock-dialog manpage. (Closes: #702237)
   * Add various missing gir dependencies.
   * Handle missing bindings with cinnamon-settings. (Closes: #702281)
     - new patch: handle-missing-bindings.patch (thanks to Stephan Sürken)
@@ -118,7 +122,7 @@ cinnamon (1.7.2-1) unstable; urgency=low
 cinnamon (1.7.1-1) unstable; urgency=low
 
   [ Laszlo Boszormenyi (GCS) ]
-  * Bump debian policy version to 3.9.4: no changes 
+  * Bump debian policy version to 3.9.4: no changes
   * Enable hardening compilation flags
 
   [ Nicolas Bourdaud ]
@@ -142,7 +146,7 @@ cinnamon (1.6.7-2) unstable; urgency=low
   * new patch: network-user-connection.patch
     Set connections and passwords as user-owned, following matching changes
     in nm-applet and gnome-control-center. (Closes: #698571)
-  * Remove caribou as dependency. (LP: #1106062) 
+  * Remove caribou as dependency. (LP: #1106062)
   * Restrict libgudev-glib-dev and libnm-glib-dev build-dependencies to
     Linux platforms: should fix the build on FreeBSD and Hurd.
 
@@ -157,10 +161,10 @@ cinnamon (1.6.7-1) unstable; urgency=low
   * Add libgl1-mesa-dev as build depends: should fix build on ARM
   * Build bluetooth support only on Linux architectures.
   * Add python-dbus and python-imaging dependencies. (Closes: #693935)
-  * Do not install browser plugin in multiarch folder. (Closes: #695338) 
+  * Do not install browser plugin in multiarch folder. (Closes: #695338)
   * Install translation files in the standard folder. (Closes: #695286)
     new patch: fix-gettext-files-path.patch
-  * Move packaging git repo to Alioth. 
+  * Move packaging git repo to Alioth.
   * Use rpath to fix the use of libgnome-bluetooth. (Closes: #695408)
      - update: disable-bluetooth-applet-hack.patch
 
