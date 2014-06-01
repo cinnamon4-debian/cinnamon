@@ -1,7 +1,12 @@
 cinnamon (2.2.13-1~) UNRELEASED; urgency=medium
 
-  * Add python-opencv as a Suggests (used for taking pictures of the user).
   * New upstream release.
+  * Add python-opencv as a Suggests (used for taking pictures of the user).
+
+  [ Fabio Fantoni ]
+  * mention closing of #720466, #747779 by 2.2.3-1
+  * cinnamon-screensaver 2.2.3 solves one security issue reported to cinnamon.
+    (Closes: #738828 CVE-2014-1949)
 
  -- Margarita Manterola <marga@debian.org>  Thu, 29 May 2014 16:31:21 +0200
 
@@ -31,7 +36,7 @@ cinnamon (2.2.9-1) experimental; urgency=medium
 
 cinnamon (2.2.3-1) experimental; urgency=medium
 
-  * New upstream release (Closes: #719538, #737565, #745319).
+  * New upstream release (Closes: #719538, #737565, #745319, #720466, #747779).
   * New maintainers (Closes: #743026)
 
   [ Nicolas Bourdaud ]
