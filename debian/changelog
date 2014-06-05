@@ -8,9 +8,10 @@ cinnamon (2.2.13-1~) UNRELEASED; urgency=medium
   * Refresh patches.
 
   [ Fabio Fantoni ]
-  * debian/cotrol:
+  * debian/control:
     - more strict cinnamon related packages dependencies.
-    - added to recommends gnome-terminal or x-terminal-emulator
+    - added to recommends gnome-terminal or x-terminal-emulator.
+    - cinnamon also provide notification-daemon.
 
  -- Margarita Manterola <marga@debian.org>  Thu, 29 May 2014 16:31:21 +0200
 

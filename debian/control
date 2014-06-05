@@ -114,7 +114,7 @@ Depends: caribou,
          ${shlibs:Depends}
 Recommends: cinnamon-bluetooth, gnome-terminal | x-terminal-emulator
 Suggests: python-opencv
-Provides: x-window-manager
+Provides: notification-daemon, x-window-manager
 Description: Innovative and comfortable desktop
  Cinnamon is a desktop environment which provides advanced innovative
  features and a traditional user experience.
