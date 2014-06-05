@@ -7,6 +7,9 @@ cinnamon (2.2.13-1~) UNRELEASED; urgency=medium
   [ Maximiliano Curia ]
   * Refresh patches.
 
+  [ Fabio Fantoni ]
+  * More strict cinnamon related packages dependencies.
+
  -- Margarita Manterola <marga@debian.org>  Thu, 29 May 2014 16:31:21 +0200
 
 cinnamon (2.2.10-2) experimental; urgency=medium

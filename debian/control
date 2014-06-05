@@ -62,11 +62,12 @@ Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
 Depends: caribou,
          cinnamon-common (= ${source:Version}),
-         cinnamon-desktop-data (>= 1.0.0),
-         cinnamon-screensaver,
-         cinnamon-session,
-         cinnamon-settings-daemon,
-         cjs,
+         cinnamon-control-center (>= 2.2),
+         cinnamon-desktop-data (>= 2.2),
+         cinnamon-screensaver (>= 2.2),
+         cinnamon-session (>= 2.2),
+         cinnamon-settings-daemon (>= 2.2),
+         cjs (>= 2.2),
          cups-pk-helper,
          gir1.2-accountsservice-1.0,
          gir1.2-caribou-1.0,
@@ -96,7 +97,7 @@ Depends: caribou,
          gsettings-desktop-schemas (>= 0.1.7),
          libjs-jquery,
          mesa-utils,
-         nemo,
+         nemo (>= 2.2),
          network-manager-gnome,
          policykit-1-gnome,
          python-dbus,
@@ -111,7 +112,7 @@ Depends: caribou,
          ${misc:Depends},
          ${python:Depends},
          ${shlibs:Depends}
-Recommends: cinnamon-control-center, cinnamon-bluetooth
+Recommends: cinnamon-bluetooth
 Suggests: python-opencv
 Provides: x-window-manager
 Description: Innovative and comfortable desktop
