@@ -6,6 +6,7 @@ cinnamon (2.2.13-1~) UNRELEASED; urgency=medium
 
   [ Maximiliano Curia ]
   * Refresh patches.
+  * New patch: replace_firefox_with_iceweasel.
 
   [ Fabio Fantoni ]
   * debian/control:

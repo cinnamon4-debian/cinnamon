@@ -16,3 +16,4 @@ fix-cinnamon-menu-editor-path
 fix-cinnamon-screensaver-path
 fix-cinnamon-json-makepot-path
 add_policykit-1-gnome_to_session
+replace_firefox_with_iceweasel
