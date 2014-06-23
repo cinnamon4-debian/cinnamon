@@ -1,4 +1,4 @@
-cinnamon (2.2.13-1~) UNRELEASED; urgency=medium
+cinnamon (2.2.13-1) experimental; urgency=medium
 
   [ Margarita Manterola ]
   * New upstream release.
@@ -14,7 +14,7 @@ cinnamon (2.2.13-1~) UNRELEASED; urgency=medium
     - added to recommends gnome-terminal or x-terminal-emulator.
     - cinnamon also provide notification-daemon.
 
- -- Margarita Manterola <marga@debian.org>  Thu, 29 May 2014 16:31:21 +0200
+ -- Maximiliano Curia <maxy@debian.org>  Mon, 23 Jun 2014 16:54:11 +0200
 
 cinnamon (2.2.10-2) experimental; urgency=medium
 
