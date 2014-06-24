@@ -15,11 +15,6 @@ ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
   DH_PARALLEL_OPTION=--parallel
 endif
 
-# This will set current major version string (needed in control file)
-CVERSION := $(shell dpkg-parsechangelog | sed -n 's/Version: //p')
-CINNAMON_MAJ_VERSION := $(shell echo $(CVERSION) | sed 's/\(.*.*\)\..*/\1/')
-DH_GENCONTROL_ARGS += -Vcinnamon:Version-maj=$(CINNAMON_MAJ_VERSION)
-
 %:
 	dh  $@ --with autoreconf,python2,gir $(DH_PARALLEL_OPTION)
 
