@@ -62,7 +62,6 @@ Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
 Depends: caribou,
          cinnamon-common (= ${source:Version}),
-# cinnamon related packages (including nemo) version should be increased each new major version
          cinnamon-control-center (>= 2.2),
          cinnamon-desktop-data (>= 2.2),
          cinnamon-screensaver (>= 2.2),

@@ -13,3 +13,10 @@ Consequently, the orig tarball used by Debian has the compiled translation
 (.mo) stripped and the source files (.po) renamed and moved directly into
 the po/ folder. Additionally, the po/LINGUAS file is populated with the
 different translated languages.
+
+
+Increase dependencies each major version
+============================
+Each major version (for example 2.2, 2.4 ecc.) in cinnamon package inside
+control file the cinnamon related packages (including nemo) dependencies
+version should be increased.
