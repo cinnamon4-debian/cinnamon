@@ -112,7 +112,9 @@ Depends: caribou,
          ${misc:Depends},
          ${python:Depends},
          ${shlibs:Depends}
-Recommends: cinnamon-bluetooth, gnome-terminal | x-terminal-emulator
+Recommends: cinnamon-bluetooth,
+            gnome-terminal | x-terminal-emulator,
+            gksu
 Suggests: python-opencv
 Provides: notification-daemon, x-window-manager
 Description: Innovative and comfortable desktop
