@@ -349,6 +349,11 @@ class ExtensionSidePage (SidePage):
         buttonbox.pack_start(self.install_button, False, False, 2)
         buttonbox.pack_start(self.select_updated, False, False, 2)
         buttonbox.pack_end(reload_button, False, False, 2)
+
+        buttonbox.set_child_non_homogeneous(self.install_button, True)
+        buttonbox.set_child_non_homogeneous(self.select_updated, True)
+        buttonbox.set_child_non_homogeneous(reload_button, True)
+
         hbox.pack_start(buttonbox, True, True, 5)
         getmore_vbox.pack_end(hbox, False, True, 5)
 
@@ -590,8 +595,7 @@ class ExtensionSidePage (SidePage):
         if data:
             path, column, x, y=data
             iter = self.gm_modelfilter.get_iter(path)
-
-            if column.get_property('title')==_("Action") and iter != None:
+            if column.get_property('title')== "Action" and iter != None:
                 self.gm_treeview.get_window().set_cursor(Gdk.Cursor.new(Gdk.CursorType.HAND2))
                 return
         self.gm_treeview.get_window().set_cursor(Gdk.Cursor.new(Gdk.CursorType.ARROW))
@@ -601,7 +605,7 @@ class ExtensionSidePage (SidePage):
             data=widget.get_path_at_pos(int(event.x),int(event.y))
             if data:
                 path, column, x, y = data
-                if column.get_property('title')==_("Action"):
+                if column.get_property('title')== "Action":
                     iter = self.gm_modelfilter.get_iter(path)
                     uuid = self.gm_modelfilter.get_value(iter, 0)
                     self.gm_view_details(uuid)
@@ -663,7 +667,7 @@ class ExtensionSidePage (SidePage):
             return True
 
     def _gm_action_data_func(self, column, cell, model, iter, data=None):
-        cell.set_property('markup',"<span color='#0000FF'>More info</span>")
+        cell.set_property('markup',"<span color='#0000FF'>%s</span>" % _("More info"))
 
     def _gm_status_data_func(self, column, cell, model, iter, data=None):
         uuid = model.get_value(iter, 0)
