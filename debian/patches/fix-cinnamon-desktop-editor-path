@@ -1,7 +1,5 @@
-Index: cinnamon/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py
-===================================================================
---- cinnamon.orig/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py	2014-05-17 12:34:48.173989997 +0200
-+++ cinnamon/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py	2014-05-17 12:34:48.169990160 +0200
+--- a/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py
++++ b/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py
 @@ -8,7 +8,7 @@
  from optparse import OptionParser
  import shutil
@@ -11,7 +9,7 @@ Index: cinnamon/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py
  from cme import util
  
  # i18n
-@@ -249,7 +249,7 @@
+@@ -251,7 +251,7 @@
          self.dialog.destroy()
  
  class LauncherEditor(ItemEditor):
@@ -20,7 +18,7 @@ Index: cinnamon/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py
  
      def build_ui(self):
          self.icon_picker = IconPicker(self.dialog,
-@@ -299,7 +299,7 @@
+@@ -301,7 +301,7 @@
  
  
  class DirectoryEditor(ItemEditor):
@@ -29,7 +27,7 @@ Index: cinnamon/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py
  
      def build_ui(self):
          self.icon_picker = IconPicker(self.dialog,
-@@ -330,7 +330,7 @@
+@@ -332,7 +332,7 @@
  
  
  class PanelLauncherEditor(ItemEditor):
@@ -38,10 +36,8 @@ Index: cinnamon/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py
  
      def build_ui(self):
          self.icon_picker = IconPicker(self.dialog,
-Index: cinnamon/files/usr/bin/cinnamon-desktop-editor
-===================================================================
---- cinnamon.orig/files/usr/bin/cinnamon-desktop-editor	2014-05-17 12:34:48.173989997 +0200
-+++ cinnamon/files/usr/bin/cinnamon-desktop-editor	2014-05-17 12:34:48.169990160 +0200
+--- a/files/usr/bin/cinnamon-desktop-editor
++++ b/files/usr/bin/cinnamon-desktop-editor
 @@ -2,5 +2,5 @@
  
  import os, sys

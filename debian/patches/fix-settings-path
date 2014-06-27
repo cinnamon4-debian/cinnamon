@@ -1,8 +1,6 @@
-Index: cinnamon/files/usr/lib/cinnamon-settings/bin/ExtensionCore.py
-===================================================================
---- cinnamon.orig/files/usr/lib/cinnamon-settings/bin/ExtensionCore.py	2014-05-30 11:49:46.871967145 +0200
-+++ cinnamon/files/usr/lib/cinnamon-settings/bin/ExtensionCore.py	2014-05-30 11:49:46.847968103 +0200
-@@ -1206,7 +1206,7 @@
+--- a/files/usr/lib/cinnamon-settings/bin/ExtensionCore.py
++++ b/files/usr/lib/cinnamon-settings/bin/ExtensionCore.py
+@@ -1210,7 +1210,7 @@
                              if os.path.exists(os.path.join(path, "thumbnail.png")):
                                  icon_path = os.path.join(path, "thumbnail.png")
                              else:
@@ -11,10 +9,8 @@ Index: cinnamon/files/usr/lib/cinnamon-settings/bin/ExtensionCore.py
                              size = 60 * self.window.get_scale_factor()
                              img = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, -1, size)
  
-Index: cinnamon/files/usr/lib/cinnamon-settings/bin/Spices.py
-===================================================================
---- cinnamon.orig/files/usr/lib/cinnamon-settings/bin/Spices.py	2014-05-30 11:49:46.871967145 +0200
-+++ cinnamon/files/usr/lib/cinnamon-settings/bin/Spices.py	2014-05-30 11:49:46.847968103 +0200
+--- a/files/usr/lib/cinnamon-settings/bin/Spices.py
++++ b/files/usr/lib/cinnamon-settings/bin/Spices.py
 @@ -411,9 +411,9 @@
                             self.progresslabel.set_text(_("Installing %s...") % (title))
                      elif "gschema.xml" in file.filename:
@@ -39,10 +35,8 @@ Index: cinnamon/files/usr/lib/cinnamon-settings/bin/Spices.py
                          command = "%s %s" % (launcher, tool)
                          os.system(command)
                      else:
-Index: cinnamon/files/usr/lib/cinnamon-settings/bin/XletSettings.py
-===================================================================
---- cinnamon.orig/files/usr/lib/cinnamon-settings/bin/XletSettings.py	2014-05-30 11:49:46.871967145 +0200
-+++ cinnamon/files/usr/lib/cinnamon-settings/bin/XletSettings.py	2014-05-30 11:49:46.867967305 +0200
+--- a/files/usr/lib/cinnamon-settings/bin/XletSettings.py
++++ b/files/usr/lib/cinnamon-settings/bin/XletSettings.py
 @@ -25,7 +25,7 @@
          self.type = _type
          self.current_id = None
@@ -52,10 +46,8 @@ Index: cinnamon/files/usr/lib/cinnamon-settings/bin/XletSettings.py
          self.content = self.builder.get_object("content")
          self.back_to_list_button = self.builder.get_object("back_to_list")
          self.highlight_button = self.builder.get_object("highlight_button")
-Index: cinnamon/files/usr/lib/cinnamon-settings/cinnamon-settings.py
-===================================================================
---- cinnamon.orig/files/usr/lib/cinnamon-settings/cinnamon-settings.py	2014-05-30 11:49:46.871967145 +0200
-+++ cinnamon/files/usr/lib/cinnamon-settings/cinnamon-settings.py	2014-05-30 11:49:46.867967305 +0200
+--- a/files/usr/lib/cinnamon-settings/cinnamon-settings.py
++++ b/files/usr/lib/cinnamon-settings/cinnamon-settings.py
 @@ -5,8 +5,8 @@
  sys.setdefaultencoding('utf-8')
  
@@ -91,10 +83,8 @@ Index: cinnamon/files/usr/lib/cinnamon-settings/cinnamon-settings.py
          self.window = self.builder.get_object("main_window")
          self.top_bar = self.builder.get_object("top_bar")
          self.side_view = {}
-Index: cinnamon/files/usr/lib/cinnamon-settings/modules/cs_backgrounds.py
-===================================================================
---- cinnamon.orig/files/usr/lib/cinnamon-settings/modules/cs_backgrounds.py	2014-05-30 11:49:46.871967145 +0200
-+++ cinnamon/files/usr/lib/cinnamon-settings/modules/cs_backgrounds.py	2014-05-30 11:49:46.867967305 +0200
+--- a/files/usr/lib/cinnamon-settings/modules/cs_backgrounds.py
++++ b/files/usr/lib/cinnamon-settings/modules/cs_backgrounds.py
 @@ -1,7 +1,7 @@
  #!/usr/bin/env python
  

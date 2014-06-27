@@ -13,10 +13,8 @@ Origin: vendor
 Forwarded: no
 Last-Update: 2013-05-16
 ---
-Index: cinnamon/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
-===================================================================
---- cinnamon.orig/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js	2014-04-26 13:33:13.306522693 +0200
-+++ cinnamon/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js	2014-04-26 13:33:13.302522597 +0200
+--- a/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
++++ b/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
 @@ -100,6 +100,11 @@
      this._init.apply(this, arguments);
  }
@@ -29,7 +27,7 @@ Index: cinnamon/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
  NMNetworkMenuItem.prototype = {
      __proto__: PopupMenu.PopupBaseMenuItem.prototype,
  
-@@ -900,12 +905,14 @@
+@@ -899,12 +904,14 @@
          let connection = new NetworkManager.Connection;
          connection._uuid = NetworkManager.utils_uuid_generate();
          connection.add_setting(new NetworkManager.SettingBluetooth);
@@ -46,7 +44,7 @@ Index: cinnamon/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
          return connection;
      },
  
-@@ -987,6 +994,8 @@
+@@ -986,6 +993,8 @@
          this._overflowItem = null;
          this._networks = [ ];
  
@@ -55,7 +53,7 @@ Index: cinnamon/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
          // breaking the layers with this, but cannot call
          // this.connectionValid until I have a device
          this.device = device;
-@@ -1519,12 +1528,27 @@
+@@ -1520,12 +1529,27 @@
  
          let connection = new NetworkManager.Connection();
          connection.add_setting(new NetworkManager.SettingWireless());
