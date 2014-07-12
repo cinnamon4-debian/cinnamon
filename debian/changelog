@@ -6,6 +6,9 @@ cinnamon (2.2.14-1) experimental; urgency=medium
     cinnamon-settings-users.
   * Refresh patches.
 
+  [ Margarita Manterola ]
+  * Add cinnamon-translations to Recommends.
+
  -- Margarita Manterola <marga@debian.org>  Sat, 12 Jul 2014 12:03:59 +0200
 
 cinnamon (2.2.13-1) experimental; urgency=medium
