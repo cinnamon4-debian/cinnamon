@@ -1,11 +1,12 @@
-cinnamon (2.2.14-1~) UNRELEASED; urgency=medium
+cinnamon (2.2.14-1~1) UNRELEASED; urgency=medium
 
+  [ Fabio Fantoni ]
   * New upstream release.
   * debian/control: added gksu to recommends, needed to start
     cinnamon-settings-users.
   * Refresh patches.
 
- -- Fabio Fantoni <fantonifabio@tiscali.it>  Fri, 27 Jun 2014 19:24:47 +0200
+ -- Margarita Manterola <marga@debian.org>  Sat, 12 Jul 2014 12:03:59 +0200
 
 cinnamon (2.2.13-1) experimental; urgency=medium
 
