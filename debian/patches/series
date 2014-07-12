@@ -1,3 +1,4 @@
+fix-typo-in-manpage
 disable-bluetooth-applet-hack.patch
 fix-gettext-files-path.patch
 network-user-connections.patch

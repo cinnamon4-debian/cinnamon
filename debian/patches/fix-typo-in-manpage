@@ -1,0 +1,13 @@
+Index: cinnamon/man/cinnamon.1
+===================================================================
+--- cinnamon.orig/man/cinnamon.1	2014-04-27 11:56:10.618582659 +0200
++++ cinnamon/man/cinnamon.1	2014-07-12 12:01:46.704997718 +0200
+@@ -27,7 +27,7 @@
+ .B cinnamon [options]
+ 
+ .SH DESCRIPTION
+-Cinnamon is a Linux desktop enviroment which provides advanced innovative features and a traditional user experience.
++Cinnamon is a Linux desktop environment which provides advanced innovative features and a traditional user experience.
+ 
+ The desktop layout is similar to Gnome 2. 
+ The underlying technology is similar from Gnome Shell.
