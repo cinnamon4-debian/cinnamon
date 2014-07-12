@@ -115,6 +115,7 @@ Recommends: cinnamon-bluetooth,
             gksu
 Suggests: python-opencv
 Provides: notification-daemon, x-window-manager
+Replaces: cinnamon-common (<= 2.2.14-1)
 Description: Innovative and comfortable desktop
  Cinnamon is a desktop environment which provides advanced innovative
  features and a traditional user experience.

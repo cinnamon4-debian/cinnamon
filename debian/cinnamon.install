@@ -1,6 +1,7 @@
 /usr/bin/cinnamon*
 /usr/lib/*/cinnamon
 /usr/lib/cinnamon-*	/usr/share/cinnamon/
+/usr/share/cinnamon/js/misc/config.js
 /usr/share/applications/cinnamon-menu-editor.desktop
 /usr/share/applications/cinnamon-settings-*.desktop
 /usr/share/applications/cinnamon-settings.desktop
