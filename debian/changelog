@@ -3,8 +3,6 @@ cinnamon (2.2.14-1~) UNRELEASED; urgency=medium
   * New upstream release.
   * debian/control: added gksu to recommends, needed to start
     cinnamon-settings-users.
-  * debian/patches/series: remove fix-gettext-files-path.patch
-    for now to make cinnamon-translations working.
   * Refresh patches.
 
  -- Fabio Fantoni <fantonifabio@tiscali.it>  Fri, 27 Jun 2014 19:24:47 +0200
