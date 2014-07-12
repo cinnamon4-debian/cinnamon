@@ -1,5 +1,5 @@
-Description: Debian have iceweasel instead of firefox, so this patch change firefox to
- iceweasel in cinnamon's panel and favorite applications of menu.
+Description: Debian has iceweasel instead of firefox, so this patch changes
+ firefox to iceweasel in cinnamon's panel and favorite applications of menu.
 Author: Maximiliano Curia <maxy@debian.org>
 Origin: Vendor, Debian
 Forwarded: not-needed

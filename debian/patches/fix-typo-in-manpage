@@ -1,3 +1,8 @@
+Description: Tiny typo caught by lintian
+Author: Margarita Manterola <marga@debian.org>
+Origin: Vendor, Debian
+Forwarded: not yet.
+Last-Update: 2014-07-12
 Index: cinnamon/man/cinnamon.1
 ===================================================================
 --- cinnamon.orig/man/cinnamon.1	2014-04-27 11:56:10.618582659 +0200
