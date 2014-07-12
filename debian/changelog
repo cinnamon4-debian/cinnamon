@@ -1,3 +1,10 @@
+cinnamon (2.2.14-2~) UNRELEASED; urgency=medium
+
+  * Incorporate changes from old NMU: remove libecal1.2-dev, libfolks-dev,
+    libtelepathy-glib-dev and libtelepathy-logger-dev from Build Dependencies.
+
+ -- Margarita Manterola <marga@debian.org>  Sat, 12 Jul 2014 22:57:04 +0200
+
 cinnamon (2.2.14-1) experimental; urgency=medium
 
   [ Fabio Fantoni ]
@@ -92,6 +99,23 @@ cinnamon (2.2.3-1) experimental; urgency=medium
   * Added a bunch of patches to change /usr/lib to /usr/share/cinnamon
 
  -- Margarita Manterola <marga@debian.org>  Mon, 28 Apr 2014 22:27:12 +0200
+
+cinnamon (1.7.4-2.2) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Drop unused build dependencies on libecal1.2-dev, libedataserver1.2-dev,
+    libfolks-dev, libtelepathy-glib-dev and libtelepathy-logger-dev. They look
+    like a wrong copy&paste from the gnome-shell package. (Closes: #721555)
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 01 Sep 2013 23:58:28 +0200
+
+cinnamon (1.7.4-2.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Port to GDBus. In newer versions of gjs the gjs-dbus module has been
+    dropped. (Closes: #718573)
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 05 Aug 2013 02:05:23 +0200
 
 cinnamon (1.7.4-2) unstable; urgency=low
 
