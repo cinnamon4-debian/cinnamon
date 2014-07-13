@@ -1,4 +1,4 @@
-cinnamon (2.2.14-2~1) UNRELEASED; urgency=medium
+cinnamon (2.2.14-2~2) UNRELEASED; urgency=medium
 
   * Incorporate changes from old NMU: remove libecal1.2-dev, libfolks-dev,
     libtelepathy-glib-dev and libtelepathy-logger-dev from Build Dependencies.

@@ -38,7 +38,7 @@ override_dh_auto_test:
 
 override_dh_install:
 	dh_install -X.la --list-missing
-	rm debian/cinnamon-common/usr/share/cinnamon/js/misc/config.js
+	rm -f debian/cinnamon-common/usr/share/cinnamon/js/misc/config.js
 
 override_dh_girepository:
 	dh_girepository -l src /usr/lib/$(DEB_HOST_MULTIARCH)/cinnamon
