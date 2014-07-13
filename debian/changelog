@@ -3,6 +3,7 @@ cinnamon (2.2.14-2~1) UNRELEASED; urgency=medium
   * Incorporate changes from old NMU: remove libecal1.2-dev, libfolks-dev,
     libtelepathy-glib-dev and libtelepathy-logger-dev from Build Dependencies.
   * Move misc.js to cinnamon, since it's arch dependent (Closes: #733461).
+  * Change favorite application from xchat to empathy.
 
  -- Margarita Manterola <marga@debian.org>  Sat, 12 Jul 2014 22:57:04 +0200
 
