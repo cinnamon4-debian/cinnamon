@@ -1,4 +1,5 @@
 /etc/xdg/menus/cinnamon*
+/usr/lib/cinnamon-*	/usr/share/cinnamon/
 /usr/share/cinnamon
 /usr/share/cinnamon-session
 /usr/share/desktop-directories/cinnamon*
