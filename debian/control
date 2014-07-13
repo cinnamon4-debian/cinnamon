@@ -116,6 +116,7 @@ Recommends: cinnamon-bluetooth,
 Suggests: python-opencv
 Provides: notification-daemon, x-window-manager
 Replaces: cinnamon-common (<= 2.2.14-1)
+Breaks: cinnamon-common (<= 2.2.14-1)
 Description: Innovative and comfortable desktop
  Cinnamon is a desktop environment which provides advanced innovative
  features and a traditional user experience.
@@ -127,6 +128,8 @@ Description: Innovative and comfortable desktop
 Package: cinnamon-common
 Architecture: all
 Depends: gir1.2-meta-muffin-0.0, python, ${misc:Depends}
+Replaces: cinnamon (<= 2.2.14-1)
+Breaks: cinnamon (<= 2.2.14-1)
 Description: Innovative and comfortable desktop (Common data files)
  Cinnamon is a desktop environment which provides advanced innovative
  features and a traditional user experience.
