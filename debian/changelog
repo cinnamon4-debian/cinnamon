@@ -1,4 +1,4 @@
-cinnamon (2.2.14-2~5) UNRELEASED; urgency=medium
+cinnamon (2.2.14-2) unstable; urgency=medium
 
   [ Margarita Manterola ]
   * Incorporate changes from old NMU: remove libecal1.2-dev, libfolks-dev,
@@ -11,7 +11,7 @@ cinnamon (2.2.14-2~5) UNRELEASED; urgency=medium
   [ Fabio Fantoni ]
   * Move "/usr/lib/cinnamon-* /usr/share/cinnamon/" to cinnamon-common.
 
- -- Margarita Manterola <marga@debian.org>  Mon, 14 Jul 2014 00:45:26 +0200
+ -- Maximiliano Curia <maxy@debian.org>  Wed, 16 Jul 2014 11:20:57 +0200
 
 cinnamon (2.2.14-1) experimental; urgency=medium
 
