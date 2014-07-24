@@ -110,7 +110,7 @@ Depends: caribou,
          ${python:Depends},
          ${shlibs:Depends}
 Recommends: cinnamon-bluetooth,
-            cinnamon-translations,
+            cinnamon-l10n,
             gnome-terminal | x-terminal-emulator,
             gksu
 Suggests: python-opencv
