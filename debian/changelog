@@ -1,8 +1,6 @@
 cinnamon (2.2.14-3~) UNRELEASED; urgency=medium
 
   * debian/control: cinnamon-translations->cinnamon-l10n.
-  * New patch: debian/patches/upower-0.99_power_applet.patch, fixes upower
-    support in power applet. (Closes: #755896)
 
  -- Fabio Fantoni <fantonifabio@tiscali.it>  Thu, 24 Jul 2014 12:59:44 +0200
 
