@@ -65,7 +65,7 @@ Forwarded: not yet.
  
 -            this._smProxy.connect('PropertiesChanged', Lang.bind(this, this._devicesChanged));
 -            this._devicesChanged();            
-+            this._smProxy.connect('PropertiesChanged', Lang.bind(this, this._devicesChanged));           
++            this._smProxy.connect('PropertiesChanged', Lang.bind(this, this._devicesChanged));
          }
          catch (e) {
              global.logError(e);
@@ -76,7 +76,7 @@ Forwarded: not yet.
 +        // FIXME: don't know how to access device_id now, it works like a charm with this magic number
 +        return [1, this._proxy.Type, this._proxy.IconName, this._proxy.Percentage, this._proxy.State, this._getSeconds()]
 +    },
-+    
++
 +    _getSeconds: function () {
 +        var sec = 0;
 +        if (this._proxy.State == UPDeviceState.DISCHARGING) {
@@ -87,11 +87,11 @@ Forwarded: not yet.
 +
 +        return sec;
 +    },
-+    
++
 +    _sync: function () {
 +        this._devicesChanged();
 +    },
-+    
++
      on_applet_clicked: function(event) {
          this.menu.toggle();        
      },
@@ -220,9 +220,9 @@ Forwarded: not yet.
 -                this.actor.hide();
 -            }
 -        }));
-+    _devicesChanged: function() {           
++    _devicesChanged: function() {
 +        let icon = this._proxy.IconName;
-+        if (icon) {    
++        if (icon) {
 +            this.set_applet_icon_symbolic_name('battery-missing');
 +            let gicon = Gio.icon_new_for_string(icon);
 +            this._applet_icon.gicon = gicon;
