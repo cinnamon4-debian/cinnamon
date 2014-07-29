@@ -1,3 +1,10 @@
+cinnamon (2.2.14-4~) UNRELEASED; urgency=medium
+
+  * New patch: debian/patches/fix_background, fixes new background using
+    cinnamon-settings with new python-pil. (Closes: #756387)
+
+ -- Fabio Fantoni <fantonifabio@tiscali.it>  Tue, 29 Jul 2014 15:44:34 +0200
+
 cinnamon (2.2.14-3) unstable; urgency=medium
 
   [ Fabio Fantoni ]
