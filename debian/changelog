@@ -1,11 +1,8 @@
-cinnamon (2.2.14-4~) UNRELEASED; urgency=medium
+cinnamon (2.2.16-1~) UNRELEASED; urgency=medium
 
-  * New patch: debian/patches/fix_background, fixes new background using
-    cinnamon-settings with new python-pil. (Closes: #756387)
-  * New patch: debian/patches/no-print-password, don't print passwords to
-    stdout when changing password with cinnamon-settings.
+  * New upstream release. (Closes: #756387)
 
- -- Fabio Fantoni <fantonifabio@tiscali.it>  Thu, 31 Jul 2014 14:43:00 +0200
+ -- Fabio Fantoni <fantonifabio@tiscali.it>  Tue, 12 Aug 2014 14:23:42 +0200
 
 cinnamon (2.2.14-3) unstable; urgency=medium
 
