@@ -1,8 +1,9 @@
-cinnamon (2.2.16-1~) UNRELEASED; urgency=medium
+cinnamon (2.2.16-1) unstable; urgency=medium
 
+  [ Fabio Fantoni ]
   * New upstream release. (Closes: #756387)
 
- -- Fabio Fantoni <fantonifabio@tiscali.it>  Tue, 12 Aug 2014 14:23:42 +0200
+ -- Margarita Manterola <marga@debian.org>  Fri, 22 Aug 2014 16:17:59 -0700
 
 cinnamon (2.2.14-3) unstable; urgency=medium
 
