@@ -109,8 +109,7 @@ Depends: caribou,
          ${misc:Depends},
          ${python:Depends},
          ${shlibs:Depends}
-Recommends: cinnamon-bluetooth,
-            cinnamon-l10n,
+Recommends: cinnamon-l10n,
             gnome-terminal | x-terminal-emulator,
             gksu
 Suggests: python-opencv
