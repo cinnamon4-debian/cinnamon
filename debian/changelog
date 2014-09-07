@@ -1,6 +1,6 @@
 cinnamon (2.2.16-3~) UNRELEASED; urgency=medium
 
-  * New patch: make_nm_optional to build in freebsd
+  * New patch: make_nm_optional to build in kFreeBSD.
   * Change capi mangling in debian/rules: modify the installed file directly.
   * Remove patch: capi-py_ccc_search_path.
   * New patch: add_capi_search_path to add the new path to
