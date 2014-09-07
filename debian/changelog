@@ -1,4 +1,4 @@
-cinnamon (2.2.16-3) unstable; urgency=medium
+cinnamon (2.2.16-3) unstable; urgency=high
 
   [ Maximiliano Curia ]
   * New patch: make_nm_optional to build in kFreeBSD.
@@ -10,6 +10,8 @@ cinnamon (2.2.16-3) unstable; urgency=medium
   [ Margarita Manterola ]
   * Modify the capi solution to install in /usr/lib/cinnamon instead of
     /usr/lib/cinnamon-settings/bin.
+  * Urgency high as this means all non-amd64 currently have a very broken
+    cinnamon experience.
 
  -- Margarita Manterola <marga@debian.org>  Sun, 07 Sep 2014 12:29:49 +0200
 
