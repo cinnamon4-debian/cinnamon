@@ -6,7 +6,7 @@ Index: cinnamon/files/usr/lib/cinnamon-settings/cinnamon-settings.py
  try:
      sys.path.append('/usr/share/cinnamon/cinnamon-settings/modules')
      sys.path.append('/usr/share/cinnamon/cinnamon-settings/bin')
-+    sys.path.append('/usr/lib/cinnamon-settings/bin')
++    sys.path.append('/usr/lib/cinnamon')
      import os
      import glob
      import gettext

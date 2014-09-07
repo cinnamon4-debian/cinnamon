@@ -1,10 +1,15 @@
-cinnamon (2.2.16-3~) UNRELEASED; urgency=medium
+cinnamon (2.2.16-3~1) UNRELEASED; urgency=medium
 
+  [ Maximiliano Curia ]
   * New patch: make_nm_optional to build in kFreeBSD.
   * Change capi mangling in debian/rules: modify the installed file directly.
   * Remove patch: capi-py_ccc_search_path.
   * New patch: add_capi_search_path to add the new path to
     cinnamon-settings.py.
+
+  [ Margarita Manterola ]
+  * Modify the capi solution to install in /usr/lib/cinnamon instead of
+    /usr/lib/cinnamon-settings/bin.
 
  -- Maximiliano Curia <maxy@debian.org>  Sat, 06 Sep 2014 14:16:55 +0200
 
