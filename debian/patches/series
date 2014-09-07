@@ -9,7 +9,6 @@ install-python-files-in-share.patch
 fix-settings-path
 paneljs_icon_search_path
 policy_csu_path
-capi-py_ccc_search_path
 start_cinnamon
 fix-cinnamon-settings-users-path
 fix-cinnamon-desktop-editor-path
@@ -20,3 +19,4 @@ add_policykit-1-gnome_to_session
 replace_firefox_with_iceweasel
 calendar-applet-upower-support
 make_nm_optional
+add_capi_search_path

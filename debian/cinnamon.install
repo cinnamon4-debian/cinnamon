@@ -1,4 +1,5 @@
 /usr/bin/cinnamon*
+/usr/lib/cinnamon-settings/bin/capi.py
 /usr/lib/*/cinnamon
 /usr/share/cinnamon/js/misc/config.js
 /usr/share/applications/cinnamon-menu-editor.desktop

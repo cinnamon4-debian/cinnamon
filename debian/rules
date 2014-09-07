@@ -27,17 +27,14 @@ override_dh_auto_configure:
 	                     --disable-silent-rules \
 	                     BROWSER_PLUGIN_DIR=/usr/lib/mozilla/plugins
 
-override_dh_auto_build:
-	sed 's/@DEB_HOST_MULTIARCH@/$(DEB_HOST_MULTIARCH)/' \
-	    files/usr/lib/cinnamon-settings/bin/capi.py.in > \
-	    files/usr/lib/cinnamon-settings/bin/capi.py
-	dh_auto_build
-
 # Disable check since upstream do not use them
 override_dh_auto_test:
 
 override_dh_install:
 	dh_install -X.la --list-missing
+	sed -i 's!lib/cinnamon!lib/$(DEB_HOST_MULTIARCH)/cinnamon!' \
+	    debian/cinnamon/usr/lib/cinnamon-settings/bin/capi.py
+	rm -f debian/cinnamon-common/usr/share/cinnamon/cinnamon-settings/bin/capi.py
 	rm -f debian/cinnamon-common/usr/share/cinnamon/js/misc/config.js
 
 override_dh_girepository:
