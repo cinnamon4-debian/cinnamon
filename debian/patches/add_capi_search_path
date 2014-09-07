@@ -1,12 +1,12 @@
 Index: cinnamon/files/usr/lib/cinnamon-settings/cinnamon-settings.py
 ===================================================================
---- cinnamon.orig/files/usr/lib/cinnamon-settings/cinnamon-settings.py	2014-09-07 11:26:52.544299122 +0200
-+++ cinnamon/files/usr/lib/cinnamon-settings/cinnamon-settings.py	2014-09-07 11:30:55.990512846 +0200
-@@ -7,6 +7,7 @@
+--- cinnamon.orig/files/usr/lib/cinnamon-settings/cinnamon-settings.py	2014-09-07 16:04:35.235731701 +0200
++++ cinnamon/files/usr/lib/cinnamon-settings/cinnamon-settings.py	2014-09-07 16:04:46.900018798 +0200
+@@ -5,6 +5,7 @@
+ sys.setdefaultencoding('utf-8')
+ 
  try:
++    sys.path.append('/usr/lib/cinnamon')
      sys.path.append('/usr/share/cinnamon/cinnamon-settings/modules')
      sys.path.append('/usr/share/cinnamon/cinnamon-settings/bin')
-+    sys.path.append('/usr/lib/cinnamon')
      import os
-     import glob
-     import gettext
