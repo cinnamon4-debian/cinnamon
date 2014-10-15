@@ -20,4 +20,3 @@ replace_firefox_with_iceweasel
 calendar-applet-upower-support
 make_nm_optional
 add_capi_search_path
-remove_nm-applet_from_session
