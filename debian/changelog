@@ -7,6 +7,7 @@ cinnamon (2.2.16-4~) UNRELEASED; urgency=medium
 
   [ Maximiliano Curia ]
   * Add missing dependency: gnome-themes-standard. (Closes: #763883)
+  * New patch: remove_nm-applet_from_session
 
  -- Margarita Manterola <marga@debian.org>  Sun, 07 Sep 2014 16:04:52 +0200
 
