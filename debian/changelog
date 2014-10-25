@@ -1,12 +1,14 @@
-cinnamon (2.2.16-4~) UNRELEASED; urgency=medium
+cinnamon (2.2.16-4~) unstable; urgency=medium
+
+  [ Maximiliano Curia ]
+  * Add missing dependency: gnome-themes-standard. (Closes: #763883)
 
   [ Margarita Manterola ]
   * Modified add_capi_search_path so that /usr/lib/cinnamon is tried first
     when querying for capi.py, as some users might still have an old capi.pyc
     in the old path.
-
-  [ Maximiliano Curia ]
-  * Add missing dependency: gnome-themes-standard. (Closes: #763883)
+  * Make gir1.2-nmgtk-1.0 and network-manager-gnome linux-any dependencies,
+    to make cinnamon installable on kFreeBSD.
 
  -- Margarita Manterola <marga@debian.org>  Sun, 07 Sep 2014 16:04:52 +0200
 
