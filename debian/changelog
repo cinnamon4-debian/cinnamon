@@ -1,4 +1,4 @@
-cinnamon (2.2.16-4~) unstable; urgency=medium
+cinnamon (2.2.16-4) unstable; urgency=medium
 
   [ Maximiliano Curia ]
   * Add missing dependency: gnome-themes-standard. (Closes: #763883)
@@ -10,7 +10,7 @@ cinnamon (2.2.16-4~) unstable; urgency=medium
   * Make gir1.2-nmgtk-1.0 and network-manager-gnome linux-any dependencies,
     to make cinnamon installable on kFreeBSD.
 
- -- Margarita Manterola <marga@debian.org>  Sun, 07 Sep 2014 16:04:52 +0200
+ -- Margarita Manterola <marga@debian.org>  Sat, 25 Oct 2014 20:00:06 +0200
 
 cinnamon (2.2.16-3) unstable; urgency=high
 
