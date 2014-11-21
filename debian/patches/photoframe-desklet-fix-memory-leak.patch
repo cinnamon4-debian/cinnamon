@@ -1,16 +1,16 @@
 Description: photoframe desklet: fix mega leak, don't cache all images,
  destroy old images.
 Author: Michael Webster <miketwebster@gmail.com>
-Origin: upstream
+Origin: upstream - 2f15a99773302db75f8ad1a60a21e7954218f9c6
 ---
  .../desklets/photoframe@cinnamon.org/desklet.js    | 99 +++++++++++++---------
  1 file changed, 57 insertions(+), 42 deletions(-)
 
-diff --git a/files/usr/share/cinnamon/desklets/photoframe@cinnamon.org/desklet.js b/files/usr/share/cinnamon/desklets/photoframe@cinnamon.org/desklet.js
-index bcfc2d7..959b4a0 100644
---- a/files/usr/share/cinnamon/desklets/photoframe@cinnamon.org/desklet.js
-+++ b/files/usr/share/cinnamon/desklets/photoframe@cinnamon.org/desklet.js
-@@ -92,6 +92,8 @@ MyDesklet.prototype = {
+Index: cinnamon/files/usr/share/cinnamon/desklets/photoframe@cinnamon.org/desklet.js
+===================================================================
+--- cinnamon.orig/files/usr/share/cinnamon/desklets/photoframe@cinnamon.org/desklet.js	2014-09-27 14:59:30.621794888 +0200
++++ cinnamon/files/usr/share/cinnamon/desklets/photoframe@cinnamon.org/desklet.js	2014-11-21 21:58:14.173417652 +0100
+@@ -92,6 +92,8 @@
              Mainloop.source_remove(this.update_id);
          this.update_id = null;
          this._setup_dir_monitor();
@@ -19,7 +19,7 @@ index bcfc2d7..959b4a0 100644
          this._photoFrame.destroy();
          this.setup_display();
      },
-@@ -142,12 +144,12 @@ MyDesklet.prototype = {
+@@ -142,12 +144,12 @@
          }
  
          if (this.dir_file.query_exists(null)) {
@@ -34,7 +34,7 @@ index bcfc2d7..959b4a0 100644
                  }
              }
  
-@@ -170,49 +172,62 @@ MyDesklet.prototype = {
+@@ -170,14 +172,21 @@
          }
          this.updateInProgress = true;
          try {
@@ -50,91 +50,34 @@ index bcfc2d7..959b4a0 100644
 +                image_path = this._images[Math.floor(Math.random() * this._images.length)];
              }
  
--            if (image){
--                let height, width;
--                let imageRatio = image.width/image.height;
--                let frameRatio = this.width/this.height;
--
--                if (imageRatio > frameRatio) {
--                    width = this.width;
--                    height = this.width / imageRatio;
--                } else {
--                    height = this.height;
--                    width = this.height * imageRatio;
--                }
 +            if (!image_path) {
 +                this.updateInProgress = false;
 +                return;
 +            }
- 
--                image.set_size(width, height);
--
--                this.currentPicture = image;
--                if (this.fade_delay > 0) {
--                    Tweener.addTween(this._bin,
--                                     { opacity: 0,
--                                       time: this.fade_delay,
--                                       transition: 'easeInSine',
--                                       onComplete: Lang.bind(this, function() {
--                                                                 this._bin.set_child(this.currentPicture);
--                                                                 Tweener.addTween(this._bin,
--                                                                                  { opacity: 255,
--                                                                                    time: this.fade_delay,
--                                                                                    transition: 'easeInSine'
--                                                                                  });
--                                                             })
--                                     });
--                } else {
--                    this._bin.set_child(this.currentPicture);
--                }
--                
++
 +            let image = this._loadImage(image_path);
 +
-+            if (image == null) {
-+                this.updateInProgress = false;
-+                return;
-+            }
-+
-+            let height, width;
-+            let imageRatio = image.width/image.height;
-+            let frameRatio = this.width/this.height;
-+
-+            if (imageRatio > frameRatio) {
-+                width = this.width;
-+                height = this.width / imageRatio;
-+            } else {
-+                height = this.height;
-+                width = this.height * imageRatio;
-+            }
-+
-+            image.set_size(width, height);
-+
-+            let old_pic = this.currentPicture;
-+            this.currentPicture = image;
-+
-+            if (this.fade_delay > 0) {
-+                Tweener.addTween(this._bin,
-+                                 { opacity: 0,
-+                                   time: this.fade_delay,
-+                                   transition: 'easeInSine',
-+                                   onComplete: Lang.bind(this, function() {
-+                                                             this._bin.set_child(this.currentPicture);
-+                                                             Tweener.addTween(this._bin,
-+                                                                              { opacity: 255,
-+                                                                                time: this.fade_delay,
-+                                                                                transition: 'easeInSine'
-+                                                                              });
-+                                                         })
-+                                 });
-+            } else {
-+                this._bin.set_child(this.currentPicture);
+             if (image){
+                 let height, width;
+                 let imageRatio = image.width/image.height;
+@@ -193,6 +202,7 @@
+ 
+                 image.set_size(width, height);
+ 
++                let old_pic = this.currentPicture;
+                 this.currentPicture = image;
+                 if (this.fade_delay > 0) {
+                     Tweener.addTween(this._bin,
+@@ -211,7 +221,7 @@
+                 } else {
+                     this._bin.set_child(this.currentPicture);
+                 }
+-                
++                old_pic.destroy();
              }
-+
-+            old_pic.destroy();
          } catch (e) {
              global.logError(e);
-         } finally {
-@@ -241,10 +256,10 @@ MyDesklet.prototype = {
+@@ -241,10 +251,10 @@
  
              let image = St.TextureCache.get_default().load_uri_async(uri, this.width, this.height);
  
@@ -148,6 +91,3 @@ index bcfc2d7..959b4a0 100644
          }
      },
  }
--- 
-1.9.1
-
