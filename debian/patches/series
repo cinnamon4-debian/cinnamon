@@ -22,3 +22,4 @@ make_nm_optional
 add_capi_search_path
 photoframe-desklet-fix-memory-leak.patch
 fix-theme-regressions-with-gtk-3.14.patch
+fix-cinnamon2d-session.patch

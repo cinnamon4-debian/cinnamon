@@ -1,0 +1,13 @@
+Description: Fix 2d session requirements.
+Author: Michael Webster <miketwebster@gmail.com>
+Origin: upstream - e9c28b75626f180a67c8ed577ac284ea005e8a2d
+--- a/files/usr/share/cinnamon-session/sessions/cinnamon2d.session
++++ b/files/usr/share/cinnamon-session/sessions/cinnamon2d.session
+@@ -1,6 +1,6 @@
+ [Cinnamon Session]
+ Name=Cinnamon (Software Rendering)
+-RequiredComponents=cinnamon;cinnamon-polkit-gnome-authentication-agent-1;cinnamon-settings-daemon;cinnamon-screensaver;nemo-autostart;nm-applet;
++RequiredComponents=cinnamon2d;cinnamon-polkit-gnome-authentication-agent-1;cinnamon-settings-daemon;cinnamon-screensaver;nemo-autostart;nm-applet;
+ DesktopName=X-Cinnamon
+ 
+ 
