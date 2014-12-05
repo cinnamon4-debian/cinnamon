@@ -1,8 +1,8 @@
 cinnamon (2.2.16-5~) UNRELEASED; urgency=medium
 
   * New patch: photoframe-desklet-fix-memory-leak.patch. (Closes: #761314)
-  * New patch: fix-theme-regressions-with-gtk-3.14.patch.
-  * New patch: fix-cinnamon2d-session.patch.
+  * New patch: fix-theme-regressions-with-gtk-3.14.patch. (Closes: #770556)
+  * New patch: fix-cinnamon2d-session.patch (Closes: #772145).
 
  -- Fabio Fantoni <fantonifabio@tiscali.it>  Fri, 21 Nov 2014 12:43:00 +0100
 
