@@ -1,10 +1,11 @@
-cinnamon (2.2.16-5~) UNRELEASED; urgency=medium
+cinnamon (2.2.16-5) unstable; urgency=medium
 
+  [ Fabio Fantoni ]
   * New patch: photoframe-desklet-fix-memory-leak.patch. (Closes: #761314)
   * New patch: fix-theme-regressions-with-gtk-3.14.patch. (Closes: #770556)
   * New patch: fix-cinnamon2d-session.patch (Closes: #772145).
 
- -- Fabio Fantoni <fantonifabio@tiscali.it>  Fri, 21 Nov 2014 12:43:00 +0100
+ -- Margarita Manterola <marga@debian.org>  Fri, 05 Dec 2014 15:43:08 +0100
 
 cinnamon (2.2.16-4) unstable; urgency=medium
 
