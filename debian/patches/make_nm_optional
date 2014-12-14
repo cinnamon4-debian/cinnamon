@@ -1,10 +1,8 @@
-Index: cinnamon/configure.ac
-===================================================================
---- cinnamon.orig/configure.ac	2014-09-06 14:02:12.265451652 +0200
-+++ cinnamon/configure.ac	2014-09-06 14:05:46.404978226 +0200
+--- a/configure.ac
++++ b/configure.ac
 @@ -82,7 +82,12 @@
+                                libstartup-notification-1.0 >= $STARTUP_NOTIFICATION_MIN_VERSION
                                 gobject-introspection-1.0 >= $GOBJECT_INTROSPECTION_MIN_VERSION
- 			       libcanberra
                                 polkit-agent-1 >= $POLKIT_MIN_VERSION xfixes
 -                               libnm-glib libnm-util gnome-keyring-1)
 +                               gnome-keyring-1)
@@ -14,13 +12,11 @@ Index: cinnamon/configure.ac
 +
 +AM_CONDITIONAL(HAVE_NM, test "x$have_nm" = "xtrue")
  
- PKG_CHECK_MODULES(CINNAMON_PERF_HELPER, gtk+-3.0 gio-2.0)
+ PKG_CHECK_MODULES(CINNAMON_JS, gio-2.0 cjs-internals-1.0 >= $GJS_MIN_VERSION)
  
-Index: cinnamon/src/Makefile.am
-===================================================================
---- cinnamon.orig/src/Makefile.am	2014-09-06 14:02:11.873467157 +0200
-+++ cinnamon/src/Makefile.am	2014-09-06 14:07:53.675939735 +0200
-@@ -269,7 +269,10 @@
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -288,7 +288,10 @@
  libcinnamon_la_CPPFLAGS = $(cinnamon_cflags)
  
  Cinnamon-0.1.gir: libcinnamon.la St-1.0.gir

@@ -1,6 +1,6 @@
 --- a/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py
 +++ b/files/usr/lib/cinnamon-desktop-editor/cinnamon-desktop-editor.py
-@@ -8,7 +8,7 @@
+@@ -8,10 +8,10 @@
  from optparse import OptionParser
  import shutil
  
@@ -8,8 +8,12 @@
 +sys.path.insert(0,'/usr/share/cinnamon/cinnamon-menu-editor')
  from cme import util
  
+-sys.path.insert(0,'/usr/lib/cinnamon-settings')
++sys.path.insert(0,'/usr/share/cinnamon/cinnamon-settings')
+ from bin import XletSettingsWidgets
+ 
  # i18n
-@@ -251,7 +251,7 @@
+@@ -254,7 +254,7 @@
          self.dialog.destroy()
  
  class LauncherEditor(ItemEditor):
@@ -18,7 +22,7 @@
  
      def build_ui(self):
          self.icon_picker = IconPicker(self.dialog,
-@@ -301,7 +301,7 @@
+@@ -304,7 +304,7 @@
  
  
  class DirectoryEditor(ItemEditor):
@@ -27,10 +31,10 @@
  
      def build_ui(self):
          self.icon_picker = IconPicker(self.dialog,
-@@ -332,7 +332,7 @@
+@@ -335,7 +335,7 @@
  
  
- class PanelLauncherEditor(ItemEditor):
+ class CinnamonLauncherEditor(ItemEditor):
 -    ui_file = '/usr/lib/cinnamon-desktop-editor/launcher-editor.ui'
 +    ui_file = '/usr/share/cinnamon/cinnamon-desktop-editor/launcher-editor.ui'
  

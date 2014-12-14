@@ -1,8 +1,6 @@
-Index: cinnamon/js/ui/panel.js
-===================================================================
---- cinnamon.orig/js/ui/panel.js	2014-04-26 13:51:54.013118720 +0200
-+++ cinnamon/js/ui/panel.js	2014-04-26 13:51:54.009118625 +0200
-@@ -602,7 +602,7 @@
+--- a/js/ui/panel.js
++++ b/js/ui/panel.js
+@@ -614,7 +614,7 @@
  Panel.prototype = {
      _init : function(bottomPosition, isPrimary) {
  
@@ -11,7 +9,7 @@ Index: cinnamon/js/ui/panel.js
  
          this.bottomPosition = bottomPosition;
          this.isPrimary = isPrimary;
-@@ -615,7 +615,7 @@
+@@ -627,7 +627,7 @@
              this.panel_sd_key = "panel2-show-delay";
              this.panel_hd_key = "panel2-hide-delay";
          }

@@ -1,6 +1,6 @@
 --- a/files/usr/lib/cinnamon-settings/bin/ExtensionCore.py
 +++ b/files/usr/lib/cinnamon-settings/bin/ExtensionCore.py
-@@ -1210,7 +1210,7 @@
+@@ -1325,7 +1325,7 @@
                              if os.path.exists(os.path.join(path, "thumbnail.png")):
                                  icon_path = os.path.join(path, "thumbnail.png")
                              else:
@@ -11,7 +11,7 @@
  
 --- a/files/usr/lib/cinnamon-settings/bin/Spices.py
 +++ b/files/usr/lib/cinnamon-settings/bin/Spices.py
-@@ -411,9 +411,9 @@
+@@ -412,9 +412,9 @@
                             self.progresslabel.set_text(_("Installing %s...") % (title))
                      elif "gschema.xml" in file.filename:
                          sentence = _("Please enter your password to install the required settings schema for %s") % (uuid)
@@ -23,7 +23,7 @@
                              command = "%s %s" % (launcher, tool)
                              os.system(command)
                              schema_filename = file.filename
-@@ -509,9 +509,9 @@
+@@ -510,9 +510,9 @@
              if not self.themes:
                  if schema_filename != "":
                      sentence = _("Please enter your password to remove the settings schema for %s") % (uuid)
@@ -59,9 +59,9 @@
      import os
      import glob
      import gettext
-@@ -17,12 +17,12 @@
-     import grp
-     import pwd
+@@ -21,12 +21,12 @@
+     import proxygsettings
+     from functools import cmp_to_key
  # Standard setting pages... this can be expanded to include applet dirs maybe?
 -    mod_files = glob.glob('/usr/lib/cinnamon-settings/modules/*.py')
 +    mod_files = glob.glob('/usr/share/cinnamon/cinnamon-settings/modules/*.py')
@@ -74,9 +74,9 @@
          mod_files[i] = mod_files[i].split('.')[0]
          if mod_files[i][0:3] != "cs_":
              raise Exception("Settings modules must have a prefix of 'cs_' !!")
-@@ -135,7 +135,7 @@
+@@ -140,7 +140,7 @@
+     @print_timing
      def __init__(self):
- 
          self.builder = Gtk.Builder()
 -        self.builder.add_from_file("/usr/lib/cinnamon-settings/cinnamon-settings.ui")
 +        self.builder.add_from_file("/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.ui")

@@ -1,7 +1,5 @@
-Index: cinnamon/files/usr/bin/cinnamon-settings-users
-===================================================================
---- cinnamon.orig/files/usr/bin/cinnamon-settings-users	2014-05-30 11:58:56.182049868 +0200
-+++ cinnamon/files/usr/bin/cinnamon-settings-users	2014-05-30 11:58:56.178050028 +0200
+--- a/files/usr/bin/cinnamon-settings-users
++++ b/files/usr/bin/cinnamon-settings-users
 @@ -2,5 +2,5 @@
  
  import os
@@ -9,11 +7,9 @@ Index: cinnamon/files/usr/bin/cinnamon-settings-users
 -os.system("gksu /usr/lib/cinnamon-settings-users/cinnamon-settings-users.py")
 +os.system("gksu /usr/share/cinnamon/cinnamon-settings-users/cinnamon-settings-users.py")
  
-Index: cinnamon/files/usr/lib/cinnamon-settings-users/cinnamon-settings-users.py
-===================================================================
---- cinnamon.orig/files/usr/lib/cinnamon-settings-users/cinnamon-settings-users.py	2014-05-30 11:58:56.182049868 +0200
-+++ cinnamon/files/usr/lib/cinnamon-settings-users/cinnamon-settings-users.py	2014-05-30 11:58:56.178050028 +0200
-@@ -372,7 +372,7 @@
+--- a/files/usr/lib/cinnamon-settings-users/cinnamon-settings-users.py
++++ b/files/usr/lib/cinnamon-settings-users/cinnamon-settings-users.py
+@@ -373,7 +373,7 @@
      def __init__(self):
          try:
              self.builder = Gtk.Builder()

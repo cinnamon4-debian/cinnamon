@@ -7,33 +7,9 @@ Forwarded: https://github.com/linuxmint/Cinnamon/pull/987
 Applied-Upstream: no
 Last-Update: 2013-06-02
 
-Index: cinnamon/src/cinnamon-plugin.c
-===================================================================
---- cinnamon.orig/src/cinnamon-plugin.c	2013-11-27 11:47:24.247572659 +0100
-+++ cinnamon/src/cinnamon-plugin.c	2013-11-27 11:47:24.239572981 +0100
-@@ -401,17 +401,3 @@
- 
-   return &info;
- }
--
--#if HAVE_BLUETOOTH
--/* HACK:
--   Add a non-static function that calls into libgnome-bluetooth-applet.so,
--   to avoid the linker being too smart and removing the dependency.
--   This function is never actually called.
--*/
--extern GType bluetooth_applet_get_type(void);
--void _cinnamon_link_to_bluetooth(void);
--
--void _cinnamon_link_to_bluetooth(void) {
--  bluetooth_applet_get_type();
--}
--#endif
-Index: cinnamon/src/Makefile.am
-===================================================================
---- cinnamon.orig/src/Makefile.am	2013-11-27 11:47:24.247572659 +0100
-+++ cinnamon/src/Makefile.am	2013-11-27 11:47:24.239572981 +0100
-@@ -255,10 +255,12 @@
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -274,10 +274,12 @@
  EXTRA_DIST += cinnamon-enum-types.c.in
  
  libcinnamon_la_LDFLAGS = -avoid-version
@@ -47,11 +23,9 @@ Index: cinnamon/src/Makefile.am
  	libst-1.0.la       	\
  	libtray.la		\
  	libgvc.la		\
-Index: cinnamon/configure.ac
-===================================================================
---- cinnamon.orig/configure.ac	2013-11-27 11:47:24.247572659 +0100
-+++ cinnamon/configure.ac	2013-11-27 11:47:24.239572981 +0100
-@@ -119,10 +119,12 @@
+--- a/configure.ac
++++ b/configure.ac
+@@ -121,10 +121,12 @@
  	 AC_DEFINE_UNQUOTED([BLUETOOTH_DIR],["$BLUETOOTH_DIR"],[Path to installed GnomeBluetooth typelib and library])
  	 AC_DEFINE([HAVE_BLUETOOTH],[1],[Define if you have libgnome-bluetooth-applet])
  	 AC_SUBST([HAVE_BLUETOOTH],[1])

@@ -8,15 +8,6 @@ Index: cinnamon/data/org.cinnamon.gschema.xml.in
 ===================================================================
 --- cinnamon.orig/data/org.cinnamon.gschema.xml.in	2014-05-15 16:52:22.702536467 +0200
 +++ cinnamon/data/org.cinnamon.gschema.xml.in	2014-06-07 00:17:51.160300914 +0200
-@@ -344,7 +344,7 @@
-     </key>
- 
-     <key name="panel-launchers" type="as">
--      <default>[ 'firefox.desktop', 'gnome-terminal.desktop', 'nemo.desktop']</default>
-+      <default>[ 'iceweasel.desktop', 'gnome-terminal.desktop', 'nemo.desktop']</default>
-       <_summary>Desktop files of the applications to put in the panel launchers applet</_summary>
-       <_description>
-         Cinnamon allows to show applications launchers on the panel.
 @@ -364,7 +364,7 @@
      </key>
  

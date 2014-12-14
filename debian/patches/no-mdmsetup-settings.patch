@@ -5,15 +5,13 @@ Author: Nicolas Bourdaud <nicolas.bourdaud@gmail.com>
 Origin: Vendor, Debian
 Forwarded: not-needed
 Last-Update: 2013-06-02
-Index: cinnamon/files/usr/lib/cinnamon-settings/cinnamon-settings.py
-===================================================================
---- cinnamon.orig/files/usr/lib/cinnamon-settings/cinnamon-settings.py	2014-04-26 13:35:48.474244474 +0200
-+++ cinnamon/files/usr/lib/cinnamon-settings/cinnamon-settings.py	2014-04-26 13:36:11.014777411 +0200
-@@ -70,7 +70,6 @@
+--- a/files/usr/lib/cinnamon-settings/cinnamon-settings.py
++++ b/files/usr/lib/cinnamon-settings/cinnamon-settings.py
+@@ -76,7 +76,6 @@
      [_("Printers"),                      "system-config-printer",        "cs-printer",         "hardware",       _("printers, laser, inkjet")],    
      [_("Firewall"),                      "gufw",                         "cs-firewall",        "admin",          _("firewall, block, filter, programs")],
      [_("Languages"),                     "mintlocale",                   "cs-language",        "prefs",          _("language, install, foreign")],
--    [_("Login Screen"),                  "gksu /usr/sbin/mdmsetup",      "cs-login",           "admin",          _("login, mdm, gdm, manager, user, password, startup, switch")],
-     [_("Startup Programs"),              "cinnamon-session-properties",  "cs-startup-programs","prefs",          _("startup, programs, boot, init, session")],
-     [_("Device Drivers"),                "mintdrivers",                  "cs-drivers",         "admin",          _("video, driver, wifi, card, hardware, proprietary, nvidia, radeon, nouveau, fglrx")],
+-    [_("Login Window"),                  "gksu /usr/sbin/mdmsetup",      "cs-login",           "admin",          _("login, mdm, gdm, manager, user, password, startup, switch")],
+     [_("Startup Applications"),          "cinnamon-session-properties",  "cs-startup-programs","prefs",          _("startup, programs, boot, init, session")],
+     [_("Driver Manager"),                "mintdrivers",                  "cs-drivers",         "admin",          _("video, driver, wifi, card, hardware, proprietary, nvidia, radeon, nouveau, fglrx")],
      [_("Software Sources"),              "mintsources",                  "cs-sources",         "admin",          _("ppa, repository, package, source, download")],
