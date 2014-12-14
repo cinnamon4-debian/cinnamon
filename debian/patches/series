@@ -1,10 +1,8 @@
 fix-typo-in-manpage
 disable-bluetooth-applet-hack.patch
-fix-gettext-files-path.patch
 network-user-connections.patch
 remove-embbeded-jquery.patch
 no-mdmsetup-settings.patch
-handle-missing-bindings.patch
 install-python-files-in-share.patch
 fix-settings-path
 paneljs_icon_search_path
@@ -17,9 +15,6 @@ fix-cinnamon-screensaver-path
 fix-cinnamon-json-makepot-path
 add_policykit-1-gnome_to_session
 replace_firefox_with_iceweasel
-calendar-applet-upower-support
 make_nm_optional
 add_capi_search_path
-photoframe-desklet-fix-memory-leak.patch
 fix-theme-regressions-with-gtk-3.14.patch
-fix-cinnamon2d-session.patch

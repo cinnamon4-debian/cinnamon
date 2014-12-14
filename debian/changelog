@@ -1,3 +1,10 @@
+cinnamon (2.4.5-1~) UNRELEASED; urgency=medium
+
+  * New upstream release.
+  * debian/patches: removed 5 patches applied upstream.
+
+ -- Fabio Fantoni <fantonifabio@tiscali.it>  Sun, 14 Dec 2014 16:29:31 +0100
+
 cinnamon (2.2.16-5) unstable; urgency=medium
 
   [ Fabio Fantoni ]
