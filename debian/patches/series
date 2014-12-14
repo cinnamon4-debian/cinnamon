@@ -1,4 +1,3 @@
-fix-typo-in-manpage
 disable-bluetooth-applet-hack.patch
 network-user-connections.patch
 remove-embbeded-jquery.patch
