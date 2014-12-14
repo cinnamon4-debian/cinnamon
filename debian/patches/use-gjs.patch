@@ -1,0 +1,107 @@
+Description: Upstream have rebased cjs to gjs 1.40.1 and with plugin
+ changes of 2.4 no special cinnamon patches are needed.
+ Upstream still maintain a fork but I think that is an additional
+ unuseful fork and a waste of time.
+Author: Fabio Fantoni <fantonifabio@tiscali.it>
+Origin: Debian
+Forwarded: not-needed
+--- a/configure.ac
++++ b/configure.ac
+@@ -63,7 +63,7 @@
+ 
+ CLUTTER_MIN_VERSION=1.7.5
+ GOBJECT_INTROSPECTION_MIN_VERSION=0.10.1
+-GJS_MIN_VERSION=2.3.1
++GJS_MIN_VERSION=1.40.1
+ MUFFIN_MIN_VERSION=1.9.1
+ GTK_MIN_VERSION=3.0.0
+ GIO_MIN_VERSION=2.29.10
+@@ -75,7 +75,7 @@
+                                gio-unix-2.0 dbus-glib-1 libxml-2.0
+                                gtk+-3.0 >= $GTK_MIN_VERSION
+                                libmuffin >= $MUFFIN_MIN_VERSION
+-                               cjs-internals-1.0 >= $GJS_MIN_VERSION
++                               gjs-internals-1.0 >= $GJS_MIN_VERSION
+ 			       libcinnamon-menu-3.0 $recorder_modules gconf-2.0
+                                gdk-x11-3.0 libsoup-2.4 gl
+ 			       clutter-x11-1.0 >= $CLUTTER_MIN_VERSION
+@@ -89,13 +89,13 @@
+ 
+ AM_CONDITIONAL(HAVE_NM, test "x$have_nm" = "xtrue")
+ 
+-PKG_CHECK_MODULES(CINNAMON_JS, gio-2.0 cjs-internals-1.0 >= $GJS_MIN_VERSION)
++PKG_CHECK_MODULES(CINNAMON_JS, gio-2.0 gjs-internals-1.0 >= $GJS_MIN_VERSION)
+ 
+ PKG_CHECK_MODULES(CINNAMON_PERF_HELPER, gtk+-3.0 gio-2.0)
+ 
+ PKG_CHECK_MODULES(CINNAMON_HOTPLUG_SNIFFER, gio-2.0 gdk-pixbuf-2.0)
+ 
+-GJS_VERSION=`$PKG_CONFIG --modversion cjs-internals-1.0`
++GJS_VERSION=`$PKG_CONFIG --modversion gjs-internals-1.0`
+ AC_DEFINE_UNQUOTED([GJS_VERSION], ["$GJS_VERSION"], [The version of GJS we're linking to])
+ AC_SUBST([GJS_VERSION], ["$GJS_VERSION"])
+ 
+@@ -138,7 +138,7 @@
+ AC_SUBST(MUFFIN_GIR_DIR)
+ AC_SUBST(MUFFIN_TYPELIB_DIR)
+ 
+-GJS_CONSOLE=`$PKG_CONFIG --variable=cjs_console cjs-1.0`
++GJS_CONSOLE=`$PKG_CONFIG --variable=gjs_console gjs-1.0`
+ AC_SUBST(GJS_CONSOLE)
+ 
+ AC_CHECK_FUNCS(fdwalk)
+--- a/src/cinnamon-global-private.h
++++ b/src/cinnamon-global-private.h
+@@ -4,7 +4,7 @@
+ 
+ #include "cinnamon-global.h"
+ 
+-#include <cjs/gjs.h>
++#include <gjs/gjs.h>
+ 
+ void _cinnamon_global_init            (const char *first_property_name,
+                                     ...);
+--- a/src/cinnamon-js.cpp
++++ b/src/cinnamon-js.cpp
+@@ -5,7 +5,7 @@
+ #include "cinnamon-js.h"
+ 
+ #include <gio/gio.h>
+-#include <cjs/gjs-module.h>
++#include <gjs/gjs-module.h>
+ 
+ /* Memory report bits */
+ #ifdef HAVE_MALLINFO
+--- a/src/cinnamon-js.h
++++ b/src/cinnamon-js.h
+@@ -3,7 +3,7 @@
+ #define __CINNAMON_JS_H__
+ 
+ #include <glib.h>
+-#include <cjs/gjs.h>
++#include <gjs/gjs.h>
+ 
+ G_BEGIN_DECLS
+ 
+--- a/src/cinnamon-plugin.c
++++ b/src/cinnamon-plugin.c
+@@ -35,7 +35,7 @@
+ #include <GL/glx.h>
+ #include <GL/glxext.h>
+ #endif
+-#include <cjs/gjs.h>
++#include <gjs/gjs.h>
+ #include <meta/display.h>
+ #include <meta/meta-plugin.h>
+ 
+--- a/src/run-js-test.c
++++ b/src/run-js-test.c
+@@ -33,7 +33,7 @@
+ #include <clutter/x11/clutter-x11.h>
+ #include <gdk/gdkx.h>
+ #include <girepository.h>
+-#include <cjs/gjs.h>
++#include <gjs/gjs.h>
+ #include <gtk/gtk.h>
+ 
+ #include "cinnamon-global.h"

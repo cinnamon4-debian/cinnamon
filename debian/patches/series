@@ -17,3 +17,4 @@ replace_firefox_with_iceweasel
 make_nm_optional
 add_capi_search_path
 fix-theme-regressions-with-gtk-3.14.patch
+use-gjs.patch
