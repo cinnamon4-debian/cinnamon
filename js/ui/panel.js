@@ -434,7 +434,7 @@ SettingsLauncher.prototype = {
 
 };
 
-function populateSettingsMenu(menu) {
+function populateSettingsMenu(menu, ah_key) {
 
     menu.troubleshootItem = new PopupMenu.PopupSubMenuMenuItem(_("Troubleshoot ..."), true);
     menu.troubleshootItem.menu.addAction(_("Restart Cinnamon"), function(event) {
@@ -456,8 +456,20 @@ function populateSettingsMenu(menu) {
 
     menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
+    // Auto-hide Panel
+    let autoHide = global.settings.get_boolean(ah_key);
+    let autoHidePanel = new PopupMenu.PopupSwitchMenuItem(_("Auto-hide panel"), autoHide);
+    autoHidePanel.connect('toggled', function(item) {
+        global.settings.set_boolean(ah_key, item.state);
+    });
+    menu.addMenuItem(autoHidePanel);
+    global.settings.connect('changed::' + ah_key, function() {
+        autoHidePanel.setToggleState(global.settings.get_boolean(ah_key));
+    });
+
+    // Panel Edit mode
     let editMode = global.settings.get_boolean("panel-edit-mode");
-    let panelEditMode = new PopupMenu.PopupSwitchMenuItem(_("Panel Edit mode"), editMode);
+    let panelEditMode = new PopupMenu.PopupSwitchMenuItem(_("Panel edit mode"), editMode);
     panelEditMode.connect('toggled', function(item) {
         global.settings.set_boolean("panel-edit-mode", item.state);
     });
@@ -467,14 +479,14 @@ function populateSettingsMenu(menu) {
     });
 }
 
-function PanelContextMenu(launcher, orientation) {
-    this._init(launcher, orientation);
+function PanelContextMenu(launcher, orientation, ah_key) {
+    this._init(launcher, orientation, ah_key);
 }
 
 PanelContextMenu.prototype = {
     __proto__: PopupMenu.PopupMenu.prototype,
 
-    _init: function(launcher, orientation) {
+    _init: function(launcher, orientation, ah_key) {
         PopupMenu.PopupMenu.prototype._init.call(this, launcher.actor, 0.0, orientation, 0);
         Main.uiGroup.add_actor(this.actor);
         this.actor.hide();
@@ -491,7 +503,7 @@ PanelContextMenu.prototype = {
         let menuSetting = new SettingsLauncher(_("All settings"), "", "preferences-system", this);
         this.addMenuItem(menuSetting);
 
-        populateSettingsMenu(this);
+        populateSettingsMenu(this, ah_key);
     }
 }
 
@@ -620,8 +632,8 @@ Panel.prototype = {
         this._panelEditMode = false;
         this._hidetime = 0;
         this._hideable = global.settings.get_boolean(this.panel_ah_key);
-        this._hideTimer = false;
-        this._showTimer = false;
+        this._hideTimer = 0;
+        this._showTimer = 0;
         this._onPanelShowDelayChanged();
         this._onPanelHideDelayChanged();
         this._themeFontSize = null;
@@ -689,7 +701,7 @@ Panel.prototype = {
             orientation = St.Side.BOTTOM;
         }
         
-        this._context_menu = new PanelContextMenu(this, orientation);
+        this._context_menu = new PanelContextMenu(this, orientation, this.panel_ah_key);
         this._menus.addMenu(this._context_menu);   
         
         this._context_menu._boxPointer._container.connect('allocate', Lang.bind(this._context_menu._boxPointer, function(actor, box, flags){
@@ -953,9 +965,11 @@ Panel.prototype = {
     _clearTimers: function() {
         if (this._showTimer) {
             Mainloop.source_remove(this._showTimer);
+            this._showTimer = 0;
         }
         if (this._hideTimer) {
             Mainloop.source_remove(this._hideTimer);
+            this._hideTimer = 0;
         }
     },
     
@@ -1003,6 +1017,8 @@ Panel.prototype = {
     }, 
     
     _showPanel: function() {
+        this._clearTimers();
+
         if (this._disabled) return;
 
         if (!this._hidden) return;
@@ -1052,6 +1068,8 @@ Panel.prototype = {
     },
 
     _hidePanel: function(force) {
+        this._clearTimers();
+
         if ((!this._hideable && !force) || global.menuStackLength > 0 || this.isMouseOverPanel) return;
 
         // Force the panel to be on top (hack to correct issues when switching workspace)

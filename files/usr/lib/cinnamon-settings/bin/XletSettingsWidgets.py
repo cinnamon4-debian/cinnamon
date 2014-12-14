@@ -108,7 +108,6 @@ class Factory():
             warning.destroy()
             print detail
 
-
 class Settings():
     def __init__(self, file_name, factory, instance_id, multi_instance, uuid):
         self.file_name = file_name
@@ -124,7 +123,7 @@ class Settings():
             except IOError:
                 self.tUser = None
         try:
-            self.t = gettext.translation("cinnamon", "/usr/share/cinnamon/locale").ugettext
+            self.t = gettext.translation("cinnamon", "/usr/share/locale").ugettext
         except IOError:
             self.t = None
         self.reload()
@@ -184,6 +183,9 @@ class Settings():
     def set_value(self, key, val):
         self.data[key]["value"] = val
         self.try_update_dbus(key)
+
+    def get_value(self, key):
+        return self.data[key]["value"]
 
     def set_custom_value(self, key, val):
         self.data[key]["last-custom-value"] = val
@@ -271,40 +273,47 @@ class BaseWidget(object):
 
     def get_desc(self):
         try:
+            desc = self.settings_obj.get_data(self.key)["description"]
+            if desc == "":
+                return desc
             if self.tUser:
-                result = self.tUser(self.settings_obj.get_data(self.key)["description"])
-                if result != self.settings_obj.get_data(self.key)["description"]:
-                    print result
+                result = self.tUser(desc)
+                if result != desc:
                     return result
             if self.t:
-                print self.t(self.settings_obj.get_data(self.key)["description"])
-                return self.t(self.settings_obj.get_data(self.key)["description"])
-            return self.settings_obj.get_data(self.key)["description"]
+                return self.t(desc)
+            return desc
         except:
             print ("Could not find description for key '%s' in xlet '%s'" % (self.key, self.uuid))
             return ""
 
     def get_tooltip(self):
         try:
+            tt = self.settings_obj.get_data(self.key)["tooltip"]
+            if tt == "":
+                return tt
             if self.tUser:
-                result = self.tUser(self.settings_obj.get_data(self.key)["tooltip"])
-                if result != self.settings_obj.get_data(self.key)["tooltip"]:
+                result = self.tUser(tt)
+                if result != tt:
                     return result
             if self.t:
-                return self.t(self.settings_obj.get_data(self.key)["tooltip"])
-            return self.settings_obj.get_data(self.key)["tooltip"]
+                return self.t(tt)
+            return tt
         except:
             return ""
 
     def get_units(self):
         try:
+            units = self.settings_obj.get_data(self.key)["units"]
+            if units == "":
+                return units
             if self.tUser:
-                result = self.tUser(self.settings_obj.get_data(self.key)["units"])
-                if result != self.settings_obj.get_data(self.key)["units"]:
+                result = self.tUser(units)
+                if result != units:
                     return result
             if self.t:
-                return self.t(self.settings_obj.get_data(self.key)["units"])
-            return self.settings_obj.get_data(self.key)["units"]
+                return self.t(units)
+            return units
         except:
             print ("Could not find units for key '%s' in xlet '%s'" % (self.key, self.uuid))
             return ""
@@ -342,12 +351,16 @@ class BaseWidget(object):
                 ret = collections.OrderedDict()
                 d = self.settings_obj.get_data(self.key)["options"]
                 for key in d.keys():
+                    if key == "":
+                        fixed_key = " "
+                    else:
+                        fixed_key = key
                     if self.tUser:
-                        translated_key = self.tUser(key)
-                        if translated_key != key or not self.t:
+                        translated_key = self.tUser(fixed_key)
+                        if translated_key != fixed_key or not self.t:
                             ret[translated_key] = d[key]
                         elif self.t:
-                            translated_key = self.t(key)
+                            translated_key = self.t(fixed_key)
                             ret[translated_key] = d[key]
                     elif self.t:
                         translated_key = self.t(key)
@@ -1030,19 +1043,40 @@ class Keybinding(Gtk.HBox, BaseWidget):
         if self.get_desc() != "":
             self.pack_start(self.label, False, False, 2)
 
-        self.button = Gtk.Button(self.value)
-        self.button.set_tooltip_text(_("Click to set a new accelerator key.") +
-                                     _("  Press Escape or click again to cancel the operation." +
-                                       "  Press Backspace to clear the existing keybinding."))
-        self.button.connect("clicked", self.clicked)
-        self.button.set_size_request(200, -1)
-        self.pack_start(self.button, False, False, 4)
+        self.buttons = []
+        self.teach_button = None
+
+        self.button_box = Gtk.ButtonBox.new(Gtk.Orientation.HORIZONTAL)
+        self.button_box.set_layout(Gtk.ButtonBoxStyle.SPREAD)
+        self.button_box.set_hexpand(False)
+        self.button_box.set_halign(Gtk.Align.START)
+
+        c = self.button_box.get_style_context()
+        c.add_class(Gtk.STYLE_CLASS_LINKED)
+        self.pack_start(self.button_box, True, True, 4)
+
+        for _ in range(2):
+            self.construct_button()
+
         self.set_button_text()
         self.show_all()
         self.event_id = None
         self.teaching = False
 
+    def construct_button(self):
+        button = Gtk.Button(self.value)
+        button.set_tooltip_text(_("Click to set a new accelerator key.") +
+                                _("  Press Escape or click again to cancel the operation." +
+                                  "  Press Backspace to clear the existing keybinding."))
+        button.connect("clicked", self.clicked)
+        button.set_size_request(200, -1)
+        button.set_hexpand(True)
+        self.button_box.add(button)
+
+        self.buttons.append(button)
+
     def clicked(self, widget):
+        self.teach_button = widget
         if not self.teaching:
             device = Gtk.get_current_event_device()
             if device.get_source() == Gdk.InputSource.KEYBOARD:
@@ -1054,7 +1088,7 @@ class Keybinding(Gtk.HBox, BaseWidget):
                                Gdk.EventMask.KEY_PRESS_MASK | Gdk.EventMask.KEY_RELEASE_MASK,
                                None, Gdk.CURRENT_TIME)
 
-            self.button.set_label(_("Pick an accelerator"))
+            widget.set_label(_("Pick an accelerator"))
             self.event_id = self.connect( "key-release-event", self.on_key_release )
             self.teaching = True
         else:
@@ -1063,28 +1097,66 @@ class Keybinding(Gtk.HBox, BaseWidget):
             self.ungrab()
             self.set_button_text()
             self.teaching = False
+            self.teach_button = None
 
     def on_key_release(self, widget, event):
         self.disconnect(self.event_id)
         self.ungrab()
         self.event_id = None
         if event.keyval == Gdk.KEY_Escape:
-            self.button.set_label(self.value)
+            self.set_button_text()
             self.teaching = False
+            self.teach_button = None
             return True
         if event.keyval == Gdk.KEY_BackSpace:
             self.teaching = False
-            self.value = ""
-            self.set_button_text()
+            self.value = self.place_value("")
             self.set_val(self.value)
+            self.set_button_text()
+            self.teach_button = None
             return True
         accel_string = Gtk.accelerator_name(event.keyval, event.state)
         accel_string = self.sanitize(accel_string)
-        self.value = accel_string
-        self.set_button_text()
+        self.value = self.place_value(accel_string)
         self.set_val(self.value)
+        self.set_button_text()
         self.teaching = False
+        self.teach_button = None
         return True
+
+    def place_value(self, string):
+        i = self.buttons.index(self.teach_button)
+
+        array = self.string_to_array(self.value)
+        array[i] = string
+
+        compacted_array = []
+        for string in array:
+            if string != "":
+                compacted_array.append(string)
+        return self.array_to_string(compacted_array)
+
+    def array_to_string(self, array):
+        string = ""
+        done_once = False
+
+        for binding in array:
+            if done_once:
+                string += "::"
+            string += binding
+            done_once = True
+
+        return string
+
+    def string_to_array(self, string):
+        if not string or string == "":
+            return ["",""]
+
+        array = string.split("::", 1)
+        while len(array) < 2:
+            array.append("")
+
+        return array
 
     def sanitize(self, string):
         accel_string = string.replace("<Mod2>", "")
@@ -1095,10 +1167,14 @@ class Keybinding(Gtk.HBox, BaseWidget):
         return accel_string
 
     def set_button_text(self):
-        if self.value == "":
-            self.button.set_label(_("<not set>"))
-        else:
-            self.button.set_label(self.value)
+        value_array = self.string_to_array(self.value)
+        i = 0
+        while i < 2:
+            if value_array[i] == "":
+                self.buttons[i].set_label(_("<not set>"))
+            else:
+                self.buttons[i].set_label(value_array[i])
+            i += 1
 
     def ungrab(self):
         self.keyboard.ungrab(Gdk.CURRENT_TIME)
