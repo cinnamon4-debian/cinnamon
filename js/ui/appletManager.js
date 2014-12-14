@@ -7,7 +7,6 @@ const Cinnamon = imports.gi.Cinnamon;
 const Main = imports.ui.main;
 const Applet = imports.ui.applet;
 const Extension = imports.ui.extension;
-const DBus = imports.dbus;
 
 // Maps uuid -> metadata object
 var appletMeta;
@@ -26,7 +25,8 @@ var appletsLoaded = false;
 // the same role?
 const Roles = {
     NOTIFICATIONS: 'notifications',
-    WINDOWLIST: 'windowlist'
+    WINDOWLIST: 'windowlist',
+    PANEL_LAUNCHER: 'panellauncher'
 }
 
 var enabledAppletDefinitions;
@@ -53,7 +53,8 @@ function finishExtensionLoad(extension) {
     let definitions = enabledAppletDefinitions.uuidMap[extension.uuid];
     if (definitions) {
         for(let i=0; i<definitions.length; i++) {
-            addAppletToPanels(extension, definitions[i]);
+            if (!addAppletToPanels(extension, definitions[i]))
+                return false;
         }
     }
     return true;
@@ -237,19 +238,14 @@ function _removeAppletConfigFile(uuid, instanceId) {
 }
 
 function addAppletToPanels(extension, appletDefinition) {
-    // Try to lock the applets role
-    if(!extension.lockRole(null))
-        return;
-    
     try {
         // Create the applet
         let applet = createApplet(extension, appletDefinition);
         if(applet == null)
-            return;
+            return false;
         
         // Now actually lock the applets role and set the provider
-        if(!extension.lockRole(applet))
-            return;
+        extension.lockRole(applet);
 
         applet._order = appletDefinition.order;
         applet._extension = extension;
@@ -291,12 +287,15 @@ function addAppletToPanels(extension, appletDefinition) {
             extension._loadedDefinitions = {};
         }
         extension._loadedDefinitions[appletDefinition.applet_id] = appletDefinition;
-        
-        applet.on_applet_added_to_panel(appletsLoaded);
+
+        applet.on_applet_added_to_panel_internal(appletsLoaded);
+
+        return true;
     }
     catch(e) {
         extension.unlockRole();
         extension.logError('Failed to load applet: ' + appletDefinition.uuid + "/" + appletDefinition.applet_id, e);
+        return false;
     }
 }
 

@@ -592,7 +592,7 @@ NMDevice.prototype = {
 
                 if (j + activeOffset >= NUM_VISIBLE_NETWORKS) {
                     if (!this._overflowItem) {
-                        this._overflowItem = new PopupMenu.PopupSubMenuMenuItem(_("More..."));
+                        this._overflowItem = new PopupMenu.PopupSubMenuMenuItem(_("More..."), true);
                         this.section.addMenuItem(this._overflowItem);
                     }
                     this._overflowItem.menu.addMenuItem(obj.item);
@@ -1567,7 +1567,7 @@ NMDeviceWireless.prototype = {
             this.section.addMenuItem(apObj.item, position);
         } else {
             if (!this._overflowItem) {
-                this._overflowItem = new PopupMenu.PopupSubMenuMenuItem(_("More..."));
+                this._overflowItem = new PopupMenu.PopupSubMenuMenuItem(_("More..."), true);
                 this.section.addMenuItem(this._overflowItem);
             }
             this._overflowItem.menu.addMenuItem(apObj.item, position - NUM_VISIBLE_NETWORKS);
@@ -1914,6 +1914,7 @@ MyApplet.prototype = {
         this._activeConnections = newActiveConnections;
         this._mainConnection = null;
         let activating = null;
+        let activated = null;
         let default_ip4 = null;
         let default_ip6 = null;
         for (let i = 0; i < this._activeConnections.length; i++) {
@@ -1953,6 +1954,8 @@ MyApplet.prototype = {
             if (a.default6)
                 default_ip6 = a;
 
+            if (!activated && a.state == NetworkManager.ActiveConnectionState.ACTIVATED)
+                activated = a;
             if (a.state == NetworkManager.ActiveConnectionState.ACTIVATING)
                 activating = a;
 
@@ -1982,7 +1985,7 @@ MyApplet.prototype = {
             }
         }
 
-        this._mainConnection = this._activeConnections[0] || activating || default_ip4 || default_ip6 || null;
+        this._mainConnection = activated || activating || default_ip4 || default_ip6 || null;
     },
 
     _notifyActivated: function(activeConnection) {

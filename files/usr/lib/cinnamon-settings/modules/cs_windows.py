@@ -23,10 +23,24 @@ class Module:
             bg.add(vbox)
 
             section = Section(_("Alt-Tab"))  
-            alttab_styles = [["icons", _("Icons only")], ["thumbnails", _("Thumbnails only")],["icons+thumbnails", _("Icons and thumbnails")],["icons+preview", _("Icons and window preview")],["preview", _("Window preview (no icons)")],["coverflow", _("Coverflow (3D)")],["timeline", _("Timeline (3D)")]]
+            alttab_styles = [
+                ["icons", _("Icons only")],
+                ["thumbnails", _("Thumbnails only")],
+                ["icons+thumbnails", _("Icons and thumbnails")],
+                ["icons+preview", _("Icons and window preview")],
+                ["preview", _("Window preview (no icons)")],
+                ["coverflow", _("Coverflow (3D)")],
+                ["timeline", _("Timeline (3D)")]
+            ]
             alttab_styles_combo = self._make_combo_group(_("Alt-Tab switcher style"), "org.cinnamon", "alttab-switcher-style", alttab_styles)
             section.add(alttab_styles_combo)
             section.add(GSettingsCheckButton(_("Display the alt-tab switcher on the primary monitor instead of the active one"), "org.cinnamon", "alttab-switcher-enforce-primary-monitor", None))
+            section.add(
+                GSettingsSpinButton(
+                    _("Delay before displaying the alt-tab switcher"),
+                    "org.cinnamon", "alttab-switcher-delay", dep_key=None,
+                    min=0, max=1000, step=50, page=150, 
+                    units=_("milliseconds")))
             vbox.add(section)
 
             vbox.add(Gtk.Separator.new(Gtk.Orientation.HORIZONTAL))        
@@ -37,7 +51,8 @@ class Module:
 
             action_options = [["toggle-shade", _("Toggle Shade")], ["toggle-maximize", _("Toggle Maximize")],
                              ["toggle-maximize-horizontally", _("Toggle Maximize Horizontally")], ["toggle-maximize-vertically", _("Toggle Maximize Vertically")],
-                             ["minimize", _("Minimize")], ["shade", _("Shade")], ["menu", _("Menu")], ["lower", _("Lower")], ["none", _("None")]]
+                             ["toggle-stuck", _("Toggle on all workspaces")], ["toggle-above", _("Toggle always on top")],
+                             ["minimize", _("Minimize")], ["menu", _("Menu")], ["lower", _("Lower")], ["none", _("None")]]
 
             section.add(self._make_titlebar_action_group(_("Action on title bar double-click"),
                                                 "org.cinnamon.desktop.wm.preferences", "action-double-click-titlebar",
@@ -55,12 +70,14 @@ class Module:
                                                       "org.cinnamon.desktop.wm.preferences", "action-scroll-titlebar",
                                                       scroll_options)
             opacity_spinner = GSettingsSpinButton(_("Minimum opacity:"), "org.cinnamon.desktop.wm.preferences", "min-window-opacity", None, 0, 100, 1, 1, _("%"))
+            opacity_spinner.show_all()
+            opacity_spinner.set_no_show_all(True)
 
             combo.pack_start(opacity_spinner, False, False, 2)
 
             self.wm_settings = Gio.Settings("org.cinnamon.desktop.wm.preferences")
             self.wm_settings.connect("changed::action-scroll-titlebar", self.update_spinner_visibility, opacity_spinner)
-            self.update_spinner_visibility(self.wm_settings, "action-scroll-titlebar", combo)
+            self.update_spinner_visibility(self.wm_settings, "action-scroll-titlebar", opacity_spinner)
 
             section.add(combo)
             vbox.add(section)
@@ -86,7 +103,11 @@ class Module:
             vbox.add(Gtk.Separator.new(Gtk.Orientation.HORIZONTAL))
 
             section = Section(_("Moving and Resizing Windows"))
-            section.add(self._make_combo_group(_("Special key to move windows"), "org.cinnamon.desktop.wm.preferences", "mouse-button-modifier", [(i, i.title()) for i in ("","<Alt>","<Super>","<Control>")]))
+
+            special_key_options = [["", _("Disabled")], ["<Alt>", "<Alt>"],["<Super>", "<Super>"],["<Control>", "<Control>"]]
+            combo = self._make_combo_group(_("Special key to move and resize windows"), "org.cinnamon.desktop.wm.preferences", "mouse-button-modifier", special_key_options)
+            combo.set_tooltip_text(_("While the special key is pressed, windows can be dragged with the left mouse button and resized with the right mouse button."))
+            section.add(combo)
             section.add(GSettingsSpinButton(_("Window drag/resize threshold"), "org.cinnamon.muffin", "resize-threshold", None, 1, 100, 1, 1, _("Pixels")))        
             vbox.add(section)
 

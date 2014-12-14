@@ -1,6 +1,6 @@
 const Applet = imports.ui.applet;
 const Gio = imports.gi.Gio;
-const DBus = imports.dbus;
+const Interfaces = imports.misc.interfaces
 const Lang = imports.lang;
 const St = imports.gi.St;
 const PopupMenu = imports.ui.popupMenu;
@@ -35,33 +35,6 @@ const UPDeviceState = {
     PENDING_CHARGE: 5,
     PENDING_DISCHARGE: 6
 };
-
-const PowerManagerInterface = {
-    name: 'org.cinnamon.SettingsDaemon.Power',
-    methods: [
-        { name: 'GetDevices', inSignature: '', outSignature: 'a(susdut)' },
-        { name: 'GetPrimaryDevice', inSignature: '', outSignature: '(susdut)' },
-        ],
-    signals: [
-        { name: 'PropertiesChanged', inSignature: 's,a{sv},a[s]' },
-        ],
-    properties: [
-        { name: 'Icon', signature: 's', access: 'read' },
-        ]
-};
-let PowerManagerProxy = DBus.makeProxyClass(PowerManagerInterface);
-
-const SettingsManagerInterface = {
-	name: 'org.freedesktop.DBus.Properties',
-	methods: [
-		{ name: 'GetAll', inSignature: 's', outSignature: 'a{sv}' }
-	],
-	signals: [
-	{name: 'PropertiesChanged', inSignature:'s,a{sv},a[s]', outSignature:''}
-	]
-};
-
-let SettingsManagerProxy = DBus.makeProxyClass(SettingsManagerInterface);
 
 function DeviceItem() {
     this._init.apply(this, arguments);
@@ -144,9 +117,7 @@ MyApplet.prototype = {
             this.menu = new Applet.AppletPopupMenu(this, orientation);
             this.menuManager.addMenu(this.menu);            
             
-            //this.set_applet_icon_symbolic_name('battery-missing');            
-            this._proxy = new PowerManagerProxy(DBus.session, BUS_NAME, OBJECT_PATH);
-            this._smProxy = new SettingsManagerProxy(DBus.session, BUS_NAME, OBJECT_PATH);
+            // this.set_applet_icon_symbolic_name('battery-missing'); 
             
             let icon = this.actor.get_children()[0];
             this.actor.remove_actor(icon);
@@ -175,8 +146,11 @@ MyApplet.prototype = {
             this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             this.menu.addSettingsAction(_("Power Settings"), 'power');
 
-            this._smProxy.connect('PropertiesChanged', Lang.bind(this, this._devicesChanged));
-            this._devicesChanged();            
+            Interfaces.getDBusProxyAsync("org.cinnamon.SettingsDaemon.Power", Lang.bind(this, function(proxy, error) {
+                this._proxy = proxy;
+                this._proxy.connect("g-properties-changed", Lang.bind(this, this._devicesChanged));
+                this._devicesChanged();
+            }));
         }
         catch (e) {
             global.logError(e);
@@ -233,14 +207,14 @@ MyApplet.prototype = {
     },
 
     _readOtherDevices: function() {
-        this._proxy.GetDevicesRemote(Lang.bind(this, function(devices, error) {
+        this._proxy.GetDevicesRemote(Lang.bind(this, function(result, error) {
             this._deviceItems.forEach(function(i) { i.destroy(); });
             this._deviceItems = [];
 
             if (error) {
                 return;
             }
-
+            let devices = result[0];
             let position = 0;
             for (let i = 0; i < devices.length; i++) {
                 let [device_id, device_type] = devices[i];
@@ -266,59 +240,62 @@ MyApplet.prototype = {
     },
 
     on_panel_height_changed: function() {
-        this._devicesChanged();
+        if (this._proxy)
+            this._devicesChanged();
     },
 
     _devicesChanged: function() {        
-        this._proxy.GetRemote('Icon', Lang.bind(this, function(icon, error) {
-            if (icon) {    
-                this.set_applet_icon_symbolic_name('battery-missing');
-                let gicon = Gio.icon_new_for_string(icon);
-                this._applet_icon.gicon = gicon;
-                this.actor.show();
-            } else {
-                this.menu.close();
-                this.actor.hide();
-            }
-        }));
+        let icon = this._proxy.Icon;
+        if (icon) {
+            this.set_applet_icon_symbolic_name('battery-missing');
+            let gicon = Gio.icon_new_for_string(icon);
+            this._applet_icon.gicon = gicon;
+            this.actor.show();
+        } else {
+            this.menu.close();
+            this.actor.hide();
+        }
         this._readPrimaryDevice();
         this._readOtherDevices();
         this._updateLabel();
     },
     
     _updateLabel: function() {
-        this._proxy.GetDevicesRemote(Lang.bind(this, function(devices, error) {
+        this._proxy.GetDevicesRemote(Lang.bind(this, function(results, error) {
             if (error) {
             	this._mainLabel.set_text("");
                 return;
             }
-            if (this.labelinfo != "nothing") {
-            	for (let i = 0; i < devices.length; i++) {
-	                let [device_id, device_type, icon, percentage, state, time] = devices[i];
-	                if (device_type == UPDeviceType.BATTERY || device_id == this._primaryDeviceId) {
-	                    let labelText = "";
+            let devices = results[0];
+            for (let i = 0; i < devices.length; i++) {
+                let [device_id, device_type, icon, percentage, state, time] = devices[i];
+                if (device_type == UPDeviceType.BATTERY || device_id == this._primaryDeviceId) {
+                    let labelText = "";
+                    if (this.labelinfo == "nothing") {
+                        ;
+                    }
+                    else if (this.labelinfo == "time" && time != 0) {
+                        let seconds = Math.round(time / 60);
+                        let minutes = Math.floor(seconds % 60);
+                        let hours = Math.floor(seconds / 60);
+                        labelText = C_("time of battery remaining", "%d:%02d").format(hours,minutes);
+                    }
+                    else if (this.labelinfo == "percentage" ||
+                             (this.labelinfo == "percentage_time" && time == 0)) {
+                        labelText = C_("percent of battery remaining", "%d%%").format(Math.round(percentage));
+                    }
 
-	                    if (this.labelinfo == "percentage" || time == 0) {
-	                        labelText = C_("percent of battery remaining", "%d%%").format(Math.round(percentage));
-	                    }
-	                    else if (this.labelinfo == "time") {
-	                        let seconds = Math.round(time / 60);
-	                        let minutes = Math.floor(seconds % 60);
-	                        let hours = Math.floor(seconds / 60);
-	                        labelText = C_("time of battery remaining", "%d:%02d").format(hours,minutes);
-	                    }
-	                    else if (this.labelinfo == "percentage_time") {
-	                        let seconds = Math.round(time / 60);
-	                        let minutes = Math.floor(seconds % 60);
-	                        let hours = Math.floor(seconds / 60);
-	                        labelText = C_("percent of battery remaining", "%d%%").format(Math.round(percentage)) + " (" +
-	                                    C_("time of battery remaining", "%d:%02d").format(hours,minutes) + ")";
-	                    }
-	                    this._mainLabel.set_text(labelText);
-	                    if (device_id == this._primaryDeviceId) {
-	                    	return;
-	                    }
-	            	}
+                    else if (this.labelinfo == "percentage_time") {
+                        let seconds = Math.round(time / 60);
+                        let minutes = Math.floor(seconds % 60);
+                        let hours = Math.floor(seconds / 60);
+                        labelText = C_("percent of battery remaining", "%d%%").format(Math.round(percentage)) + " (" +
+                                    C_("time of battery remaining", "%d:%02d").format(hours,minutes) + ")";
+                    }
+                    this._mainLabel.set_text(labelText);
+                    if (device_id == this._primaryDeviceId) {
+                        return;
+                    }
                 }
             }
         }));

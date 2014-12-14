@@ -308,6 +308,14 @@
        Duration of the effect (in milliseconds)    
       </_description>
     </key>
+    
+    <key type="b" name="startup-animation">
+      <default>true</default>
+      <_summary>Whether the startup animation is enabled</_summary>
+      <_description>
+       Whether the startup animation is enabled   
+      </_description>
+    </key>
 
     <key name="desktop-layout" type="s">
       <default>"traditional"</default>
@@ -324,11 +332,6 @@
         Format used for dates.
       </_description>
     </key>
-    
-    <key type="b" name="display-notifications">
-      <default>true</default>
-      <_summary>Whether notifications are to be displayed</_summary>
-    </key>
 
     <key type="i" name="number-workspaces">
         <default>2</default>
@@ -344,12 +347,9 @@
     </key>
 
     <key name="panel-launchers" type="as">
-      <default>[ 'firefox.desktop', 'gnome-terminal.desktop', 'nemo.desktop']</default>
-      <_summary>Desktop files of the applications to put in the panel launchers applet</_summary>
-      <_description>
-        Cinnamon allows to show applications launchers on the panel.
-        This key lists the desktop files of the applications to show there.
-      </_description>
+      <default>["DEPRECATED"]</default>
+      <_summary>Obsolete - unused</_summary>
+      <_description>Obsolete - unused</_description>
     </key>
 
     <key name="enable-app-monitoring" type="b">
@@ -415,7 +415,7 @@
     </key>
 
     <key name="enable-looking-glass-logs" type="b">
-      <default>false</default>
+      <default>true</default>
       <_summary>Enable or disable sending Looking Glass global.log output to file</_summary>
       <_description>
         Whether looking glass log data is written to the file: ~/.cinnamon/glass.log or not
@@ -463,7 +463,7 @@
     
     <key type="b" name="panel-launchers-draggable">
       <default>true</default>
-      <_summary>Whether panel launchers are draggable</_summary>
+      <_summary>Obsolete</_summary>
     </key>
 
     <key name="alttab-switcher-style" type="s">
@@ -477,6 +477,12 @@
     <key type="b" name="alttab-switcher-enforce-primary-monitor">
       <default>false</default>
       <_summary>Enforce displaying the alt-tab switcher on the primary monitor instead of the active one</_summary>
+    </key>
+
+    <key type="i" name="alttab-switcher-delay">
+      <default>100</default>
+      <_summary>Duration of the effect (in milliseconds)</_summary>
+      <_description>Duration of the effect (in milliseconds)</_description>
     </key>
 
     <key name="window-list-applet-scroll" type="b">
@@ -663,24 +669,7 @@
       </description>
     </key>
   </schema>
-  
-  <schema id="org.cinnamon.screensaver" path="/org/cinnamon/screensaver/">
-    <key name="default-message" type="s">
-      <default>""</default>
-      <summary>Default message for the screensaver</summary>
-      <description>
-        This is the message that appears on the lock screen by default.
-      </description>
-    </key>
-    <key name="ask-for-away-message" type="b">
-      <default>true</default>
-      <summary>Whether to ask for an away message when locking the screen</summary>
-      <description>
-        Whether to ask for an away message when locking the screen.
-      </description>
-    </key>   
-  </schema>
-  
+
   <schema id="org.cinnamon.desklets" path="/org/cinnamon/desklets/"
         gettext-domain="@GETTEXT_PACKAGE@">  
     <child name="launcher" schema="org.cinnamon.desklets.launcher" />
@@ -881,28 +870,26 @@
   <schema id="org.cinnamon.keybindings" path="/org/cinnamon/keybindings/">
     <key name="custom-list" type="as">
       <default>[]</default>
-      <_summary>List of gsettings custom keybinding paths to look in</_summary>
-      <_description>
-      </_description>
+      <_summary>deprecated - moved to org.cinnamon.desktop.keybindings</_summary>
     </key>
   </schema>
 
   <schema id="org.cinnamon.keybindings.custom-keybinding">
     <key name="name" type="s">
       <default>''</default>
-      <_summary>Name</_summary>
-      <_description>Name of the custom binding</_description>
+      <_summary>deprecated - moved to org.cinnamon.desktop.keybindings</_summary>
     </key>
     <key name="binding" type="s">
       <default>''</default>
-      <_summary>Binding</_summary>
-      <_description>Binding for the custom binding</_description>
+      <_summary>deprecated - moved to org.cinnamon.desktop.keybindings</_summary>
     </key>
     <key name="command" type="s">
       <default>''</default>
-      <_summary>Command</_summary>
-      <_description>Command to run when the binding is invoked</_description>
+      <_summary>deprecated - moved to org.cinnamon.desktop.keybindings</_summary>
     </key>
+  </schema>
+
+  <schema id="org.cinnamon.invalid-schema" path="/org/cinnamon/invalid-schema/">
   </schema>
 
 </schemalist>

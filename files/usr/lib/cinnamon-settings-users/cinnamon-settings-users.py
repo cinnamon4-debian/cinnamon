@@ -9,7 +9,7 @@ import PIL
 from PIL import Image
 from random import randint
 
-gettext.install("cinnamon", "/usr/share/cinnamon/locale")
+gettext.install("cinnamon", "/usr/share/locale")
 
 (INDEX_USER_OBJECT, INDEX_USER_PICTURE, INDEX_USER_DESCRIPTION) = range(3)
 (INDEX_GID, INDEX_GROUPNAME) = range(2)
@@ -45,9 +45,10 @@ class GroupDialog (Gtk.Dialog):
             print detail        
 
     def _on_entry_changed(self, entry):
-        if " " in entry.get_text():
+        name = entry.get_text()
+        if " " in name or name.lower() != name:
             entry.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, Gtk.STOCK_DIALOG_WARNING)
-            entry.set_icon_tooltip_text(Gtk.EntryIconPosition.SECONDARY, _("The group name cannot contain space characters"))
+            entry.set_icon_tooltip_text(Gtk.EntryIconPosition.SECONDARY, _("The group name cannot contain upper-case or space characters"))
             self.set_response_sensitive(Gtk.ResponseType.OK, False)
         else:
             entry.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, None)
@@ -313,9 +314,9 @@ class NewUserDialog(Gtk.Dialog):
         fullname = self.realname_entry.get_text()
         username = self.username_entry.get_text()
         valid = True
-        if " " in username:
+        if " " in username or username.lower() != username:
             self.username_entry.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, Gtk.STOCK_DIALOG_WARNING)
-            self.username_entry.set_icon_tooltip_text(Gtk.EntryIconPosition.SECONDARY, _("The username cannot contain space characters"))
+            self.username_entry.set_icon_tooltip_text(Gtk.EntryIconPosition.SECONDARY, _("The username cannot contain upper-case or space characters"))
             valid = False
         else:
             self.username_entry.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, None)     
@@ -667,10 +668,13 @@ class Module:
 #USER CALLBACKS
 
     def on_user_selection(self, selection):
+        self.password_button.set_sensitive(True)
+        self.password_button.set_tooltip_text("")
+
         model, treeiter = selection.get_selected()
         if treeiter != None:
             user = model[treeiter][INDEX_USER_OBJECT]
-            self.builder.get_object("button_delete_user").set_sensitive(True)   
+            self.builder.get_object("button_delete_user").set_sensitive(True)
             self.realname_entry.set_text(user.get_real_name())
 
             if user.get_password_mode() == AccountsService.UserPasswordMode.REGULAR:
@@ -705,6 +709,10 @@ class Module:
             else:
                 self.builder.get_object("button_delete_user").set_sensitive(True)
                 self.builder.get_object("button_delete_user").set_tooltip_text("")
+
+            if os.path.exists("/home/.ecryptfs/%s" % user.get_user_name()):
+                self.password_button.set_sensitive(False)
+                self.password_button.set_tooltip_text(_("The user's home directory is encrypted. To preserve access to the encrypted directory, only the user should change this password."))
 
         else:
             self.builder.get_object("button_delete_user").set_sensitive(False)
