@@ -1,0 +1,50 @@
+Description: To solves cinnamon crash on start, based on:
+ js: Fix up for Clutter.Color changes
+ https://bugzilla.gnome.org/show_bug.cgi?id=683073
+Author: Jasper St. Pierre <jstpierre@mecheye.net>
+Origin: gnome-shell
+--- a/js/ui/lookingGlass.js
++++ b/js/ui/lookingGlass.js
+@@ -33,7 +33,6 @@
+                     /* Utility functions...we should probably be able to use these
+                      * in Cinnamon core code too. */
+                     'const stage = global.stage; ' +
+-                    'const color = function(pixel) { let c= new Clutter.Color(); c.from_pixel(pixel); return c; }; ' +
+                     /* Special lookingGlass functions */
+                        'const it = Main.lookingGlass.getIt(); ' +
+                     'const a = Lang.bind(Main.lookingGlass, Main.lookingGlass.getWindowApp); '+
+--- a/js/ui/magnifier.js
++++ b/js/ui/magnifier.js
+@@ -359,8 +359,7 @@
+      */
+     setCrosshairsColor: function(color) {
+         if (this._crossHairs) {
+-            let clutterColor = new Clutter.Color();
+-            clutterColor.from_string(color);
++            let [res, clutterColor] = Clutter.Color.from_string(color);
+             this._crossHairs.setColor(clutterColor);
+         }
+     },
+@@ -1311,9 +1310,7 @@
+      * @color:  The color as a Clutter.Color.
+      */
+     getColor: function() {
+-        let clutterColor = new Clutter.Color();
+-        this._horizLeftHair.get_color(clutterColor);
+-        return clutterColor;
++        return this._horizLeftHair.get_color();
+     },
+ 
+     /**
+--- a/js/ui/main.js
++++ b/js/ui/main.js
+@@ -78,8 +78,7 @@
+ const Settings = imports.ui.settings;
+ const Systray = imports.ui.systray;
+ 
+-const DEFAULT_BACKGROUND_COLOR = new Clutter.Color();
+-DEFAULT_BACKGROUND_COLOR.from_pixel(0x2266bbff);
++const DEFAULT_BACKGROUND_COLOR = Clutter.Color.from_pixel(0x2266bbff);
+ 
+ const LAYOUT_TRADITIONAL = "traditional";
+ const LAYOUT_FLIPPED = "flipped";
