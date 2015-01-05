@@ -20,3 +20,4 @@ fix-theme-regressions-with-gtk-3.14.patch
 use-gjs.patch
 other-fhs.patch
 fix-for-clutter.color-changes.patch
+background.patch
