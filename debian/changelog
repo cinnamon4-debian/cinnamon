@@ -1,9 +1,9 @@
 cinnamon (2.4.5-1~) UNRELEASED; urgency=medium
 
-  * New upstream release.
+  * New upstream release. (Closes: #774480)
   * debian/patches: removed 6 patches applied upstream and 10 refreshed.
   * Added gnome-backgrounds to dependencies and added a patch to use it and
-    fix the cinnamon-settings background module.
+    fix the cinnamon-settings background module. (Closes: #764416)
 
  -- Fabio Fantoni <fantonifabio@tiscali.it>  Sun, 14 Dec 2014 16:29:31 +0100
 
