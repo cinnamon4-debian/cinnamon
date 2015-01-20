@@ -2,18 +2,6 @@ Description: Fix theme regressions with gtk 3.14
 Author: leigh123linux
 Origin: git of fedora packages
 ---
---- a/data/theme/cinnamon.css
-+++ b/data/theme/cinnamon.css
-@@ -1444,7 +1444,8 @@
- }
- .applet-box:hover .applet-icon {
- 	color: #fff;
--	icon-shadow: white 0px 0px 3px;
-+/* Broken with GNOME 3.14 (icon-size is not honoured)
-+ *	icon-shadow: white 0px 0px 3px;*/
- }
- 
- /* ===================================================================
 --- a/files/usr/lib/cinnamon-settings/modules/cs_themes.py
 +++ b/files/usr/lib/cinnamon-settings/modules/cs_themes.py
 @@ -244,7 +244,7 @@
