@@ -4,6 +4,7 @@ cinnamon (2.4.6-1~) UNRELEASED; urgency=medium
   * debian/patches: removed 6 patches applied upstream and 10 refreshed.
   * Added gnome-backgrounds to dependencies and added a patch to use it and
     fix the cinnamon-settings background module. (Closes: #764416)
+  * Added a patch to fix view of brightness setting in cinnamon-settings.
 
  -- Fabio Fantoni <fantonifabio@tiscali.it>  Sun, 14 Dec 2014 16:29:31 +0100
 

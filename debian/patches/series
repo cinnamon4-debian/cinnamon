@@ -19,6 +19,7 @@ add_capi_search_path
 fix-theme-regressions-with-gtk-3.14.patch
 other-fhs.patch
 background.patch
+show_brightness_fix.patch
 # still use cjs for now
 #use-gjs.patch
 #fix-for-clutter.color-changes.patch
