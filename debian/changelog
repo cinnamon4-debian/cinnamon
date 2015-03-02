@@ -9,6 +9,7 @@ cinnamon (2.4.6-1~) UNRELEASED; urgency=medium
 
   [ Maximiliano Curia ]
   * Update copyright information.
+  * Bump Standards-Version to 3.9.6, no changes needed.
 
  -- Fabio Fantoni <fantonifabio@tiscali.it>  Sun, 14 Dec 2014 16:29:31 +0100
 
