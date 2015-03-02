@@ -27,8 +27,9 @@ override_dh_auto_configure:
 	                     --disable-silent-rules \
 	                     BROWSER_PLUGIN_DIR=/usr/lib/mozilla/plugins
 
-# Disable check since upstream do not use them
 override_dh_auto_test:
+	# Disable tests, upstream doesn't use them
+	:
 
 override_dh_install:
 	dh_install -X.la --list-missing
