@@ -1,4 +1,4 @@
-cinnamon (2.4.6-1~) UNRELEASED; urgency=medium
+cinnamon (2.4.6-1) experimental; urgency=medium
 
   [ Fabio Fantoni ]
   * New upstream release. (Closes: #774480)
@@ -11,7 +11,7 @@ cinnamon (2.4.6-1~) UNRELEASED; urgency=medium
   * Update copyright information.
   * Bump Standards-Version to 3.9.6, no changes needed.
 
- -- Fabio Fantoni <fantonifabio@tiscali.it>  Sun, 14 Dec 2014 16:29:31 +0100
+ -- Maximiliano Curia <maxy@debian.org>  Mon, 02 Mar 2015 23:54:50 +0100
 
 cinnamon (2.2.16-5) unstable; urgency=medium
 
