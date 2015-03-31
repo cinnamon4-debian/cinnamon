@@ -1,3 +1,10 @@
+cinnamon (2.4.7-1~) UNRELEASED; urgency=medium
+
+  * New upstream release.
+  * debian/patches: 4 patches refreshed.
+
+ -- Fabio Fantoni <fantonifabio@tiscali.it>  Tue, 31 Mar 2015 11:14:36 +0200
+
 cinnamon (2.4.6-1) experimental; urgency=medium
 
   [ Fabio Fantoni ]
