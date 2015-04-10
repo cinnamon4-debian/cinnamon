@@ -16,7 +16,7 @@
  
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
-@@ -290,7 +290,10 @@
+@@ -288,7 +288,10 @@
  libcinnamon_la_CPPFLAGS = $(cinnamon_cflags)
  
  Cinnamon-0.1.gir: libcinnamon.la St-1.0.gir

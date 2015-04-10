@@ -1,4 +1,4 @@
-cinnamon (2.4.7-1~) UNRELEASED; urgency=medium
+cinnamon (2.4.8-1~) UNRELEASED; urgency=medium
 
   * New upstream release.
   * debian/patches: 4 patches refreshed.
