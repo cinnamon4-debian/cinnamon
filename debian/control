@@ -118,6 +118,7 @@ Description: Innovative and comfortable desktop
 Package: cinnamon-common
 Architecture: all
 Depends: gir1.2-meta-muffin-0.0,
+         gir1.2-cinnamondesktop-3.0 (>= 2.4),
          python,
          python-pil,
          ${misc:Depends},
