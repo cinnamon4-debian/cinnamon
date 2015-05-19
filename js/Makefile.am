@@ -4,6 +4,7 @@ jsdir = $(pkgdatadir)/js
 nobase_dist_js_DATA = \
 	misc/config.js		\
 	misc/docInfo.js		\
+	misc/fileDialog.js	\
 	misc/fileUtils.js	\
 	misc/format.js		\
 	misc/gnomeSession.js	\
@@ -14,6 +15,7 @@ nobase_dist_js_DATA = \
 	misc/params.js		\
 	misc/pointerTracker.js	\
 	misc/screenSaver.js     \
+	misc/signalManager.js     \
 	misc/timers.js       \
 	misc/util.js		\
 	misc/windowUtils.js		\
@@ -25,6 +27,7 @@ nobase_dist_js_DATA = \
 	ui/appSwitcher/timelineSwitcher.js	\
 	ui/applet.js		\
 	ui/appletManager.js	\
+	ui/searchProviderManager.js	\
 	ui/appFavorites.js	\
 	ui/backgroundManager.js    \
 	ui/boxpointer.js	\
@@ -45,9 +48,7 @@ nobase_dist_js_DATA = \
 	ui/keyboard.js		\
 	ui/layout.js		\
 	ui/lightbox.js		\
-	ui/link.js		\
 	ui/lookingGlass.js	\
-	ui/lookingGlassDBus.js	\
 	ui/magnifier.js		\
 	ui/magnifierDBus.js	\
 	ui/main.js		\
@@ -55,9 +56,10 @@ nobase_dist_js_DATA = \
 	ui/modalDialog.js	\
 	ui/cinnamonEntry.js	\
 	ui/cinnamonMountOperation.js \
+	ui/osdWindow.js \
 	ui/notificationDaemon.js \
 	ui/overview.js		\
-    ui/overrides.js \
+	ui/overrides.js \
 	ui/panel.js		\
 	ui/panelMenu.js		\
 	ui/placesManager.js  \
@@ -76,6 +78,7 @@ nobase_dist_js_DATA = \
 	ui/tweener.js		\
 	ui/windowAttentionHandler.js	\
 	ui/windowManager.js	\
+	ui/windowEffects.js	\
 	ui/workspace.js		\
 	ui/workspacesView.js	\
 	ui/xdndHandler.js

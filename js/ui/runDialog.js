@@ -219,6 +219,8 @@ __proto__: ModalDialog.ModalDialog.prototype,
         let entry = new St.Entry({ style_class: 'run-dialog-entry' });
         CinnamonEntry.addContextMenu(entry);
 
+        entry.label_actor = label;
+
         this._entryText = entry.clutter_text;
         this.contentLayout.add(entry, { y_align: St.Align.START });
         this.setInitialKeyFocus(this._entryText);
@@ -296,7 +298,7 @@ __proto__: ModalDialog.ModalDialog.prototype,
                 let [postfix, completions] = this._getCompletion(prefix);
                 if (postfix != null && postfix.length > 0) {
                     if (o.get_text() == prefix + postfix) {
-                        o.set_selection(o.get_text().length, o.get_text().length);
+                        o.set_cursor_position(o.get_text().length);
                     } else {
                         o.insert_text(postfix, -1);
                         o.set_cursor_position(text.length + postfix.length);
@@ -330,7 +332,7 @@ __proto__: ModalDialog.ModalDialog.prototype,
                     else
                         prefix = text.substr(text.lastIndexOf(' ') + 1);
                     let [postfix, completions] = this._getCompletion(prefix);
-                    if (completions.length > 0) {
+                    if (!postfix && completions.length > 0 && prefix.length > 2) {
                         this._completionSelected = 0;
                         this._showCompletions(completions, prefix.length);
                     }

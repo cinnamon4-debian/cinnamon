@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 from SettingsWidgets import *
 from gi.repository import Gio, Gtk, GObject, Gdk
@@ -39,7 +39,7 @@ IGNORED_MOD_MASK = (int(Gdk.ModifierType.MOD2_MASK) | int(Gdk.ModifierType.LOCK_
 CATEGORIES = [
 
 #   Label                   id                  parent
-#(child)Label                       id                  parent       
+#(child)Label                       id                  parent
 
     [_("General"),          "general",          None,       "preferences-desktop-keyboard-shortcuts"],
         [_("Troubleshooting"),      "trouble",          "general",      None],
@@ -47,6 +47,7 @@ CATEGORIES = [
         [_("Positioning"),          "win-position",     "windows",      None],
         [_("Tiling and Snapping"),  "win-tiling",       "windows",      None],
         [_("Inter-workspace"),      "win-workspaces",   "windows",      None],
+        [_("Inter-monitor"),        "win-monitors",     "windows",      None],
     [_("Workspaces"),       "workspaces",       None,       "display"],
         [_("Direct Navigation"),    "ws-navi",          "workspaces",   None],
     [_("System"),           "system",           None,       "preferences-system"],
@@ -66,6 +67,8 @@ KEYBINDINGS = [
     [_("Toggle Expo"), MUFFIN_KEYBINDINGS_SCHEMA, "switch-to-workspace-up", "general"],
     [_("Cycle through open windows"), MUFFIN_KEYBINDINGS_SCHEMA, "switch-windows", "general"],
     [_("Cycle backwards through open windows"), MUFFIN_KEYBINDINGS_SCHEMA, "switch-windows-backward", "general"],
+    [_("Cycle through open windows of the same application"), MUFFIN_KEYBINDINGS_SCHEMA, "switch-group", "general"],
+    [_("Cycle backwards through open windows of the same application"), MUFFIN_KEYBINDINGS_SCHEMA, "switch-group-backward", "general"],
     [_("Run dialog"), MUFFIN_KEYBINDINGS_SCHEMA, "panel-run-dialog", "general"],
     # General - Troubleshooting
     [_("Toggle Looking Glass"), CINNAMON_SCHEMA, "looking-glass-keybinding", "trouble"],
@@ -122,6 +125,11 @@ KEYBINDINGS = [
     [_("Move window to workspace 10"), MUFFIN_KEYBINDINGS_SCHEMA, "move-to-workspace-10", "win-workspaces"],
     [_("Move window to workspace 11"), MUFFIN_KEYBINDINGS_SCHEMA, "move-to-workspace-11", "win-workspaces"],
     [_("Move window to workspace 12"), MUFFIN_KEYBINDINGS_SCHEMA, "move-to-workspace-12", "win-workspaces"],
+    #Windows - Monitor-related
+    [_("Move window to left monitor"), MUFFIN_KEYBINDINGS_SCHEMA, "move-to-monitor-left", "win-monitors"],
+    [_("Move window to right monitor"), MUFFIN_KEYBINDINGS_SCHEMA, "move-to-monitor-right", "win-monitors"],
+    [_("Move window to up monitor"), MUFFIN_KEYBINDINGS_SCHEMA, "move-to-monitor-up", "win-monitors"],
+    [_("Move window to down monitor"), MUFFIN_KEYBINDINGS_SCHEMA, "move-to-monitor-down", "win-monitors"],
     # Workspaces
     [_("Switch to left workspace"), MUFFIN_KEYBINDINGS_SCHEMA, "switch-to-workspace-left", "workspaces"],
     [_("Switch to right workspace"), MUFFIN_KEYBINDINGS_SCHEMA, "switch-to-workspace-right", "workspaces"],
@@ -202,47 +210,54 @@ KEYBINDINGS = [
 ]
 
 class Module:
+    comment = _("Manage keyboard settings and shortcuts")
+    name = "keyboard"
+    category = "hardware"
+
     def __init__(self, content_box):
         keywords = _("keyboard, shortcut, hotkey")
         sidePage = SidePage(_("Keyboard"), "cs-keyboard", keywords, content_box, module=self)
         self.sidePage = sidePage
-        self.comment = _("Manage keyboard settings and shortcuts")
-        self.name = "keyboard"
-        self.category = "hardware"
 
     def on_module_selected(self):
         if not self.loaded:
             print "Loading Keyboard module"
-            self.tabs = []        
-            self.notebook = Gtk.Notebook()
-            self.notebook.expand = True
 
-            tab = NotebookPage(_("Typing"), False)
-            tab.add_widget(GSettingsCheckButton(_("Enable key repeat"), "org.cinnamon.settings-daemon.peripherals.keyboard", "repeat", None))
-            box = IndentedHBox()
-            slider = GSettingsRange(_("Repeat delay:"), _("Short"), _("Long"), 100, 2000, False, "uint", False, "org.cinnamon.settings-daemon.peripherals.keyboard", "delay",
-                                                                            "org.cinnamon.settings-daemon.peripherals.keyboard/repeat", adjustment_step = 10)
-            box.pack_start(slider, True, True, 0)
-            tab.add_widget(box)
-            box = IndentedHBox()
-            slider = GSettingsRange(_("Repeat speed:"), _("Slow"), _("Fast"), 20, 2000, True, "uint", True, "org.cinnamon.settings-daemon.peripherals.keyboard", "repeat-interval",
-                                                                            "org.cinnamon.settings-daemon.peripherals.keyboard/repeat", adjustment_step = 1)
-            box.pack_start(slider, True, True, 0)
-            tab.add_widget(box)
-            tab.add_widget(Gtk.Separator.new(Gtk.Orientation.HORIZONTAL))
-            
-            tab.add_widget(GSettingsCheckButton(_("Text cursor blinks"), "org.cinnamon.desktop.interface", "cursor-blink", None))
-            box = IndentedHBox()
-            slider = GSettingsRange(_("Blink speed:"), _("Slow"), _("Fast"), 100, 2500, True, "int", False, "org.cinnamon.desktop.interface", "cursor-blink-time",
-                                                                            "org.cinnamon.desktop.interface/cursor-blink", adjustment_step = 10)
-            box.pack_start(slider, True, True, 0)
-            tab.add_widget(box)
-            tab.add_widget(Gtk.Separator.new(Gtk.Orientation.HORIZONTAL))
-            tab.add_widget(Gtk.Label.new(_("Test Box")))
-            tab.add_widget(Gtk.Entry())
-            self.addNotebookTab(tab)
+            self.sidePage.stack = SettingsStack()
+            self.sidePage.add_widget(self.sidePage.stack)
 
-            tab = NotebookPage(_("Keyboard shortcuts"), True)
+            # Typing
+
+            page = SettingsPage()
+
+            settings = page.add_section(_("Key repeat"))
+
+            self.sidePage.stack.add_titled(page, "typing", _("Typing"))
+
+            switch = GSettingsSwitch(_("Enable key repeat"), "org.cinnamon.settings-daemon.peripherals.keyboard", "repeat")
+            settings.add_row(switch)
+
+            slider = GSettingsRange(_("Repeat delay:"), "org.cinnamon.settings-daemon.peripherals.keyboard", "delay", _("Short"), _("Long"), 100, 2000)
+            settings.add_reveal_row(slider, "org.cinnamon.settings-daemon.peripherals.keyboard", "repeat")
+
+            slider = GSettingsRange(_("Repeat speed:"), "org.cinnamon.settings-daemon.peripherals.keyboard", "repeat-interval", _("Slow"), _("Fast"), 20, 2000, invert=True, log=True)
+            settings.add_reveal_row(slider, "org.cinnamon.settings-daemon.peripherals.keyboard", "repeat")
+
+            settings = page.add_section(_("Text cursor"))
+
+            switch = GSettingsSwitch(_("Text cursor blinks"), "org.cinnamon.desktop.interface", "cursor-blink")
+            settings.add_row(switch)
+
+            slider = GSettingsRange(_("Blink speed:"), "org.cinnamon.desktop.interface", "cursor-blink-time", _("Slow"), _("Fast"), 100, 2500, invert=True)
+            settings.add_reveal_row(slider, "org.cinnamon.desktop.interface", "cursor-blink")
+
+            # vbox.add(Gtk.Label.new(_("Test Box")))
+            # vbox.add(Gtk.Entry())
+
+            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            vbox.set_border_width(6)
+            vbox.set_spacing(6)
+            self.sidePage.stack.add_titled(vbox, "shortcuts", _("Shortcuts"))
 
             headingbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 2)
             mainbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 2)
@@ -263,18 +278,17 @@ class Module:
 
             category_scroller = Gtk.ScrolledWindow.new(None, None)
             category_scroller.set_shadow_type(Gtk.ShadowType.IN)
-            
+
             kb_name_scroller = Gtk.ScrolledWindow.new(None, None)
             kb_name_scroller.set_shadow_type(Gtk.ShadowType.IN)
-            
+
             entry_scroller = Gtk.ScrolledWindow.new(None, None)
             entry_scroller.set_shadow_type(Gtk.ShadowType.IN)
-            
-            right_vbox.pack_start(kb_name_scroller, False, False, 2)
-            right_vbox.pack_start(entry_scroller, False, False, 2)
+
+            right_vbox.pack_start(kb_name_scroller, True, True, 2)
+            right_vbox.pack_start(entry_scroller, True, True, 2)
             kb_name_scroller.set_property('min-content-height', 150)
-            entry_scroller.set_property('min-content-height', 100)
-            self.cat_tree = Gtk.TreeView.new()        
+            self.cat_tree = Gtk.TreeView.new()
             self.kb_tree = Gtk.TreeView.new()
             self.entry_tree = Gtk.TreeView.new()
 
@@ -283,13 +297,13 @@ class Module:
             self.kb_tree.connect('popup-menu', self.onContextMenuPopup)
 
             left_vbox.pack_start(category_scroller, True, True, 2)
-                    
+
             category_scroller.add(self.cat_tree)
             category_scroller.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
             kb_name_scroller.add(self.kb_tree)
             kb_name_scroller.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
             entry_scroller.add(self.entry_tree)
-            entry_scroller.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.NEVER)
+            entry_scroller.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
 
             buttonbox = Gtk.ButtonBox.new(Gtk.Orientation.HORIZONTAL)
             self.add_custom_button = Gtk.Button.new_with_label(_("Add custom shortcut"))
@@ -386,10 +400,12 @@ class Module:
             self.kb_tree.set_model(self.kb_store)
             self.entry_tree.set_model(self.entry_store)
 
-            tab.add_widget(headingbox)
-            self.addNotebookTab(tab)
-            
-            tab = NotebookPage(_("Keyboard layouts"), True)
+            vbox.pack_start(headingbox, True, True, 0)
+
+            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            vbox.set_border_width(6)
+            vbox.set_spacing(6)
+            self.sidePage.stack.add_titled(vbox, "layouts", _("Layouts"))
             try:
                 widget = self.sidePage.content_box.c_manager.get_c_widget("region")
             except:
@@ -400,13 +416,7 @@ class Module:
                 cheat_box.pack_start(widget, True, True, 2)
                 cheat_box.set_vexpand(False)
                 widget.show()
-                tab.add_widget(cheat_box)
-            
-            self.addNotebookTab(tab)        
-
-            self.sidePage.add_widget(self.notebook)
-            for tab in self.tabs:
-                tab.build()
+                vbox.pack_start(cheat_box, True, True, 0)
 
     def addNotebookTab(self, tab):
         self.notebook.append_page(tab.tab, Gtk.Label.new(tab.name))
@@ -508,10 +518,10 @@ class Module:
                                     Gtk.ButtonsType.YES_NO,
                                     None)
                         dialog.set_default_size(400, 200)
-                        msg = _("This key combination, \'<b>%s</b>\' is currently in use by \'<b>%s</b>\'.  ")
-                        msg += _("If you continue, the combination will be reassigned to \'<b>%s</b>.\'\n\n")
+                        msg = _("This key combination, <b>%(combination)s</b> is currently in use by <b>%(old)s</b>.  ")
+                        msg += _("If you continue, the combination will be reassigned to <b>%(new)s</b>.\n\n")
                         msg += _("Do you want to continue with this operation?")
-                        dialog.set_markup(msg % (clean_kb(accel_string), cgi.escape(keybinding.label), cgi.escape(current_keybinding.label)))
+                        dialog.set_markup(msg % {'combination':clean_kb(accel_string), 'old':cgi.escape(keybinding.label), 'new':cgi.escape(current_keybinding.label)})
                         dialog.show_all()
                         response = dialog.run()
                         dialog.destroy()
@@ -656,7 +666,7 @@ class Module:
                     path, col, cellx, celly = info
                     tree.grab_focus()
                     tree.set_cursor(path, col, 0)
-            else: 
+            else:
                 path = model.get_path(iter)
                 button = 0
                 event_time = 0
@@ -708,7 +718,7 @@ class KeyBinding():
             result.append(entry)
         while (len(result) < 3):
             result.append("")
-   
+
         return result
 
     def setBinding(self, index, val):
@@ -820,30 +830,6 @@ class AddCustomDialog(Gtk.Dialog):
     def onEntriesChanged(self, widget):
         ok_enabled = self.name_entry.get_text().strip() is not "" and self.command_entry.get_text().strip() is not ""
         self.set_response_sensitive(Gtk.ResponseType.OK, ok_enabled)
-
-class NotebookPage:
-    def __init__(self, name, expanding):
-        self.name = name
-        self.widgets = []
-        self.expanding = expanding
-        self.tab = Gtk.ScrolledWindow()
-        self.content_box = Gtk.VBox()
-
-    def add_widget(self, widget):
-        self.widgets.append(widget)
-
-    def build(self):
-        # Clear all the widgets from the content box
-        widgets = self.content_box.get_children()
-        for widget in widgets:
-            self.content_box.remove(widget)
-        for widget in self.widgets:
-            self.content_box.pack_start(widget, self.expanding, self.expanding, 2)
-        self.tab.add_with_viewport(self.content_box)
-        self.content_box.set_border_width(5)
-        self.tab.set_min_content_height(410)
-        self.content_box.show_all()
-  
 
 SPECIAL_MODS = (["Super_L",    "<Super>"],
                 ["Super_R",    "<Super>"],

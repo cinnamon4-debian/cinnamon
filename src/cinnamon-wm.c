@@ -26,8 +26,12 @@ enum
   MAP,
   DESTROY,
   SWITCH_WORKSPACE,
-  KILL_SWITCH_WORKSPACE,
+  SWITCH_WORKSPACE_COMPLETE,
   KILL_WINDOW_EFFECTS,
+  SHOW_TILE_PREVIEW,
+  HIDE_TILE_PREVIEW,
+  SHOW_HUD_PREVIEW,
+  HIDE_HUD_PREVIEW,
 
   LAST_SIGNAL
 };
@@ -117,13 +121,12 @@ cinnamon_wm_class_init (CinnamonWMClass *klass)
 		  _cinnamon_marshal_VOID__INT_INT_INT,
 		  G_TYPE_NONE, 3,
                   G_TYPE_INT, G_TYPE_INT, G_TYPE_INT);
-  cinnamon_wm_signals[KILL_SWITCH_WORKSPACE] =
-    g_signal_new ("kill-switch-workspace",
+  cinnamon_wm_signals[SWITCH_WORKSPACE_COMPLETE] =
+    g_signal_new ("switch-workspace-complete",
 		  G_TYPE_FROM_CLASS (klass),
 		  G_SIGNAL_RUN_LAST,
 		  0,
-		  NULL, NULL,
-		  g_cclosure_marshal_VOID__VOID,
+		  NULL, NULL, NULL,
 		  G_TYPE_NONE, 0);
   cinnamon_wm_signals[KILL_WINDOW_EFFECTS] =
     g_signal_new ("kill-window-effects",
@@ -134,6 +137,40 @@ cinnamon_wm_class_init (CinnamonWMClass *klass)
 		  g_cclosure_marshal_VOID__OBJECT,
 		  G_TYPE_NONE, 1,
 		  META_TYPE_WINDOW_ACTOR);
+    cinnamon_wm_signals[SHOW_TILE_PREVIEW] =
+        g_signal_new ("show-tile-preview",
+                     G_TYPE_FROM_CLASS (klass),
+                     G_SIGNAL_RUN_LAST,
+                     0, NULL, NULL, NULL,
+                     G_TYPE_NONE, 4,
+                     META_TYPE_WINDOW,
+                     META_TYPE_RECTANGLE,
+                     G_TYPE_INT,
+                     G_TYPE_UINT);
+    cinnamon_wm_signals[HIDE_TILE_PREVIEW] =
+        g_signal_new ("hide-tile-preview",
+                     G_TYPE_FROM_CLASS (klass),
+                     G_SIGNAL_RUN_LAST,
+                     0,
+                     NULL, NULL, NULL,
+                     G_TYPE_NONE, 0);
+    cinnamon_wm_signals[SHOW_HUD_PREVIEW] =
+        g_signal_new ("show-hud-preview",
+                     G_TYPE_FROM_CLASS (klass),
+                     G_SIGNAL_RUN_LAST,
+                     0,
+                     NULL, NULL, NULL,
+                     G_TYPE_NONE, 3,
+                     G_TYPE_UINT,
+                     META_TYPE_RECTANGLE,
+                     G_TYPE_UINT);
+    cinnamon_wm_signals[HIDE_HUD_PREVIEW] =
+        g_signal_new ("hide-hud-preview",
+                     G_TYPE_FROM_CLASS (klass),
+                     G_SIGNAL_RUN_LAST,
+                     0,
+                     NULL, NULL, NULL,
+                     G_TYPE_NONE, 0);
 }
 
 void
@@ -157,6 +194,7 @@ void
 cinnamon_wm_completed_switch_workspace (CinnamonWM *wm)
 {
   meta_plugin_switch_workspace_completed (wm->plugin);
+  g_signal_emit (wm, cinnamon_wm_signals[SWITCH_WORKSPACE_COMPLETE], 0);
 }
 
 /**
@@ -245,18 +283,44 @@ cinnamon_wm_completed_destroy (CinnamonWM         *wm,
 }
 
 void
-_cinnamon_wm_kill_switch_workspace (CinnamonWM      *wm)
-{
-  g_signal_emit (wm, cinnamon_wm_signals[KILL_SWITCH_WORKSPACE], 0);
-}
-
-void
 _cinnamon_wm_kill_window_effects (CinnamonWM         *wm,
                                MetaWindowActor *actor)
 {
   g_signal_emit (wm, cinnamon_wm_signals[KILL_WINDOW_EFFECTS], 0, actor);
 }
 
+void
+_cinnamon_wm_show_tile_preview (CinnamonWM      *wm,
+                                MetaWindow      *window,
+                                MetaRectangle   *tile_rect,
+                                int             tile_monitor,
+                                guint           snap_queued)
+{
+    g_signal_emit (wm, cinnamon_wm_signals[SHOW_TILE_PREVIEW], 0,
+                   window, tile_rect, tile_monitor, snap_queued);
+}
+
+void
+_cinnamon_wm_hide_tile_preview (CinnamonWM *wm)
+{
+    g_signal_emit (wm, cinnamon_wm_signals[HIDE_TILE_PREVIEW], 0);
+}
+
+void
+_cinnamon_wm_show_hud_preview (CinnamonWM       *wm,
+                               guint            current_proximity_zone,
+                               MetaRectangle    *work_area,
+                               guint            snap_queued)
+{
+    g_signal_emit (wm, cinnamon_wm_signals[SHOW_HUD_PREVIEW], 0,
+                   current_proximity_zone, work_area, snap_queued);
+}
+
+void
+_cinnamon_wm_hide_hud_preview (CinnamonWM *wm)
+{
+    g_signal_emit (wm, cinnamon_wm_signals[HIDE_HUD_PREVIEW], 0);
+}
 
 void
 _cinnamon_wm_minimize (CinnamonWM         *wm,

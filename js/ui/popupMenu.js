@@ -7,6 +7,7 @@ const Lang = imports.lang;
 const Cinnamon = imports.gi.Cinnamon;
 const Signals = imports.signals;
 const St = imports.gi.St;
+const Atk = imports.gi.Atk;
 
 const BoxPointer = imports.ui.boxpointer;
 const DND = imports.ui.dnd;
@@ -45,7 +46,8 @@ PopupBaseMenuItem.prototype = {
         this.actor = new Cinnamon.GenericContainer({ style_class: 'popup-menu-item',
                                                   reactive: params.reactive,
                                                   track_hover: params.reactive,
-                                                  can_focus: params.reactive });
+                                                  can_focus: params.reactive,
+                                                  accessible_role: Atk.Role.MENU_ITEM });
         this.actor.connect('get-preferred-width', Lang.bind(this, this._getPreferredWidth));
         this.actor.connect('get-preferred-height', Lang.bind(this, this._getPreferredHeight));
         this.actor.connect('allocate', Lang.bind(this, this._allocate));
@@ -118,11 +120,9 @@ PopupBaseMenuItem.prototype = {
 
         if (activeChanged) {
             this.active = active;
-            if (active) {
-                this.actor.add_style_pseudo_class('active');
-                if (this.focusOnHover) this.actor.grab_key_focus();
-            } else
-                this.actor.remove_style_pseudo_class('active');
+            this.actor.change_style_pseudo_class('active', active);
+            if (this.focusOnHover && this.active) this.actor.grab_key_focus();
+
             this.emit('active-changed', active);
         }
     },
@@ -137,10 +137,7 @@ PopupBaseMenuItem.prototype = {
         this.actor.reactive = sensitive;
         this.actor.can_focus = sensitive;
 
-        if (sensitive)
-            this.actor.remove_style_pseudo_class('insensitive');
-        else
-            this.actor.add_style_pseudo_class('insensitive');
+        this.actor.change_style_pseudo_class('insensitive', !sensitive);
         this.emit('sensitive-changed', sensitive);
     },
 
@@ -150,7 +147,7 @@ PopupBaseMenuItem.prototype = {
     },
 
     // adds an actor to the menu item; @params can contain %span
-    // (column span; defaults to 1, -1 means "all the remaining width"),
+    // (column span; defaults to 1, -1 means "all the remaining width", 0 means "no new column after this actor"),
     // %expand (defaults to #false), and %align (defaults to
     // #St.Align.START)
     addActor: function(child, params) {
@@ -185,12 +182,14 @@ PopupBaseMenuItem.prototype = {
             this._dot = new St.DrawingArea({ style_class: 'popup-menu-item-dot' });
             this._dot.connect('repaint', Lang.bind(this, this._onRepaintDot));
             this.actor.add_actor(this._dot);
+            this.actor.add_accessible_state (Atk.StateType.CHECKED);
         } else {
             if (!this._dot)
                 return;
 
             this._dot.destroy();
             this._dot = null;
+            this.actor.remove_accessible_state (Atk.StateType.CHECKED);
         }
     },
 
@@ -215,8 +214,14 @@ PopupBaseMenuItem.prototype = {
         for (let i = 0, col = 0; i < this._children.length; i++) {
             let child = this._children[i];
             let [min, natural] = child.actor.get_preferred_width(-1);
-            widths[col++] = natural;
-            if (child.span > 1) {
+
+            if (widths[col])
+                widths[col] += this._spacing + natural;
+            else
+                widths[col] = natural;
+
+            if (child.span > 0) {
+                col++;
                 for (let j = 1; j < child.span; j++)
                     widths[col++] = 0;
             }
@@ -303,6 +308,12 @@ PopupBaseMenuItem.prototype = {
             x = box.x1;
         else
             x = box.x2;
+
+        let cols;
+        //clone _columnWidths, if it exists, to be able to modify it without any impact
+        if (this._columnWidths instanceof Array)
+            cols = this._columnWidths.slice(0);
+
         // if direction is ltr, x is the right edge of the last added
         // actor, and it's constantly increasing, whereas if rtl, x is
         // the left edge and it decreases
@@ -312,16 +323,19 @@ PopupBaseMenuItem.prototype = {
 
             let [minWidth, naturalWidth] = child.actor.get_preferred_width(-1);
             let availWidth, extraWidth;
-            if (this._columnWidths) {
+            if (cols) {
                 if (child.span == -1) {
                     if (direction == St.TextDirection.LTR)
                         availWidth = box.x2 - x;
                     else
                         availWidth = x - box.x1;
+                } else if (child.span == 0) {
+                    availWidth = naturalWidth;
+                    cols[col] -= naturalWidth + this._spacing;
                 } else {
                     availWidth = 0;
                     for (let j = 0; j < child.span; j++)
-                        availWidth += this._columnWidths[col++];
+                        availWidth += cols[col++];
                 }
                 extraWidth = availWidth - naturalWidth;
             } else {
@@ -350,6 +364,10 @@ PopupBaseMenuItem.prototype = {
                     childBox.x1 = x;
                     childBox.x2 = x + naturalWidth;
                 }
+                
+                //when somehow the actor is wider than the box, cut it off
+                if(childBox.x2 > box.x2)
+                    childBox.x2 = box.x2;
             } else {
                 if (child.expand) {
                     childBox.x1 = x - availWidth;
@@ -366,6 +384,10 @@ PopupBaseMenuItem.prototype = {
                     childBox.x2 = x;
                     childBox.x1 = x - naturalWidth;
                 }
+                
+                //when somehow the actor is wider than the box, cut it off
+                if(childBox.x1 < box.x1)
+                    childBox.x1 = box.x1;
             }
 
             let [minHeight, naturalHeight] = child.actor.get_preferred_height(childBox.x2 - childBox.x1);
@@ -395,6 +417,7 @@ PopupMenuItem.prototype = {
 
         this.label = new St.Label({ text: text });
         this.addActor(this.label);
+        this.actor.label_actor = this.label;
     }
 };
 
@@ -581,6 +604,7 @@ PopupSliderMenuItem.prototype = {
         let sliderHeight = themeNode.get_length('-slider-height');
 
         let sliderBorderWidth = themeNode.get_length('-slider-border-width');
+        let sliderBorderRadius = Math.min(width, sliderHeight) / 2;
 
         let sliderBorderColor = themeNode.get_color('-slider-border-color');
         let sliderColor = themeNode.get_color('-slider-background-color');
@@ -588,47 +612,38 @@ PopupSliderMenuItem.prototype = {
         let sliderActiveBorderColor = themeNode.get_color('-slider-active-border-color');
         let sliderActiveColor = themeNode.get_color('-slider-active-background-color');
 
-        cr.setSourceRGBA (
-            sliderActiveColor.red / 255,
-            sliderActiveColor.green / 255,
-            sliderActiveColor.blue / 255,
-            sliderActiveColor.alpha / 255);
-        cr.rectangle(handleRadius, (height - sliderHeight) / 2, sliderWidth * this._value, sliderHeight);
+        const TAU = Math.PI * 2;
+
+        let handleX = handleRadius + (width - 2 * handleRadius) * this._value;
+
+        cr.arc(sliderBorderRadius + sliderBorderWidth, height / 2, sliderBorderRadius, TAU * 1/4, TAU * 3/4);
+        cr.lineTo(handleX, (height - sliderHeight) / 2);
+        cr.lineTo(handleX, (height + sliderHeight) / 2);
+        cr.lineTo(sliderBorderRadius + sliderBorderWidth, (height + sliderHeight) / 2);
+        Clutter.cairo_set_source_color(cr, sliderActiveColor);
         cr.fillPreserve();
-        cr.setSourceRGBA (
-            sliderActiveBorderColor.red / 255,
-            sliderActiveBorderColor.green / 255,
-            sliderActiveBorderColor.blue / 255,
-            sliderActiveBorderColor.alpha / 255);
+        Clutter.cairo_set_source_color(cr, sliderActiveBorderColor);
         cr.setLineWidth(sliderBorderWidth);
         cr.stroke();
 
-        cr.setSourceRGBA (
-            sliderColor.red / 255,
-            sliderColor.green / 255,
-            sliderColor.blue / 255,
-            sliderColor.alpha / 255);
-        cr.rectangle(handleRadius + sliderWidth * this._value, (height - sliderHeight) / 2, sliderWidth * (1 - this._value), sliderHeight);
+        cr.arc(width - sliderBorderRadius - sliderBorderWidth, height / 2, sliderBorderRadius, TAU * 3/4, TAU * 1/4);
+        cr.lineTo(handleX, (height + sliderHeight) / 2);
+        cr.lineTo(handleX, (height - sliderHeight) / 2);
+        cr.lineTo(width - sliderBorderRadius - sliderBorderWidth, (height - sliderHeight) / 2);
+        Clutter.cairo_set_source_color(cr, sliderColor);
         cr.fillPreserve();
-        cr.setSourceRGBA (
-            sliderBorderColor.red / 255,
-            sliderBorderColor.green / 255,
-            sliderBorderColor.blue / 255,
-            sliderBorderColor.alpha / 255);
+        Clutter.cairo_set_source_color(cr, sliderBorderColor);
         cr.setLineWidth(sliderBorderWidth);
         cr.stroke();
 
         let handleY = height / 2;
-        let handleX = handleRadius + (width - 2 * handleRadius) * this._value;
 
         let color = themeNode.get_foreground_color();
-        cr.setSourceRGBA (
-            color.red / 255,
-            color.green / 255,
-            color.blue / 255,
-            color.alpha / 255);
+        Clutter.cairo_set_source_color(cr, color);
         cr.arc(handleX, handleY, handleRadius, 0, 2 * Math.PI);
         cr.fill();
+
+        cr.$dispose();
     },
 
     _startDragging: function(actor, event) {
@@ -728,7 +743,8 @@ function Switch() {
 
 Switch.prototype = {
     _init: function(state) {
-        this.actor = new St.Bin({ style_class: 'toggle-switch' });
+        this.actor = new St.Bin({ style_class: 'toggle-switch' ,
+                                  accessible_role: Atk.Role.CHECK_BOX});
         // Translators: this MUST be either "toggle-switch-us"
         // (for toggle switches containing the English words
         // "ON" and "OFF") or "toggle-switch-intl" (for toggle
@@ -739,10 +755,7 @@ Switch.prototype = {
     },
 
     setToggleState: function(state) {
-        if (state)
-            this.actor.add_style_pseudo_class('checked');
-        else
-            this.actor.remove_style_pseudo_class('checked');
+        this.actor.change_style_pseudo_class('checked', state);
         this.state = state;
     },
 
@@ -762,30 +775,23 @@ PopupSwitchMenuItem.prototype = {
         PopupBaseMenuItem.prototype._init.call(this, params);
 
         this.label = new St.Label({ text: text });
+        this._statusLabel = new St.Label({ text: '', style_class: 'popup-inactive-menu-item' });
+
         this._switch = new Switch(active);
 
         this.addActor(this.label);
+        this.addActor(this._statusLabel);
 
         this._statusBin = new St.Bin({ x_align: St.Align.END });
-        this.addActor(this._statusBin,
-                      { expand: true, span: -1, align: St.Align.END });
-
-        this._statusLabel = new St.Label({ text: '',
-                                           style_class: 'popup-inactive-menu-item'
-                                         });
+        this.addActor(this._statusBin, { expand: true, span: -1, align: St.Align.END });
         this._statusBin.child = this._switch.actor;
     },
 
     setStatus: function(text) {
         if (text != null) {
-            this._statusLabel.text = text;
-            this._statusBin.child = this._statusLabel;
-            this.actor.reactive = false;
-            this.actor.can_focus = false;
+            this._statusLabel.set_text(text);
         } else {
-            this._statusBin.child = this._switch.actor;
-            this.actor.reactive = true;
-            this.actor.can_focus = true;
+            this._statusLabel.set_text('');
         }
     },
 
@@ -811,6 +817,46 @@ PopupSwitchMenuItem.prototype = {
     }
 };
 
+/**
+ * #PopupIconMenuItem:
+ *
+ * This is a popup menu item displaying an icon and a text. The icon is
+ * displayed to the left of the text. #PopupImageMenuItem is a similar,
+ * deprecated item, that displays the icon to the right of the text, which is
+ * ugly in most cases. Do not use it. If you think you need to display the icon
+ * on the right, make your own menu item (by copy and pasting the code found
+ * below) because PopupImageMenuItem is deprecated and may disappear any time.
+ */
+function PopupIconMenuItem() {
+    this._init.apply(this, arguments);
+}
+
+PopupIconMenuItem.prototype = {
+    __proto__: PopupBaseMenuItem.prototype,
+
+    _init: function (text, iconName, iconType, params) {
+        PopupBaseMenuItem.prototype._init.call(this, params);
+
+        this.label = new St.Label({text: text});
+        this._icon = new St.Icon({ style_class: 'popup-menu-icon',
+            icon_name: iconName,
+            icon_type: iconType});
+        this.addActor(this._icon, {span: 0});
+        this.addActor(this.label);
+    },
+
+    setIconSymbolicName: function (iconName) {
+        this._icon.set_icon_name(iconName);
+        this._icon.set_icon_type(St.IconType.SYMBOLIC);
+    },
+
+    setIconName: function (iconName) {
+        this._icon.set_icon_name(iconName);
+        this._icon.set_icon_type(St.IconType.FULLCOLOR);
+    }
+}
+
+// Deprecated. Do not use
 function PopupImageMenuItem() {
     this._init.apply(this, arguments);
 }
@@ -1285,6 +1331,18 @@ PopupMenu.prototype = {
     // menu is higher then the screen; it's useful if part of the menu is
     // scrollable so the minimum height is smaller than the natural height
     setMaxHeight: function() {
+        let monitor = Main.layoutManager.findMonitorForActor(this.sourceActor)
+
+        let maxHeight = monitor.height - this.actor.get_theme_node().get_length('-boxpointer-gap');
+
+        let panels = Main.panelManager.getPanelsInMonitor(Main.layoutManager.monitors.indexOf(monitor));
+
+        for (let panel of panels)
+            maxHeight -= panel.actor.height;
+
+        this.actor.style = 'max-height: ' + maxHeight / global.ui_scale + 'px; ' +
+            'max-width: ' + (monitor.width - 20)/ global.ui_scale + 'px;';
+        // PopupMenus have 10px margins      ^
     },
 
     close: function(animate) {
@@ -1294,9 +1352,10 @@ PopupMenu.prototype = {
         this.isOpen = false;
         global.menuStackLength -= 1;
 
-        Main.panel._hidePanel();
-        if (Main.panel2 != null)
-            Main.panel2._hidePanel();
+        for (let i in Main.panelManager.panels) {
+            if (Main.panelManager.panels[i])
+                Main.panelManager.updatePanelsVisibility();
+        }
 
         if (this._activeMenuItem)
             this._activeMenuItem.setActive(false);
@@ -1486,12 +1545,14 @@ PopupSubMenu.prototype = {
 };
 
 /**
- * PopupMenuSection:
+ * #PopupMenuSection:
  *
  * A section of a PopupMenu which is handled like a submenu
  * (you can add and remove items, you can destroy it, you
  * can add it to another menu), but is completely transparent
  * to the user
+ *
+ * Inherits: PopupMenu.PopupMenuBase
  */
 function PopupMenuSection() {
     this._init.apply(this, arguments);
@@ -1511,6 +1572,7 @@ PopupMenuSection.prototype = {
     // deliberately ignore any attempt to open() or close()
     open: function(animate) { },
     close: function() { },
+
 }
 
 function PopupSubMenuMenuItem() {
@@ -1546,7 +1608,7 @@ PopupSubMenuMenuItem.prototype = {
             table.add(this.label,
                     {row: 0, col: 0, col_span: 1, x_align: St.Align.START});
         }
-
+        this.actor.label_actor = this.label;
         this.addActor(table, { expand: true, span: 1, align: St.Align.START });
 
         this.menu = new PopupSubMenu(this.actor, this._triangle);
@@ -1554,10 +1616,7 @@ PopupSubMenuMenuItem.prototype = {
     },
 
     _subMenuOpenStateChanged: function(menu, open) {
-        if (open)
-            this.actor.add_style_pseudo_class('open');
-        else
-            this.actor.remove_style_pseudo_class('open');
+        this.actor.change_style_pseudo_class('open', open);
     },
 
     destroy: function() {
@@ -1696,6 +1755,9 @@ PopupComboBoxMenuItem.prototype = {
         PopupBaseMenuItem.prototype._init.call(this, params);
 
         this._itemBox = new Cinnamon.Stack();
+
+        this.actor.accessible_role = Atk.Role.COMBO_BOX;
+
         this.addActor(this._itemBox);
 
         let expander = new St.Label({ text: '\u2304' });
@@ -1791,6 +1853,11 @@ PopupComboBoxMenuItem.prototype = {
                          Lang.bind(this, this._itemActivated, position));
     },
 
+    checkAccessibleLabel: function() {
+        let activeItem = this._menu.getActiveItem();
+        this.actor.label_actor = activeItem.label;
+    },
+
     setActiveItem: function(position) {
         let item = this._items[position];
         if (!item)
@@ -1801,6 +1868,8 @@ PopupComboBoxMenuItem.prototype = {
         this._activeItemPos = position;
         for (let i = 0; i < this._items.length; i++)
             this._items[i].visible = (i == this._activeItemPos);
+
+        this.checkAccessibleLabel();
     },
 
     setItemVisible: function(position, visible) {

@@ -9,6 +9,8 @@ const Main = imports.ui.main;
 const AppletManager = imports.ui.appletManager;
 const DeskletManager = imports.ui.deskletManager;
 const ExtensionSystem = imports.ui.extensionSystem;
+const SearchProviderManager = imports.ui.searchProviderManager;
+const Util = imports.misc.util;
 
 const CinnamonIface =
     '<node> \
@@ -38,6 +40,9 @@ const CinnamonIface =
                 <arg type="b" direction="in" name="flash"/> \
                 <arg type="s" direction="in" name="filename"/> \
             </method> \
+            <method name="ShowOSD"> \
+                <arg type="a{sv}" direction="in" name="params"/> \
+            </method> \
             <method name="FlashArea"> \
                 <arg type="i" direction="in" name="x"/> \
                 <arg type="i" direction="in" name="y"/> \
@@ -47,6 +52,14 @@ const CinnamonIface =
             <method name="highlightApplet"> \
                 <arg type="s" direction="in" /> \
                 <arg type="b" direction="in" /> \
+            </method> \
+            <method name="highlightPanel"> \
+                <arg type="i" direction="in" /> \
+                <arg type="b" direction="in" /> \
+            </method> \
+            <method name="addPanelQuery"> \
+            </method> \
+            <method name="destroyDummyPanels"> \
             </method> \
             <method name="activateCallback"> \
                 <arg type="s" direction="in" /> \
@@ -71,11 +84,16 @@ const CinnamonIface =
                 <arg type="as" direction="out" /> \
             </method> \
             <property name="OverviewActive" type="b" access="readwrite" /> \
+            <property name="ExpoActive" type="b" access="readwrite" /> \
             <property name="CinnamonVersion" type="s" access="read" /> \
             <signal name="XletAddedComplete"> \
                 <arg type="b" direction="out" /> \
                 <arg type="s" direction="out" /> \
             </signal> \
+            <method name="PushSubprocessResult"> \
+                <arg type="i" direction="in" name="process_id" /> \
+                <arg type="s" direction="in" name="result" /> \
+            </method> \
         </interface> \
     </node>';
 
@@ -191,6 +209,20 @@ Cinnamon.prototype = {
                                     flash, invocation));
     },
 
+    ShowOSD: function(params) {
+        for (let param in params)
+            params[param] = params[param].deep_unpack();
+
+        let icon = null;
+        if (params['icon'])
+            icon = Gio.Icon.new_for_string(params['icon']);
+
+        Main.osdWindow.setIcon(icon);
+        Main.osdWindow.setLevel(params['level']);
+        if (params)
+            Main.osdWindow.show();
+    },
+
     FlashArea: function(x, y, width, height) {
         let flashspot = new Flashspot.Flashspot({ x : x, y : y, width: width, height: height});
         flashspot.fire();
@@ -205,6 +237,17 @@ Cinnamon.prototype = {
             Main.overview.show();
         else
             Main.overview.hide();
+    },
+
+    get ExpoActive() {
+        return Main.expo.visible;
+    },
+
+    set ExpoActive(visible) {
+        if (visible)
+            Main.expo.show();
+        else
+            Main.expo.hide();
     },
 
     _getXletObject: function(id, id_is_instance) {
@@ -262,6 +305,19 @@ Cinnamon.prototype = {
         }
     },
 
+    highlightPanel: function(id, highlight) {
+        if (Main.panelManager.panels[id])
+            Main.panelManager.panels[id].highlight(highlight);
+    },
+
+    addPanelQuery: function() {
+        Main.panelManager.addPanelQuery();
+    },
+
+    destroyDummyPanels: function() {
+        Main.panelManager._destroyDummyPanels();
+    },
+
     activateCallback: function(callback, id, id_is_instance) {
         let obj = this._getXletObject(id, id_is_instance);
         let cb = Lang.bind(obj, obj[callback]);
@@ -306,6 +362,14 @@ Cinnamon.prototype = {
     ShowExpo: function() {
         if (!Main.expo.animationInProgress)
             Main.expo.toggle();
+    },
+    
+    PushSubprocessResult: function(process_id, result)
+    {
+        if (Util.subprocess_callbacks[process_id])
+        {
+            Util.subprocess_callbacks[process_id](result);
+        }
     },
 
     CinnamonVersion: Config.PACKAGE_VERSION

@@ -5,16 +5,17 @@ const Gtk = imports.gi.Gtk;
 const Lang = imports.lang;
 const Clutter = imports.gi.Clutter;
 const Applet = imports.ui.applet;
+const PopupMenu = imports.ui.popupMenu;
 
-function MyApplet(orientation, panel_height) {
-    this._init(orientation, panel_height);
+function MyApplet(orientation, panel_height, instance_id) {
+    this._init(orientation, panel_height, instance_id);
 }
 
 MyApplet.prototype = {
     __proto__: Applet.IconApplet.prototype,
 
-    _init: function(orientation, panel_height) {        
-        Applet.IconApplet.prototype._init.call(this, orientation, panel_height);
+    _init: function(orientation, panel_height, instance_id) {        
+        Applet.IconApplet.prototype._init.call(this, orientation, panel_height, instance_id);
         
         try {        
             this.set_applet_icon_symbolic_name("user-trash");
@@ -36,10 +37,16 @@ MyApplet.prototype = {
     },
     
     _initContextMenu: function () {
-        this.empty_item = new Applet.MenuItem(_("Empty Trash"), Gtk.STOCK_REMOVE, Lang.bind(this, this._emptyTrash));
+        this.empty_item = new PopupMenu.PopupIconMenuItem(_("Empty Trash"),
+                Gtk.STOCK_REMOVE,
+                St.IconType.SYMBOLIC);
+        this.empty_item.connect('activate', Lang.bind(this, this._emptyTrash));
         this._applet_context_menu.addMenuItem(this.empty_item);
 
-        this.open_item = new Applet.MenuItem(_("Open Trash"), Gtk.STOCK_OPEN, Lang.bind(this, this._openTrash));
+        this.open_item = new PopupMenu.PopupIconMenuItem(_("Open Trash"),
+                Gtk.STOCK_OPEN,
+                St.IconType.SYMBOLIC);
+        this.open_item.connect('activate', Lang.bind(this, this._openTrash));
         this._applet_context_menu.addMenuItem(this.open_item);
     },
     
@@ -132,7 +139,7 @@ ConfirmEmptyTrashDialog.prototype = {
   }
 };
 
-function main(metadata, orientation, panel_height) {      
-    let myApplet = new MyApplet(orientation, panel_height);
+function main(metadata, orientation, panel_height, instance_id) {      
+    let myApplet = new MyApplet(orientation, panel_height, instance_id);
     return myApplet;      
 }

@@ -44,7 +44,8 @@ void           cinnamon_global_dump_gjs_stack            (CinnamonGlobal *global
 
 /* Input/event handling */
 gboolean cinnamon_global_begin_modal            (CinnamonGlobal         *global,
-                                              guint32              timestamp);
+                                              guint32              timestamp,
+                                              MetaModalOptions    options);
 void     cinnamon_global_end_modal              (CinnamonGlobal         *global,
                                               guint32              timestamp);
 
@@ -119,6 +120,8 @@ void     cinnamon_global_notify_error              (CinnamonGlobal  *global,
 void     cinnamon_global_init_xdnd                 (CinnamonGlobal  *global);
 
 void     cinnamon_global_reexec_self               (CinnamonGlobal  *global);
+
+void     cinnamon_global_segfault                  (CinnamonGlobal  *global);
 
 G_END_DECLS
 

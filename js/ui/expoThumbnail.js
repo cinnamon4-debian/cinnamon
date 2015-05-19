@@ -13,6 +13,7 @@ const Tweener = imports.ui.tweener;
 const ModalDialog = imports.ui.modalDialog;
 const Tooltips = imports.ui.tooltips;
 const PointerTracker = imports.misc.pointerTracker;
+const SignalManager = imports.misc.signalManager;
 const GridNavigator = imports.misc.gridNavigator;
 const WindowUtils = imports.misc.windowUtils;
 
@@ -49,24 +50,13 @@ ExpoWindowClone.prototype = {
         this.realWindow = realWindow;
         this.metaWindow = realWindow.meta_window;
         this.refreshClone();
-        let positionChangedId = this.realWindow.connect('position-changed',
-                                                          Lang.bind(this, this.onPositionChanged));
-        let sizeChangedId = this.realWindow.connect('position-changed',
-                                                          Lang.bind(this, this.onSizeChanged));
-        let orphaned = false;
-        let realWindowDestroyedId = this.realWindow.connect('destroy', Lang.bind(this, function() {
-            orphaned = true;
-        }));
-        let workspaceChangedId = this.metaWindow.connect('workspace-changed', Lang.bind(this, function(w, oldws) {
+        this._signalManager = new SignalManager.SignalManager(this);
+
+        this._signalManager.connect(this.realWindow, 'position-changed', this.onPositionChanged);
+        this._signalManager.connect(this.realWindow, 'size-changed', this.onSizeChanged);
+        this._signalManager.connect(this.metaWindow, 'workspace-changed', function(w, oldws) {
             this.emit('workspace-changed', oldws);
-        }));
-        this.disconnectWindowSignals = function() {
-            this.metaWindow.disconnect(workspaceChangedId);
-            if (orphaned) return;
-            realWindow.disconnect(sizeChangedId);
-            realWindow.disconnect(positionChangedId);
-            realWindow.disconnect(realWindowDestroyedId);
-        };
+        })
 
         this.onPositionChanged();
         this.onSizeChanged();
@@ -243,7 +233,7 @@ ExpoWindowClone.prototype = {
     },
 
     onDestroy: function() {
-        this.disconnectWindowSignals();
+        this._signalManager.disconnectAllSignals();
         this.actor._delegate = null;
 
         if (this.inDrag) {
@@ -295,37 +285,6 @@ const ThumbnailState = {
     ANIMATED_OUT :  5,
     COLLAPSING :    6,
     DESTROYED :     7
-};
-
-function ConfirmationDialog(prompt, yesAction, yesFocused){
-    this._init(prompt, yesAction, yesFocused);
-}
-
-ConfirmationDialog.prototype = {
-    __proto__: ModalDialog.ModalDialog.prototype,
-
-    _init: function(prompt, yesAction, yesFocused) {
-        ModalDialog.ModalDialog.prototype._init.call(this);
-        let label = new St.Label({text: prompt});
-        this.contentLayout.add(label);
-
-        this.setButtons([
-            {
-                label: _("Yes"),
-                focused: yesFocused,
-                action: Lang.bind(this, function(){
-                    yesAction();
-                    this.close();
-                })
-            },
-            {
-                label: _("No"),
-                action: Lang.bind(this, function(){
-                    this.close();
-                })
-            }
-        ]);
-    },
 };
 
 /**
@@ -936,7 +895,7 @@ ExpoWorkspaceThumbnail.prototype = {
             this.highlight();
             let prompt = _("Are you sure you want to remove workspace \"%s\"?\n\n").format(
                 Main.getWorkspaceName(this.metaWorkspace.index()));
-            let confirm = new ConfirmationDialog(prompt, removeAction, true);
+            let confirm = new ModalDialog.ConfirmDialog(prompt, removeAction);
             confirm.open();
         }
         else {

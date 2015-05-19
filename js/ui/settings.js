@@ -83,6 +83,13 @@ var STRING_TYPES = {
             "options"
         ]
     },
+    "tween" : {
+        "required-fields": [
+            "type",
+            "default",
+            "description"
+        ]
+    },
     "keybinding" : {
         "required-fields": [
             "type",
@@ -162,6 +169,12 @@ var NON_SETTING_TYPES = {
             "description",
             "callback"
         ]
+    },
+    "label" : {
+        "required-fields": [
+            "type",
+            "description"
+        ]
     }
 };
 
@@ -195,13 +208,13 @@ _provider.prototype = {
             }
             this.instanceId = instanceId;
             this.valid = false;
-            this.applet_dir = Extension.findExtensionDirectory(this.uuid, this.ext_type);
+            this.applet_dir = Extension.dirs[this.uuid];
             if (!this.applet_dir) {
                 global.logError("Could not find installation directory for " + this.uuid);
                 return;
             }
             this.multi_instance = this._get_is_multi_instance_xlet(this.uuid);
-            if (this.multi_instance && !this.instanceId) {
+            if (this.multi_instance && this.instanceId == undefined) {
                 global.logError(this.xlet_str + "Settings fatal error!");
                 global.logError("Multi-instanciable xlet with no instance ID supplied");
                 global.logError("The UUID is " + this.uuid);
@@ -699,6 +712,11 @@ _setting.prototype = {
             return;
         state ? this.obj.watch(this.applet_var, Lang.bind(this, this._on_applet_changed_value)) :
                 this.obj.unwatch(this.applet_var);
+
+        //add a save function for objects or arrays
+        if(typeof(this.obj[this.applet_var]) === "object" && !this.obj[this.applet_var].save){
+            this.obj[this.applet_var].save = Lang.bind(this, this.set_val, this.obj[this.applet_var]);
+        }
     },
 
     _on_applet_changed_value: function (obj, oldval, newval) {
@@ -765,7 +783,7 @@ AppletSettings.prototype = {
     },
 
     _get_is_multi_instance_xlet: function(uuid) {
-        return Extension.get_max_instances(uuid) > 1;
+        return Extension.get_max_instances(uuid) != 1;
     },
 };
 
