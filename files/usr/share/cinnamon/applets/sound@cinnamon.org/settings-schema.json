@@ -15,6 +15,15 @@
         "dependency": "showtrack",
         "indent": true
     },
+    "middleClickAction": {
+        "type": "combobox",
+        "default": "mute",
+        "options": {
+            "Toggle Mute": "mute",
+            "Toggle Play / Pause": "player"
+        },
+        "description": "Action on middle click"
+    },
     "showalbum": {
         "type": "checkbox",
         "default": false,
@@ -24,5 +33,35 @@
         "type" : "checkbox",
         "description" : "Hide system tray icons for compatible players",
         "default": true
+    },
+    "separator": {
+        "type": "separator"
+    },
+    "playerControl": {
+        "type": "checkbox",
+        "default": true,
+        "description": "Control Players"
+    },
+    "extendedPlayerControl": {
+        "type": "checkbox",
+        "default": false,
+        "description": "Show Loop and Shuffle controls",
+        "dependency": "playerControl",
+        "indent": true
+    },
+    "positionLabelType": {
+        "type": "combobox",
+        "default": "length",
+        "description": "Position label",
+        "options": {
+            "Song length": "length",
+            "Countdown": "countdown"
+        },
+        "dependency": "playerControl",
+        "indent": true
+    },
+    "_knownPlayers": {
+        "type": "generic",
+        "default": ["banshee", "vlc"]
     }
 }

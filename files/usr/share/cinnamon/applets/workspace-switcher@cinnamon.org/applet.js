@@ -2,16 +2,17 @@ const St = imports.gi.St;
 const Lang = imports.lang;
 const Applet = imports.ui.applet;
 const Main = imports.ui.main;
+const PopupMenu = imports.ui.popupMenu;
 
-function MyApplet(orientation, panel_height) {
-    this._init(orientation, panel_height);
+function MyApplet(orientation, panel_height, instance_id) {
+    this._init(orientation, panel_height, instance_id);
 }
 
 MyApplet.prototype = {
     __proto__: Applet.Applet.prototype,
 
-    _init: function(orientation, panel_height) {        
-        Applet.Applet.prototype._init.call(this, orientation, panel_height);
+    _init: function(orientation, panel_height, instance_id) {        
+        Applet.Applet.prototype._init.call(this, orientation, panel_height, instance_id);
         
         try {
             this.actor.set_style_class_name("workspace-switcher-box");
@@ -24,7 +25,10 @@ MyApplet.prototype = {
             this.on_panel_edit_mode_changed();
             global.settings.connect('changed::panel-edit-mode', Lang.bind(this, this.on_panel_edit_mode_changed));
 
-            let expo = new Applet.MenuItem(_("Manage workspaces (Expo)"), "view-grid-symbolic", Lang.bind(this, function() {
+            let expo = new PopupMenu.PopupIconMenuItem(_("Manage workspaces (Expo)"),
+                    "view-grid-symbolic",
+                    St.IconType.SYMBOLIC);
+            expo.connect('activate', Lang.bind(this, function() {
                 if (!Main.expo.animationInProgress)
                     Main.expo.toggle();
             }));
@@ -93,25 +97,18 @@ MyApplet.prototype = {
     },
 
     on_panel_height_changed: function() {
-        this._scaleMode = global.settings.get_boolean('panel-scale-text-icons');
         this._createButtons();
     },
 
     _updateButtons: function() {
         for ( let i=0; i<this.button.length; ++i ) {
-            if ( i == global.screen.get_active_workspace_index() ) {
-                this.button[i].get_child().set_text((i+1).toString());
-                this.button[i].add_style_pseudo_class('outlined');
-            }
-            else {
-                this.button[i].get_child().set_text((i+1).toString());
-                this.button[i].remove_style_pseudo_class('outlined');
-            }
+            this.button[i].get_child().set_text((i+1).toString());
+            this.button[i].change_style_pseudo_class('outlined', i == global.screen.get_active_workspace_index());
         }
     }
 };
 
-function main(metadata, orientation, panel_height) {  
-    let myApplet = new MyApplet(orientation, panel_height);
+function main(metadata, orientation, panel_height, instance_id) {  
+    let myApplet = new MyApplet(orientation, panel_height, instance_id);
     return myApplet;      
 }

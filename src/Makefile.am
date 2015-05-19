@@ -10,7 +10,7 @@ service_in_files =
 
 -include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS =
-INTROSPECTION_SCANNER_ARGS = --warn-all --warn-error --add-include-path=$(srcdir)
+INTROSPECTION_SCANNER_ARGS = --warn-all --add-include-path=$(srcdir)
 INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir) --includedir=$(MUFFIN_TYPELIB_DIR)
 
 typelibdir = $(pkglibdir)
@@ -80,6 +80,8 @@ include Makefile-hotplug-sniffer.am
 cinnamon_cflags =				\
 	$(CINNAMON_CFLAGS)			\
 	-I$(srcdir)/tray			\
+    -DCLUTTER_ENABLE_EXPERIMENTAL_API   \
+    -DCOGL_ENABLE_EXPERIMENTAL_API  \
 	-DVERSION=\"$(VERSION)\"		\
 	-DLOCALEDIR=\"$(datadir)/locale\" 	\
 	-DDATADIR=\"$(datadir)\"		\
@@ -135,8 +137,6 @@ libcinnamon_la_SOURCES =		\
 	cinnamon-wm-private.h		\
 	cinnamon-plugin.c		\
 	cinnamon-app.c			\
-	cinnamon-a11y.h			\
-	cinnamon-a11y.c			\
 	cinnamon-app-system.c		\
 	cinnamon-arrow.c			\
 	cinnamon-doc-system.c		\
@@ -195,13 +195,17 @@ cinnamon_recorder_non_gir_sources =  \
 	cinnamon-recorder-src.c	  \
 	cinnamon-recorder-src.h
 
+cinnamon_recorder_LDADD = libst-1.0.la
+
 if BUILD_RECORDER
 libcinnamon_la_SOURCES += $(cinnamon_recorder_sources) $(cinnamon_recorder_non_gir_sources)
 
 noinst_PROGRAMS += test-recorder
 
 test_recorder_CPPFLAGS = $(TEST_CINNAMON_RECORDER_CFLAGS)
-test_recorder_LDADD = $(TEST_CINNAMON_RECORDER_LIBS)
+test_recorder_LDADD = $(TEST_CINNAMON_RECORDER_LIBS) \
+                       libst-1.0.la
+
 
 test_recorder_SOURCES =     \
 	$(cinnamon_recorder_sources) $(cinnamon_recorder_non_gir_sources) \

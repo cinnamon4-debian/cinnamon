@@ -77,10 +77,22 @@ static void gnome_cinnamon_plugin_switch_workspace (MetaPlugin          *plugin,
                                                  gint                 to,
                                                  MetaMotionDirection  direction);
 
+static void gnome_cinnamon_plugin_show_tile_preview (MetaPlugin     *plugin,
+                                                     MetaWindow     *window,
+                                                     MetaRectangle  *tile_rect,
+                                                     int            tile_monitor,
+                                                     guint          snap_queued);
+static void gnome_cinnamon_plugin_hide_tile_preview (MetaPlugin *plugin);
+
+static void gnome_cinnamon_plugin_show_hud_preview (MetaPlugin      *plugin,
+                                                    guint           current_proximity_zone,
+                                                    MetaRectangle   *work_area,
+                                                    guint           snap_queued);
+
+static void gnome_cinnamon_plugin_hide_hud_preview (MetaPlugin *plugin);
+
 static void gnome_cinnamon_plugin_kill_window_effects   (MetaPlugin      *plugin,
                                                       MetaWindowActor *actor);
-static void gnome_cinnamon_plugin_kill_switch_workspace (MetaPlugin      *plugin);
-
 
 static gboolean              gnome_cinnamon_plugin_xevent_filter (MetaPlugin *plugin,
                                                                XEvent     *event);
@@ -140,8 +152,14 @@ gnome_cinnamon_plugin_class_init (CinnamonPluginClass *klass)
 
   plugin_class->switch_workspace = gnome_cinnamon_plugin_switch_workspace;
 
+  plugin_class->show_tile_preview = gnome_cinnamon_plugin_show_tile_preview;
+  plugin_class->hide_tile_preview = gnome_cinnamon_plugin_hide_tile_preview;
+
+  plugin_class->show_hud_preview = gnome_cinnamon_plugin_show_hud_preview;
+  plugin_class->hide_hud_preview = gnome_cinnamon_plugin_hide_hud_preview;
+
+
   plugin_class->kill_window_effects   = gnome_cinnamon_plugin_kill_window_effects;
-  plugin_class->kill_switch_workspace = gnome_cinnamon_plugin_kill_switch_workspace;
 
   plugin_class->xevent_filter    = gnome_cinnamon_plugin_xevent_filter;
   plugin_class->plugin_info      = gnome_cinnamon_plugin_plugin_info;
@@ -326,9 +344,36 @@ gnome_cinnamon_plugin_kill_window_effects (MetaPlugin         *plugin,
 }
 
 static void
-gnome_cinnamon_plugin_kill_switch_workspace (MetaPlugin         *plugin)
+gnome_cinnamon_plugin_show_tile_preview (MetaPlugin     *plugin,
+                                         MetaWindow     *window,
+                                         MetaRectangle  *tile_rect,
+                                         int            tile_monitor,
+                                         guint          snap_queued)
 {
-  _cinnamon_wm_kill_switch_workspace (get_cinnamon_wm());
+    _cinnamon_wm_show_tile_preview (get_cinnamon_wm (), window, tile_rect,
+                                    tile_monitor, snap_queued);
+}
+
+static void
+gnome_cinnamon_plugin_hide_tile_preview (MetaPlugin *plugin)
+{
+    _cinnamon_wm_hide_tile_preview (get_cinnamon_wm ());
+}
+
+static void
+gnome_cinnamon_plugin_show_hud_preview (MetaPlugin      *plugin,
+                                        guint           current_proximity_zone,
+                                        MetaRectangle   *work_area,
+                                        guint           snap_queued)
+{
+    _cinnamon_wm_show_hud_preview (get_cinnamon_wm (), current_proximity_zone,
+                                   work_area, snap_queued);
+}
+
+static void
+gnome_cinnamon_plugin_hide_hud_preview (MetaPlugin *plugin)
+{
+    _cinnamon_wm_hide_hud_preview (get_cinnamon_wm ());
 }
 
 static gboolean

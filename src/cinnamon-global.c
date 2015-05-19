@@ -993,7 +993,9 @@ update_scale_factor (GtkSettings *settings,
     }
   }
 
-  g_settings_set_int (global->settings, "active-display-scale", scale);
+  if (g_settings_get_int (global->settings, "active-display-scale") != scale) {
+    g_settings_set_int (global->settings, "active-display-scale", scale);
+  }
 
    /* Make sure clutter and gdk scaling stays disabled
     * window-scaling-factor doesn't exist yet in clutter < 1.18 */
@@ -1111,10 +1113,11 @@ _cinnamon_global_get_gjs_context (CinnamonGlobal *global)
  */
 gboolean
 cinnamon_global_begin_modal (CinnamonGlobal *global,
-                          guint32      timestamp)
+                          guint32      timestamp,
+                          MetaModalOptions  options)
 {
   return meta_plugin_begin_modal (global->plugin, global->stage_xwindow,
-                                  None, 0, timestamp);
+                                  None, options, timestamp);
 }
 
 /**
@@ -1791,4 +1794,17 @@ gboolean _cinnamon_global_check_xdnd_event (CinnamonGlobal  *global,
     }
 
     return FALSE;
+}
+
+/**
+ * cinnamon_global_segfault:
+ * @global: the #CinnamonGlobal
+ *
+ * Crashes Cinnamon by causing a segfault
+ */
+void
+cinnamon_global_segfault (CinnamonGlobal *global)
+{
+  int *ptr = NULL;
+  g_strdup_printf ("%d", *ptr);
 }

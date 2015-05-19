@@ -16,6 +16,7 @@
 
 #include <clutter/x11/clutter-x11.h>
 #include <X11/extensions/Xfixes.h>
+#include "st.h"
 
 typedef enum {
   RECORDER_STATE_CLOSED,
@@ -202,12 +203,12 @@ create_recording_icon (void)
 
   cairo_destroy (cr);
 
-  texture = cogl_texture_new_from_data (32, 32,
-                                        COGL_TEXTURE_NONE,
-                                        CLUTTER_CAIRO_FORMAT_ARGB32,
-                                        COGL_PIXEL_FORMAT_ANY,
-                                        cairo_image_surface_get_stride (surface),
-                                        cairo_image_surface_get_data (surface));
+  texture = st_cogl_texture_new_from_data_wrapper (32, 32,
+                                                   COGL_TEXTURE_NONE,
+                                                   CLUTTER_CAIRO_FORMAT_ARGB32,
+                                                   COGL_PIXEL_FORMAT_ANY,
+                                                   cairo_image_surface_get_stride (surface),
+                                                   cairo_image_surface_get_data (surface));
   cairo_surface_destroy (surface);
 
   return texture;
@@ -270,15 +271,15 @@ cinnamon_recorder_init (CinnamonRecorder *recorder)
   
   // Get bottom panel height from settings so we don't overlap it
   // with our recording indicators.
-  GVariant *variant = NULL;
-  GSettings *desktop_settings;
+  //  GVariant *variant = NULL;
+  //  GSettings *desktop_settings;
   
-  desktop_settings = g_settings_new (SCHEMA_CINNAMON);
-  variant = g_settings_get_value (desktop_settings, PANEL_HEIGHT_KEY);
-  g_variant_get (variant, "i", &recorder->height_adjust);
+  //  desktop_settings = g_settings_new (SCHEMA_CINNAMON);
+  //  variant = g_settings_get_value (desktop_settings, PANEL_HEIGHT_KEY);
+  //  g_variant_get (variant, "i", &recorder->height_adjust);
   
-  g_variant_unref (variant);
-  g_object_unref (desktop_settings);
+  //  g_variant_unref (variant);
+  //  g_object_unref (desktop_settings);
   
   
   recorder->recording_icon = create_recording_icon ();

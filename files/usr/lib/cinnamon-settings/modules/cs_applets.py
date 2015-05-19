@@ -1,15 +1,14 @@
-#!/usr/bin/env python
-
+#!/usr/bin/env python2
+import sys
 from ExtensionCore import ExtensionSidePage
 
 class Module:
+    name = "applets"
+    comment = _("Manage Cinnamon applets")
+    category = "prefs"
+
     def __init__(self, content_box):
-        keywords = _("applet")
-        self.name = "applets"       
-        self.comment = _("Manage Cinnamon applets")
-        sidePage = AppletsViewSidePage(_("Applets"), "cs-applets", keywords, content_box, "applet", self)
-        self.sidePage = sidePage
-        self.category = "prefs"
+        self.sidePage = AppletsViewSidePage(_("Applets"), "cs-applets", _("applet"), content_box, "applet", self)
 
     def on_module_selected(self):
         if not self.loaded:
@@ -25,7 +24,11 @@ class AppletsViewSidePage (ExtensionSidePage):
         ExtensionSidePage.__init__(self, name, icon, keywords, content_box, collection_type, module)
 
     def toSettingString(self, uuid, instanceId):
-        return ("panel1:right:0:%s:%d") % (uuid, instanceId)
+        panelno = "panel1"
+        if len(sys.argv) > 2:
+            if sys.argv[1] == "applets" and sys.argv[2][0:5] == "panel":
+                panelno = sys.argv[2]
+        return (panelno + ":right:0:%s:%d") % (uuid, instanceId)
 
     def fromSettingString(self, string):
         panel, side, position, uuid, instanceId = string.split(":")

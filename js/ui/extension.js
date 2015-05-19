@@ -3,6 +3,7 @@
 const Cinnamon = imports.gi.Cinnamon;
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
+const Gtk = imports.gi.Gtk;
 const Lang = imports.lang;
 const Signals = imports.signals;
 const St = imports.gi.St;
@@ -12,6 +13,7 @@ const AppletManager = imports.ui.appletManager;
 const Config = imports.misc.config;
 const DeskletManager = imports.ui.deskletManager;
 const ExtensionSystem = imports.ui.extensionSystem;
+const SearchProviderManager = imports.ui.searchProviderManager;
 const Main = imports.ui.main;
 
 const State = {
@@ -29,6 +31,9 @@ const objects = {};
 
 // Maps uuid -> metadata object
 const meta = {};
+
+// Maps uuid -> directory
+const dirs = {};
 
 /**
  * const Type:
@@ -91,6 +96,18 @@ const Type = {
             finishExtensionLoad: DeskletManager.finishExtensionLoad,
             prepareExtensionUnload: DeskletManager.prepareExtensionUnload
         }
+    },
+    SEARCH_PROVIDER: {
+        name: 'Search provider',
+        folder: 'search_providers',
+        requiredFunctions: ['perform_search', 'on_result_selected'],
+        requiredProperties: ['uuid', 'name', 'description'],
+        niceToHaveProperties: [],
+        roles: {},
+        callbacks: {
+            finishExtensionLoad: SearchProviderManager.finishExtensionLoad,
+            prepareExtensionUnload: SearchProviderManager.prepareExtensionUnload
+        }
     }
 };
 
@@ -100,47 +117,58 @@ for(var key in Type) {
     Signals.addSignalMethods(type);
 
     let path = GLib.build_filenamev([global.userdatadir, type.folder]);
-    type.userDir = Gio.file_new_for_path(path);
+    type.userDir = path;
+
+    let dir = Gio.file_new_for_path(type.userDir)
     try {
-        if (!type.userDir.query_exists(null))
-            type.userDir.make_directory_with_parents(null);
+        if (!dir.query_exists(null))
+            dir.make_directory_with_parents(null);
     } catch (e) {
         global.logError(e);
     }
 }
 
 // Create a dummy metadata object when metadata parsing failed or was not done yet.
-function createMetaDummy(uuid, path, state) {
-    return { name: uuid, description: 'Metadata load failed', state: state, path: path, error: '' };
+function createMetaDummy(uuid, path, state, type) {
+    return { name: uuid, description: 'Metadata load failed', state: state, path: path, error: '', type: type };
 }
 
 // The Extension object itself
-function Extension(dir, type) {
-    this._init(dir, type);
+function Extension(dir, type, force, uuid) {
+    this._init(dir, type, force, uuid);
 }
 
 Extension.prototype = {
-    _init: function(dir, type) {
-        this.uuid = dir.get_basename();
+    _init: function(dir, type, force, uuid) {
+        this.uuid = uuid;
         this.dir = dir;
         this.type = type;
-        this.lowerType = type.name.toLowerCase();
+        this.lowerType = type.name.toLowerCase().replace(" ", "_");
         this.theme = null;
         this.stylesheet = null;
-        this.meta = createMetaDummy(this.uuid, dir.get_path(), State.INITIALIZING);
+        this.iconDirectory = null;
+        this.meta = createMetaDummy(this.uuid, dir.get_path(), State.INITIALIZING, type);
         this.startTime = new Date().getTime();
 
         this.loadMetaData(dir.get_child('metadata.json'));
-        this.validateMetaData();
+        if (!force)
+            this.validateMetaData();
 
-        this.ensureFileExists(dir.get_child(this.lowerType + '.js'));
-        this.loadStylesheet(dir.get_child('stylesheet.css'));
+        if (this.meta.multiversion) {
+            this.dir = findExtensionSubdirectory(this.dir);
+            this.meta.path = this.dir.get_path();
+            dirs[this.uuid] = this.dir;
+        }
+
+        this.ensureFileExists(this.dir.get_child(this.lowerType + '.js'));
+        this.loadStylesheet(this.dir.get_child('stylesheet.css'));
         
         if (this.stylesheet) {
             Main.themeManager.connect('theme-set', Lang.bind(this, function() {
                 this.loadStylesheet(this.dir.get_child('stylesheet.css'));
             }));
         }
+        this.loadIconDirectory(this.dir);
 
         try {
             CinnamonJS.add_extension_importer('imports.ui.extension.importObjects', this.uuid, this.meta.path);
@@ -193,6 +221,7 @@ Extension.prototype = {
         if(this.meta.state == State.INITIALIZING) {
             this.unlockRole();
             this.unloadStylesheet();
+            this.unloadIconDirectory();
             forgetExtension(this.uuid);
         }
         error._alreadyLogged = true;
@@ -204,22 +233,24 @@ Extension.prototype = {
     },
 
     loadMetaData: function(metadataFile) {
-        this.ensureFileExists(metadataFile);
 
         let oldState = this.meta.state;
         let oldPath = this.meta.path;
 
         try {
+            this.ensureFileExists(metadataFile);
             let metadataContents = Cinnamon.get_file_contents_utf8_sync(metadataFile.get_path());
             this.meta = JSON.parse(metadataContents);
             
             // Store some additional crap here
             this.meta.state = oldState;
             this.meta.path = oldPath;
+            this.meta.type = this.type;
+            this.meta.error = '';
 
             meta[this.uuid] = this.meta;
         } catch (e) {
-            this.meta = createMetaDummy(this.uuid, oldPath, oldState);
+            this.meta = createMetaDummy(this.uuid, oldPath, State.ERROR, this.type);
             meta[this.uuid] = this.meta;
             throw this.logError('Failed to load/parse metadata.json', e);
         }
@@ -293,6 +324,29 @@ Extension.prototype = {
             }
         }
     },
+    
+    loadIconDirectory: function(dir) {
+        let iconDir = dir.get_child("icons");
+        if (iconDir.query_exists(null)) {
+            let path = iconDir.get_path();
+            this.iconDirectory = path;
+            Gtk.IconTheme.get_default().append_search_path(path);
+        }
+    },
+    
+    unloadIconDirectory: function() {
+        if (this.iconDirectory) {
+            let iconTheme = Gtk.IconTheme.get_default();
+            let searchPath = iconTheme.get_search_path();
+            for (let i = 0; i < searchPath.length; i++) {
+                if (searchPath[i] == this.iconDirectory) {
+                    searchPath.splice(i,1);
+                    iconTheme.set_search_path(searchPath);
+                    break;
+                }
+            }
+        }
+    },
 
     ensureFileExists: function(file) {
         if (!file.query_exists(null)) {
@@ -356,6 +410,34 @@ function versionCheck(required, current) {
     return false;
 }
 
+/**
+ * versionLeq:
+ * @a (string): the first version
+ * @b (string): the second version
+ *
+ * Returns: whether a <= b
+ */
+function versionLeq(a, b) {
+    a = a.split('.');
+    b = b.split('.');
+
+    if (a.length == 2)
+        a.push(0);
+
+    if (b.length == 2)
+        b.push(0);
+
+    for (let i = 0; i < 3; i++) {
+        if (a[i] == b[i])
+            continue;
+        else if (a[i] > b[i])
+            return false;
+        else
+            return true;
+    }
+    return true;
+}
+
 // Returns a string version of a State value
 function getMetaStateString(state) {
     switch (state) {
@@ -372,16 +454,18 @@ function getMetaStateString(state) {
 }
 
 function loadExtension(uuid, type) {
+    let force = uuid.indexOf("!") == 0;
+    uuid = uuid.replace(/^!/,'');
+
     let extension = objects[uuid];
     if(!extension) {
-        var forgetMeta = true;
         try {
-            let dir = findExtensionDirectory(uuid, type);
-            if (dir == null) {
+            dirs[uuid] = findExtensionDirectory(uuid, type);
+
+            if (dirs[uuid] == null)
                 throw ("not-found");
-            }
-            extension = new Extension(dir, type);
-            forgetMeta = false;
+
+            extension = new Extension(dirs[uuid], type, force, uuid);
 
             if(!type.callbacks.finishExtensionLoad(extension))
                 throw (type.name + ' ' + uuid + ': Could not create applet object.');
@@ -396,15 +480,18 @@ function loadExtension(uuid, type) {
                just don't show up if their program isn't installed, but we don't
                remove them or anything) */
             if (e == "not-found") {
-                forgetExtension(uuid, forgetMeta);
+                forgetExtension(uuid, true);
                 return null;
             }
             Main.cinnamonDBusService.EmitXletAddedComplete(false, uuid);
             Main.xlet_startup_error = true;
-            forgetExtension(uuid, forgetMeta);
+            forgetExtension(uuid);
             if(e._alreadyLogged)
                 e = undefined;
             global.logError('Could not load ' + type.name.toLowerCase() + ' ' + uuid, e);
+            meta[uuid].state = State.ERROR;
+            if (!meta[uuid].name)
+                meta[uuid].name = uuid
             return null;
         }
     }
@@ -425,6 +512,7 @@ function unloadExtension(uuid) {
             global.logError('Error disabling ' + extension.lowerType + ' ' + extension.uuid, e);
         }
         extension.unloadStylesheet();
+        extension.unloadIconDirectory();
 
         extension.type.emit('extension-unloaded', extension.uuid);
 
@@ -440,52 +528,71 @@ function forgetExtension(uuid, forgetMeta) {
 }
 
 function findExtensionDirectory(uuid, type) {
-    let directory = findExtensionDirectoryIn(uuid, type.userDir);
-    if (directory == null) {
-        let systemDataDirs = GLib.get_system_data_dirs();
-        for (let i = 0; i < systemDataDirs.length; i++) {
-            let dirPath = systemDataDirs[i] + '/cinnamon/' + type.folder;
-            let dir = Gio.file_new_for_path(dirPath);
-            if (dir.query_exists(null))
-                directory = findExtensionDirectoryIn(uuid, dir);
-                if (directory != null) {
-                    break;
-                }
-            }
+    let dirPath = type.userDir + "/" + uuid;
+    let dir = Gio.file_new_for_path(dirPath);
+    if (dir.query_file_type(Gio.FileQueryInfoFlags.NONE, null)
+            == Gio.FileType.DIRECTORY)
+        return dir;
+
+    let systemDataDirs = GLib.get_system_data_dirs();
+    for (let datadir of systemDataDirs) {
+        dirPath = datadir + '/cinnamon/' + type.folder + '/' + uuid;
+        dir = Gio.file_new_for_path(dirPath);
+        if (dir.query_file_type(Gio.FileQueryInfoFlags.NONE, null)
+                == Gio.FileType.DIRECTORY)
+            return dir;
     }
-    return directory;
+    return null;
 }
 
-function findExtensionDirectoryIn(uuid, dir) {
+/**
+ * findExtensionSubdirectory:
+ * @dir (Gio.File): directory to search in
+ *
+ * For extensions that are shipped with multiple versions in different
+ * directories, look for the largest available version that is less than or
+ * equal to the current running version. If no such version is found, the
+ * original directory is returned.
+ *
+ * Returns (Gio.File): directory object of the desired directory.
+ */
+function findExtensionSubdirectory(dir) {
     try {
         let fileEnum = dir.enumerate_children('standard::*', Gio.FileQueryInfoFlags.NONE, null);
 
-        let directory = null;
         let info;
+        let largest = null;
         while ((info = fileEnum.next_file(null)) != null) {
             let fileType = info.get_file_type();
             if (fileType != Gio.FileType.DIRECTORY)
                 continue;
+
             let name = info.get_name();
-            if (name == uuid) {
-                let child = dir.get_child(name);
-                directory = child;
-                break;
+            if (!name.match(/^[1-9][0-9]*\.[0-9]+(\.[0-9]+)?$/))
+                continue;
+
+            if (versionLeq(name, Config.PACKAGE_VERSION) &&
+                (!largest || versionLeq(largest[0], name))) {
+                largest = [name, fileEnum.get_child(info)];
             }
         }
 
         fileEnum.close(null);
-        return directory;
+        if (largest)
+            return largest[1];
+        else
+            return dir;
     } catch (e) {
-        global.logError('Error looking for extension ' + uuid + ' in directory ' + dir, e);
-       return null;
+        global.logError('Error looking for extension version for ' + dir.get_basename() + ' in directory ' + dir, e);
+        return dir;
     }
 }
 
 function get_max_instances (uuid) {
     if (uuid in meta) {
         if ("max-instances" in meta[uuid]) {
-            return parseInt(meta[uuid]["max-instances"]);
+            let i = meta[uuid]["max-instances"];
+            return parseInt(i);
         }
     }
     return 1;

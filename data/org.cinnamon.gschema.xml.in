@@ -17,7 +17,8 @@
       <_description>
         Cinnamon extensions have a uuid property; this key lists extensions
         which should be loaded.  disabled-extensions overrides this setting for
-        extensions that appear in both lists.
+        extensions that appear in both lists. Append ! in front of uuid to 
+        override version check
       </_description>
     </key>
     
@@ -26,7 +27,8 @@
       <_summary>Uuids of applets to enable</_summary>
       <_description>
         Cinnamon applets have a uuid property; this key lists applets
-        which should be loaded.
+        which should be loaded. Append ! in front of uuid to override version
+        check.
       </_description>
     </key>
 
@@ -47,7 +49,16 @@
       <_summary>Uuids of desklets to enable</_summary>
       <_description>
         Cinnamon desklets have a uuid property; this key lists desklets
-        which should be loaded. uuids should be put in the form uuid:id:x:y, where id is used to distinguish between multiple instances of the same desklet
+        which should be loaded. uuids should be put in the form uuid:id:x:y, where id is used to distinguish between multiple instances of the same desklet. Append ! in front of uuid to override version check.
+      </_description>
+    </key>
+    
+    <key name="enabled-search-providers" type="as">
+      <default>[]</default>
+      <_summary>Uuids of search providers to enable</_summary>
+      <_description>
+        Cinnamon search providers have a uuid property; this key lists search providers
+        which should be loaded.
       </_description>
     </key>
 
@@ -63,79 +74,72 @@
       <_description>If desklet-snap is enabled, the possible positions of desklets will be all integer multiples of the value of "desklet-snap-size"</_description>
     </key>
 
-    <key name="panel-autohide" type="b">
-      <default>false</default>
+    <key name="panels-enabled" type="as">
+      <default>['1:0:bottom']</default>
+      <_summary>List of panels used</_summary>
+      <_description>
+        Panels are listed in the following format: panelID:monitor:position, where monitor is the monitor number (0 for primary), and position is either top or bottom
+      </_description>
+    </key>
+
+    <key name="panels-autohide" type="as">
+      <default>['1:false']</default>
       <_summary>Auto-hide panel</_summary>
       <_description>
         Whether the panel autohides or not.
       </_description>
     </key>
     
-    <key type="i" name="panel-show-delay">
-      <default>0</default>
+    <key name="panels-show-delay" type="as">
+      <default>['1:0']</default>
       <summary>Duration of the delay before a hidden panel is shown</summary>
       <description>Duration of the delay (in milliseconds)</description>
     </key>
     
-    <key type="i" name="panel-hide-delay">
-      <default>0</default>
+    <key name="panels-hide-delay" type="as">
+      <default>['1:0']</default>
       <summary>Duration of the delay before a shown panel is hidden</summary>
       <description>Duration of the delay (in milliseconds)</description>
     </key>
 
-    <key name="panel2-autohide" type="b">
-      <default>false</default>
-      <_summary>Auto-hide panel</_summary>
-      <_description>
-        Whether the panel autohides or not.
-      </_description>
-    </key>
-
-    <key type="i" name="panel2-show-delay">
-      <default>0</default>
-      <summary>Duration of the delay before a hidden panel is shown</summary>
-      <description>Duration of the delay (in milliseconds)</description>
-    </key>
-
-    <key type="i" name="panel2-hide-delay">
-      <default>0</default>
-      <summary>Duration of the delay before a shown panel is hidden</summary>
-      <description>Duration of the delay (in milliseconds)</description>
-    </key>
-
-    <key name="panel-resizable" type="b">
-      <default>false</default>
+    <key name="panels-resizable" type="as">
+      <default>['1:false']</default>
       <_summary>Resizable panel</_summary>
       <_description>
         Whether the panel uses a user-defined height
       </_description>
     </key>
     
-    <key name="panel-top-height" type="i">
-      <default>25</default>
-      <range min="20" max="100" />
+    <key name="panels-height" type="as">
+      <default>['1:25']</default>
       <_summary>Panel size</_summary>
       <_description>
-        User-defined panel-height for top panel.  Note, this value may or may not be the true value in use at runtime, depending
+        User-defined panel-height for panels.  Note, this value may or may not be the true value in use at runtime, depending
         on any scaling that may be occurring (on hidpi screens, for instance).
       </_description>
     </key>
 
-    <key name="panel-bottom-height" type="i">
-      <default>25</default>
-      <range min="20" max="100"/>
-      <_summary>Panel size</_summary>
-      <_description>
-        User-defined panel-height for bottom panel.  Note, this value may or may not be the true value in use at runtime, depending
-        on any scaling that may be occurring (on hidpi screens, for instance).
-      </_description>
-    </key>
-    
-    <key name="panel-scale-text-icons" type="b">
-      <default>false</default>
+    <key name="panels-scale-text-icons" type="as">
+      <default>['1:false']</default>
       <_summary>Scale panel applet text and icons</_summary>
       <_description>
         Whether the panel icons and text from applets is resized according to the custom panel height
+      </_description>
+    </key>
+
+    <key name="panel-resizable" type="b">
+      <default>false</default>
+      <_summary>(Deprecated) Resizable panel</_summary>
+      <_description>
+        (Deprecated) Retained to avoid applets who read the property from crashing Cinnamon
+      </_description>
+    </key>
+
+    <key name="panel-scale-text-icons" type="b">
+      <default>false</default>
+      <_summary>(Deprecated) Scale panel applet text and icons</_summary>
+      <_description>
+        (Deprecated) Retained to avoid applets who read the property from crashing Cinnamon
       </_description>
     </key>
 
@@ -154,7 +158,15 @@
         Whether to enable desktop effects on dialog boxes.
       </_description>
     </key>
-    
+
+    <key type="s" name="desktop-effects-style">
+      <default>"cinnamon"</default>
+      <_summary>The style of desktop effects</_summary>
+      <_description>
+        An overall style used for desktop effects
+      </_description>
+    </key>
+
     <key type="s" name="desktop-effects-close-effect">
       <default>"none"</default>
       <_summary>Effect used when closing windows</_summary>
@@ -309,10 +321,10 @@
     </key>
 
     <key name="desktop-layout" type="s">
-      <default>"traditional"</default>
-      <_summary>Layout style</_summary>
+      <default>""</default>
+      <_summary>(Deprecated) Layout style</_summary>
       <_description>
-       Layout styles: traditional (1 panel at the bottom), flipped (1 panel on top), classic (1 panel on top, 1 panel at the bottom)
+       (Deprecated) Layout styles - pre-2.6
       </_description>
     </key>
     
@@ -325,10 +337,9 @@
     </key>
 
     <key type="i" name="number-workspaces">
-        <default>2</default>
-        <_summary>Number of workspaces in Cinnamon session</_summary>
-        <_description>
-                Number of Workspaces</_description>
+        <default>0</default>
+        <_summary>(Deprecated) Number of workspaces</_summary>
+      <_description>(Deprecated) Number of Workspaces - pre-2.6, even though you shouldn't use it even on &lt;2.6 releases. Use org.cinnamon.desktop.wm.preferences num-workspaces instead.</_description>
     </key>
 
     <key name="overview-corner" type="as">
@@ -364,10 +375,10 @@
     </key>
     
     <key name="workspace-name-overrides" type="as">
-      <default>[]</default>
-      <_summary>List of non-default workspace names</_summary>
+      <default>['DEPRECATED']</default>
+      <_summary>(Deprecated) List of non-default workspace names</_summary>
       <_description>
-        The user-set names of the workspaces.
+        (Deprecated) The user-set names of the workspaces. Deprecated since 2.6. Use org.cinnamon.desktop.wm.preferences workspace-names instead.
       </_description>
     </key>
     
@@ -446,6 +457,11 @@
       <_summary></_summary>
     </key>
 
+    <key name="no-adjacent-panel-barriers" type="b">
+      <default>false</default>
+      <_summary>Whether to omit pointer barriers between adjacent panels.</_summary>
+    </key>
+
     <key type="b" name="panel-edit-mode">
       <default>false</default>
       <_summary>Panel edit mode</_summary>
@@ -474,22 +490,6 @@
       <default>100</default>
       <_summary>Duration of the effect (in milliseconds)</_summary>
       <_description>Duration of the effect (in milliseconds)</_description>
-    </key>
-
-    <key name="window-list-applet-scroll" type="b">
-      <default>false</default>
-      <summary>Enable mouse-scroll in window-list applet</summary>
-      <description>
-        When enabled the mouse wheel can scroll through the items in the window list applet.
-      </description>
-    </key>
-    
-    <key name="window-list-applet-alert" type="b">
-      <default>true</default>
-      <summary>Enable window list alerts</summary>
-      <description>
-        Enable window list alerts
-      </description>
     </key>
 
     <key name="bring-windows-to-current-workspace" type="b">
@@ -537,6 +537,15 @@
       <default>true</default>
       <_summary>Whether or not to show possible completions in the run dialog (Alt-F2)</_summary>
     </key>
+    
+    <key type="s" name="show-media-keys-osd">
+      <default>"medium"</default>
+      <_summary>Whether the media keys osd is disabled or its relative display size</_summary>
+      <_description>
+      Allows setting of the default size of the media keys osd or disables it completely.
+      Possible values are "small", "medium", "large", or "disabled".
+      </_description>
+    </key>
 
     <child name="theme" schema="org.cinnamon.theme"/>   
     <child name="recorder" schema="org.cinnamon.recorder"/>
@@ -552,11 +561,19 @@
       </_description>
     </key>
 
-    <key name="hide-snap-osd" type="b">
-      <default>false</default>
-      <_summary>Prevent the tile/snap OSD from showing</_summary>
+    <key name="show-snap-osd" type="b">
+      <default>true</default>
+      <_summary>Show the tile/snap OSD</_summary>
       <_description>
         Hide the snap OSD.
+      </_description>
+    </key>
+
+    <key name="show-tile-hud" type="b">
+      <default>true</default>
+      <_summary>Show the tile HUD</_summary>
+      <_description>
+        Hide the tile HUD.
       </_description>
     </key>
 
