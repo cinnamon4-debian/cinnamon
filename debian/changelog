@@ -1,6 +1,6 @@
 cinnamon (2.6.0-1~) UNRELEASED; urgency=medium
 
-  * Improve dependencies to use cinnamon 2.4 packages.
+  * Improve dependencies to use cinnamon 2.4 packages. (Closes: #781888)
   * New upstream release (2.6.0).
 
  -- Maximiliano Curia <maxy@debian.org>  Tue, 19 May 2015 18:02:27 +0200
