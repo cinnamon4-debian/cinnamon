@@ -1,18 +1,16 @@
---- a/files/usr/lib/cinnamon-settings/bin/ExtensionCore.py
-+++ b/files/usr/lib/cinnamon-settings/bin/ExtensionCore.py
-@@ -1325,7 +1325,7 @@
-                             if os.path.exists(os.path.join(path, "thumbnail.png")):
-                                 icon_path = os.path.join(path, "thumbnail.png")
-                             else:
--                                icon_path = "/usr/lib/cinnamon-settings/data/icons/themes.svg"
-+                                icon_path = "/usr/share/cinnamon/cinnamon-settings/data/icons/themes.svg"
-                             size = 60 * self.window.get_scale_factor()
-                             img = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_path, -1, size)
- 
 --- a/files/usr/lib/cinnamon-settings/bin/Spices.py
 +++ b/files/usr/lib/cinnamon-settings/bin/Spices.py
-@@ -412,9 +412,9 @@
-                            self.progresslabel.set_text(_("Installing %s...") % (title))
+@@ -123,7 +123,7 @@
+ 
+         self.window = window
+         self.builder = Gtk.Builder()
+-        self.builder.add_from_file("/usr/lib/cinnamon-settings/cinnamon-settings-spice-progress.ui")
++        self.builder.add_from_file("/usr/share/cinnamon/cinnamon-settings/cinnamon-settings-spice-progress.ui")
+         self.progress_window = self.builder.get_object("progress_window")
+         self.progress_window.set_transient_for(window)
+         self.progress_window.set_destroy_with_parent(True)
+@@ -483,9 +483,9 @@
+                            ui_thread_do(self.progresslabel.set_text, _("Installing %s...") % title)
                      elif "gschema.xml" in file.filename:
                          sentence = _("Please enter your password to install the required settings schema for %s") % (uuid)
 -                        if os.path.exists("/usr/bin/gksu") and os.path.exists("/usr/lib/cinnamon-settings/bin/installSchema.py"):
@@ -23,7 +21,7 @@
                              command = "%s %s" % (launcher, tool)
                              os.system(command)
                              schema_filename = file.filename
-@@ -510,9 +510,9 @@
+@@ -584,9 +584,9 @@
              if not self.themes:
                  if schema_filename != "":
                      sentence = _("Please enter your password to remove the settings schema for %s") % (uuid)
@@ -37,7 +35,7 @@
                      else:
 --- a/files/usr/lib/cinnamon-settings/bin/XletSettings.py
 +++ b/files/usr/lib/cinnamon-settings/bin/XletSettings.py
-@@ -25,7 +25,7 @@
+@@ -48,7 +48,7 @@
          self.type = _type
          self.current_id = None
          self.builder = Gtk.Builder()
@@ -48,33 +46,27 @@
          self.highlight_button = self.builder.get_object("highlight_button")
 --- a/files/usr/lib/cinnamon-settings/cinnamon-settings.py
 +++ b/files/usr/lib/cinnamon-settings/cinnamon-settings.py
-@@ -5,8 +5,8 @@
+@@ -4,8 +4,8 @@
+ reload(sys)
  sys.setdefaultencoding('utf-8')
  
- try:
--    sys.path.append('/usr/lib/cinnamon-settings/modules')
--    sys.path.append('/usr/lib/cinnamon-settings/bin')
-+    sys.path.append('/usr/share/cinnamon/cinnamon-settings/modules')
-+    sys.path.append('/usr/share/cinnamon/cinnamon-settings/bin')
-     import os
-     import glob
-     import gettext
-@@ -21,12 +21,12 @@
-     import proxygsettings
-     from functools import cmp_to_key
+-sys.path.append('/usr/lib/cinnamon-settings/modules')
+-sys.path.append('/usr/lib/cinnamon-settings/bin')
++sys.path.append('/usr/share/cinnamon/cinnamon-settings/modules')
++sys.path.append('/usr/share/cinnamon/cinnamon-settings/bin')
+ import os
+ import glob
+ import gettext
+@@ -23,7 +23,7 @@
+ gettext.install("cinnamon", "/usr/share/locale")
+ 
  # Standard setting pages... this can be expanded to include applet dirs maybe?
--    mod_files = glob.glob('/usr/lib/cinnamon-settings/modules/*.py')
-+    mod_files = glob.glob('/usr/share/cinnamon/cinnamon-settings/modules/*.py')
-     mod_files.sort()
-     if len(mod_files) is 0:
-         raise Exception("No settings modules found!!")
-     for i in range(len(mod_files)):
--        mod_files[i] = mod_files[i].split('/')[5]
-+        mod_files[i] = mod_files[i].split('/')[6]
-         mod_files[i] = mod_files[i].split('.')[0]
-         if mod_files[i][0:3] != "cs_":
-             raise Exception("Settings modules must have a prefix of 'cs_' !!")
-@@ -140,7 +140,7 @@
+-mod_files = glob.glob('/usr/lib/cinnamon-settings/modules/*.py')
++mod_files = glob.glob('/usr/share/cinnamon/cinnamon-settings/modules/*.py')
+ mod_files.sort()
+ if len(mod_files) is 0:
+     print "No settings modules found!!"
+@@ -162,7 +162,7 @@
      @print_timing
      def __init__(self):
          self.builder = Gtk.Builder()
@@ -86,7 +78,7 @@
 --- a/files/usr/lib/cinnamon-settings/modules/cs_backgrounds.py
 +++ b/files/usr/lib/cinnamon-settings/modules/cs_backgrounds.py
 @@ -1,7 +1,7 @@
- #!/usr/bin/env python
+ #!/usr/bin/env python2
  
  import sys
 -sys.path.append('/usr/lib/cinnamon-settings/bin')

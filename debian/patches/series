@@ -4,7 +4,6 @@ remove-embbeded-jquery.patch
 no-mdmsetup-settings.patch
 install-python-files-in-share.patch
 fix-settings-path
-paneljs_icon_search_path
 policy_csu_path
 start_cinnamon
 fix-cinnamon-settings-users-path
@@ -12,14 +11,13 @@ fix-cinnamon-desktop-editor-path
 fix-cinnamon-menu-editor-path
 fix-cinnamon-screensaver-path
 fix-cinnamon-json-makepot-path
+other-fhs.patch
 add_policykit-1-gnome_to_session
 replace_firefox_with_iceweasel
 make_nm_optional
 add_capi_search_path
 fix-theme-regressions-with-gtk-3.14.patch
-other-fhs.patch
 background.patch
-show_brightness_fix.patch
 # still use cjs for now
 #use-gjs.patch
 #fix-for-clutter.color-changes.patch

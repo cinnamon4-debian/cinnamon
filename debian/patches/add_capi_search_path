@@ -1,12 +1,11 @@
-Index: cinnamon/files/usr/lib/cinnamon-settings/cinnamon-settings.py
-===================================================================
---- cinnamon.orig/files/usr/lib/cinnamon-settings/cinnamon-settings.py	2014-09-07 16:04:35.235731701 +0200
-+++ cinnamon/files/usr/lib/cinnamon-settings/cinnamon-settings.py	2014-09-07 16:04:46.900018798 +0200
-@@ -5,6 +5,7 @@
+
+--- a/files/usr/lib/cinnamon-settings/cinnamon-settings.py
++++ b/files/usr/lib/cinnamon-settings/cinnamon-settings.py
+@@ -4,6 +4,7 @@
+ reload(sys)
  sys.setdefaultencoding('utf-8')
  
- try:
-+    sys.path.append('/usr/lib/cinnamon')
-     sys.path.append('/usr/share/cinnamon/cinnamon-settings/modules')
-     sys.path.append('/usr/share/cinnamon/cinnamon-settings/bin')
-     import os
++sys.path.append('/usr/lib/cinnamon')
+ sys.path.append('/usr/share/cinnamon/cinnamon-settings/modules')
+ sys.path.append('/usr/share/cinnamon/cinnamon-settings/bin')
+ import os

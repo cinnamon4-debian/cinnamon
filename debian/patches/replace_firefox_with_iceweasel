@@ -6,7 +6,7 @@ Forwarded: not-needed
 Last-Update: 2014-06-06
 --- a/data/org.cinnamon.gschema.xml.in
 +++ b/data/org.cinnamon.gschema.xml.in
-@@ -355,7 +355,7 @@
+@@ -366,7 +366,7 @@
      </key>
  
      <key name="favorite-apps" type="as">

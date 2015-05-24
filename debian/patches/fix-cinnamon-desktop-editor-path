@@ -13,7 +13,7 @@
  from bin import XletSettingsWidgets
  
  # i18n
-@@ -254,7 +254,7 @@
+@@ -262,7 +262,7 @@
          self.dialog.destroy()
  
  class LauncherEditor(ItemEditor):
@@ -22,7 +22,7 @@
  
      def build_ui(self):
          self.icon_picker = IconPicker(self.dialog,
-@@ -304,7 +304,7 @@
+@@ -312,7 +312,7 @@
  
  
  class DirectoryEditor(ItemEditor):
@@ -31,7 +31,7 @@
  
      def build_ui(self):
          self.icon_picker = IconPicker(self.dialog,
-@@ -335,7 +335,7 @@
+@@ -343,7 +343,7 @@
  
  
  class CinnamonLauncherEditor(ItemEditor):

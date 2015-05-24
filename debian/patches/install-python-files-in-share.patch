@@ -15,7 +15,7 @@ Last-Update: 2013-06-16
 --- a/files/usr/bin/cinnamon-menu-editor
 +++ b/files/usr/bin/cinnamon-menu-editor
 @@ -1,7 +1,7 @@
- #! /usr/bin/python -OOt
+ #! /usr/bin/python2 -OOt
  
  import sys
 -sys.path.insert(0,'/usr/lib/cinnamon-menu-editor')

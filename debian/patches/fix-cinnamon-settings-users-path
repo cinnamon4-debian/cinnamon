@@ -9,7 +9,7 @@
  
 --- a/files/usr/lib/cinnamon-settings-users/cinnamon-settings-users.py
 +++ b/files/usr/lib/cinnamon-settings-users/cinnamon-settings-users.py
-@@ -373,7 +373,7 @@
+@@ -379,7 +379,7 @@
      def __init__(self):
          try:
              self.builder = Gtk.Builder()
