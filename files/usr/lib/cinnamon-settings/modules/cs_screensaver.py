@@ -195,7 +195,7 @@ class ScreensaverBox(Gtk.Box):
         self.socket_box.connect("map", lambda x: self.on_row_activated(None, None))
 
     def gather_screensavers(self):
-        row = ScreensaverRow("", _("Lock screen"), _("The standard cinnamon lock screen"), "", "default")
+        row = ScreensaverRow("", _("Screen Locker"), _("The standard cinnamon lock screen"), "", "default")
         self.add_row(row)
         if self.current_name == "":
             self.list_box.select_row(row)
@@ -351,7 +351,16 @@ class ScreensaverRow(Gtk.ListBoxRow):
         Gtk.ListBoxRow.__init__(self)
         self.uuid = uuid
         self.name = name
-        self.short_description = description.split('\n', 1)[0]
+
+        # Add ... to the description if it is cut in the middle of a line. If
+        # the next line is empty, we interpret this as a paragraph break and
+        # don't insert ...
+        desc = description.split('\n')
+        if len(desc) <= 1 or len(desc[1].strip()) == 0:
+            self.short_description = desc[0]
+        else:
+            self.short_description = desc[0] + "..."
+
         self.description = description
         self.path = path
         self.ss_type = ss_type
