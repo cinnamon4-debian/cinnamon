@@ -106,6 +106,8 @@ class ExtensionSidePage (SidePage):
             self.stack.add_titled(extensions_vbox, "installed", _("Installed desklets"))
         elif self.collection_type == "extension":
             self.stack.add_titled(extensions_vbox, "installed", _("Installed extensions"))
+        elif self.collection_type == "theme":
+            self.stack.add_titled(extensions_vbox, "installed", _("Installed themes"))
 
         self.stack.expand = True
 
@@ -294,6 +296,8 @@ class ExtensionSidePage (SidePage):
             self.stack.add_titled(getmore_vbox, "more", _("Available desklets (online)"))
         elif self.collection_type == "extension":
             self.stack.add_titled(getmore_vbox, "more", _("Available extensions (online)"))
+        elif self.collection_type == "theme":
+            self.stack.add_titled(getmore_vbox, "more", _("Available themes (online)"))
 
         self.stack.connect("notify::visible-child-name", self.on_page_changed)
 
@@ -1091,6 +1095,9 @@ Please contact the developer.""")
                 self.model.set_value(row.iter, 2, 0)
         self._selection_changed()
 
+    def fromSettingString(self, string):
+        return string
+
     def _add_another_instance(self):
         model, treeiter = self.treeview.get_selection().get_selected()
         if treeiter:
@@ -1163,6 +1170,7 @@ Please contact the developer.""")
             self.content_box.pack_start(settingContainer.content, True, True, 2)
             self.stack.hide()
             settingContainer.show()
+            self._on_signal(None, None, "hide_stack", ())
 
     def _external_configure_launch(self, widget = None):
         model, treeiter = self.treeview.get_selection().get_selected()
@@ -1174,6 +1182,7 @@ Please contact the developer.""")
     def _close_configure(self, settingContainer):
         settingContainer.content.hide()
         self.stack.show_all()
+        self._on_signal(None, None, "show_stack", ())
 
     def _restore_default_extensions(self):
         if not self.themes:
@@ -1463,4 +1472,3 @@ Please contact the developer.""")
         xerror_path = "%s/.xsession-errors" % (home)
         if os.path.exists(xerror_path):
             subprocess.Popen(["xdg-open", xerror_path])
-
