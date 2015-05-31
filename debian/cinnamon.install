@@ -7,6 +7,7 @@
 /usr/share/applications/cinnamon-settings.desktop
 /usr/share/applications/cinnamon.desktop
 /usr/share/applications/cinnamon2d.desktop
+/usr/share/applications/cinnamon-killer-daemon.desktop
 /usr/share/applications/cinnamon-polkit-gnome-authentication-agent-1.desktop
 /usr/share/dbus-1/services/*.Cinnamon.*
 /usr/share/man/*/*cinnamon*
