@@ -2,7 +2,7 @@ cinnamon (2.6.6-1~) UNRELEASED; urgency=medium
 
   [ Maximiliano Curia ]
   * Improve dependencies to use latest cinnamon packages. (Closes: #781888)
-  * New upstream release.
+  * New upstream release (Closes: #787345).
 
   [ Fabio Fantoni ]
   * debian/patches: 2 patches removed and all other refreshed.
