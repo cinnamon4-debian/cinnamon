@@ -1,4 +1,4 @@
-cinnamon (2.6.6-1~) UNRELEASED; urgency=medium
+cinnamon (2.6.7-1~) UNRELEASED; urgency=medium
 
   [ Maximiliano Curia ]
   * Improve dependencies to use latest cinnamon packages. (Closes: #781888)

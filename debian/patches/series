@@ -19,8 +19,6 @@ make_nm_optional
 add_capi_search_path
 fix-theme-regressions-with-gtk-3.14.patch
 background.patch
-# upstream urgent fix backport
-Make-sure-to-refresh-menu-panel-launchers.patch
 
 # still use cjs for now
 #use-gjs.patch
