@@ -1,14 +1,14 @@
 /usr/bin/cinnamon*
-/usr/lib/cinnamon-settings/bin/capi.py /usr/lib/cinnamon/
 /usr/lib/*/cinnamon
-/usr/share/cinnamon/js/misc/config.js
+/usr/lib/cinnamon-settings/bin/capi.py /usr/lib/cinnamon/
+/usr/share/applications/cinnamon-killer-daemon.desktop
 /usr/share/applications/cinnamon-menu-editor.desktop
+/usr/share/applications/cinnamon-polkit-gnome-authentication-agent-1.desktop
 /usr/share/applications/cinnamon-settings-*.desktop
 /usr/share/applications/cinnamon-settings.desktop
 /usr/share/applications/cinnamon.desktop
 /usr/share/applications/cinnamon2d.desktop
-/usr/share/applications/cinnamon-killer-daemon.desktop
-/usr/share/applications/cinnamon-polkit-gnome-authentication-agent-1.desktop
+/usr/share/cinnamon/js/misc/config.js
 /usr/share/dbus-1/services/*.Cinnamon.*
 /usr/share/man/*/*cinnamon*
 /usr/share/polkit-1/actions/org.cinnamon.settings-users.policy
