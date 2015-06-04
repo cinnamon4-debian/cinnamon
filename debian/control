@@ -116,6 +116,7 @@ Description: Innovative and comfortable desktop
  and providing them with an easy to use and comfortable desktop experience.
 
 Package: cinnamon-doc
+Section: doc
 Architecture: all
 Depends: ${misc:Depends}
 Description: Innovative and comfortable desktop (Documentation)
