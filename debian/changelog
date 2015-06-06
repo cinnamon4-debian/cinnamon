@@ -2,6 +2,7 @@ cinnamon (2.6.7-2~) UNRELEASED; urgency=medium
 
   [ Fabio Fantoni ]
   * debian/control: cinnamon-doc in doc section.
+  * Enable lock on suspend by default for security.
 
   [ Maximiliano Curia ]
   * Split dh_install rules for arch and indep cases.
