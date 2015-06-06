@@ -5,13 +5,15 @@ Source: https://github.com/linuxmint/cinnamon
 
 Files: *
 Copyright: 2009, Bastien Nocera
+           2012, Conor Curran
+           2011, Conor Curran <conor.curran@canonical.com>
+           2012, David Henningsson, Canonical Ltd <david.henningsson@canonical.com>
            1999-2001, Eazel, Inc
            1989-1991, Free Software Foundation, Inc
-           2010, Igalia, S.L
            2008, Intel Corp
            2006-2008, Lennart Poettering
            2009, Marcelo Jorge Vieira (metal) <metal@alucinados.com>
-           2011, Red Hat, Inc
+           2008, Red Hat, Inc
            2008, Sjoerd Simons <sjoerd@luon.net>
            2008, William Jon McCann
            2000-2001, Eazel, Inc
@@ -23,7 +25,8 @@ Copyright: 2009, Bastien Nocera
            1997-2000, The Free Software Foundation
 License: GPL-2+
 
-Files: src/st/st-adjustment.c
+Files: src/cinnamon-window-tracker.c
+       src/st/st-adjustment.c
        src/st/st-adjustment.h
        src/st/st-bin.c
        src/st/st-bin.h
@@ -74,13 +77,13 @@ Files: src/st/st-adjustment.c
 Copyright: 2009, Abderrahim Kitouni
            2011, Adel Gadllah
            2003-2004, Dodji Seketeli
-           2010, Florian Müllner
+           2009-2010, Florian Müllner
            2010, Giovanni Campagna
            2010, Igalia, S.L
            2009, Intel Corporation
            2010, Maxim Ermilov
            2008, OpenedHand
-           2009-2010, Red Hat, Inc
+           2006-2008, Red Hat, Inc
            2008, litl, LLC
 License: LGPL-2.1
 
@@ -149,11 +152,41 @@ Copyright: 2010, Red Hat, Inc
            2008, litl, LLC
 License: Expat
 
+Files: files/usr/lib/cinnamon-settings/bin/tweenEquations.py
+Copyright: 2001, Robert Penner
+           2008, litl, LLC
+License: BSD-3-clause
+
 Files: debian/*
 Copyright: Maximilian Curia <maxy@debian.org>
 License: Permissive
  The packaging efforts in this debian package are free software; the copyright
  holder(s) give unlimited permission to copy, distribute and modify it.
+
+License: BSD-3-clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+ .
+  * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+  * Neither the name of the author nor the names of contributors may be used
+    to endorse or promote products derived from this software without specific
+    prior written permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
 
 License: Expat
  Permission is hereby granted, free of charge, to any person obtaining a copy
