@@ -7,6 +7,10 @@ cinnamon (2.6.8-1~) UNRELEASED; urgency=medium
   * Remove gnome-settings-daemon and gnome-session-bin from debian/control.
     They are not needed.
 
+  [ Maximiliano Curia ]
+  * Make network-manager a recommends (instead of Depends), so other
+    network managers (or none) can be used.
+
  -- Fabio Fantoni <fantonifabio@tiscali.it>  Sun, 14 Jun 2015 15:17:53 +0200
 
 cinnamon (2.6.7-3) unstable; urgency=high
