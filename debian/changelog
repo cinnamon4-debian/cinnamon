@@ -1,3 +1,10 @@
+cinnamon (2.6.7-3) unstable; urgency=high
+
+  * Re-add doc package.
+  * Use urgency=high to fix testing.
+
+ -- Margarita Manterola <marga@debian.org>  Sat, 13 Jun 2015 20:48:03 +0200
+
 cinnamon (2.6.7-2) unstable; urgency=medium
 
   [ Fabio Fantoni ]
