@@ -1,3 +1,2 @@
-# Dear lintian, there is no python2 package, but its provided by
-# python-minimal
+# There is no python2 package, but its provided by python-minimal
 cinnamon: python-script-but-no-python-dep *
