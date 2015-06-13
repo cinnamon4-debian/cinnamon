@@ -1,12 +1,15 @@
 cinnamon (2.6.7-2~) UNRELEASED; urgency=medium
 
   [ Fabio Fantoni ]
-  * debian/control: cinnamon-doc in doc section.
   * Enable lock on suspend by default for security. (Closes: #788280)
 
   [ Maximiliano Curia ]
   * Split dh_install rules for arch and indep cases.
   * Update copyright information.
+
+  [ Margarita Manterola ]
+  * Remove doc package, it's causing cinnamon to be held in NEW and breaking
+    users as a consequence.
 
  -- Fabio Fantoni <fantonifabio@tiscali.it>  Thu, 04 Jun 2015 10:36:44 +0200
 
