@@ -115,20 +115,6 @@ Description: Innovative and comfortable desktop
  forked from gnome-shell.  The emphasis is put on making users feel at home
  and providing them with an easy to use and comfortable desktop experience.
 
-Package: cinnamon-doc
-Section: doc
-Architecture: all
-Depends: ${misc:Depends}
-Description: Innovative and comfortable desktop (Documentation)
- Cinnamon is a desktop environment which provides advanced innovative
- features and a traditional user experience.
- .
- The desktop layout is similar to GNOME 2.  The underlying technology is
- forked from gnome-shell.  The emphasis is put on making users feel at home
- and providing them with an easy to use and comfortable desktop experience.
- .
- This package contains the documentation files distributed with Cinnamon.
-
 Package: cinnamon-common
 Architecture: all
 Depends: gir1.2-cinnamondesktop-3.0 (>= 2.6),
