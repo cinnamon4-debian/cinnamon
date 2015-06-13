@@ -1,4 +1,4 @@
-cinnamon (2.6.7-2~) UNRELEASED; urgency=medium
+cinnamon (2.6.7-2) unstable; urgency=medium
 
   [ Fabio Fantoni ]
   * Enable lock on suspend by default for security. (Closes: #788280)
@@ -11,7 +11,7 @@ cinnamon (2.6.7-2~) UNRELEASED; urgency=medium
   * Remove doc package, it's causing cinnamon to be held in NEW and breaking
     users as a consequence.
 
- -- Fabio Fantoni <fantonifabio@tiscali.it>  Thu, 04 Jun 2015 10:36:44 +0200
+ -- Margarita Manterola <marga@debian.org>  Sat, 13 Jun 2015 15:04:03 +0200
 
 cinnamon (2.6.7-1) unstable; urgency=medium
 
