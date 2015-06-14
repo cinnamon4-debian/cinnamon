@@ -1,6 +1,11 @@
 cinnamon (2.6.8-1~) UNRELEASED; urgency=medium
 
+  [ Fabio Fantoni ]
   * New upstream release.
+
+  [ Margarita Manterola ]
+  * Remove gnome-settings-daemon and gnome-session-bin from debian/control.
+    They are not needed.
 
  -- Fabio Fantoni <fantonifabio@tiscali.it>  Sun, 14 Jun 2015 15:17:53 +0200
 
