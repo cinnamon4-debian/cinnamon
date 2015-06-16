@@ -9,7 +9,7 @@ cinnamon (2.6.8-1~) UNRELEASED; urgency=medium
 
   [ Maximiliano Curia ]
   * Make network-manager a recommends (instead of Depends), so other
-    network managers (or none) can be used.
+    network managers (or none) can be used. (Closes: #776465)
 
  -- Fabio Fantoni <fantonifabio@tiscali.it>  Sun, 14 Jun 2015 15:17:53 +0200
 
