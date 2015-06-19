@@ -4,7 +4,6 @@ remove-embbeded-jquery.patch
 install-python-files-in-share.patch
 fix-settings-path
 policy_csu_path
-start_cinnamon
 fix-cinnamon-settings-users-path
 fix-cinnamon-desktop-editor-path
 fix-cinnamon-menu-editor-path
