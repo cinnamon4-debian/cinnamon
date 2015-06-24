@@ -1,6 +1,7 @@
-cinnamon (2.6.8-2~) UNRELEASED; urgency=medium
+cinnamon (2.6.9-1~) UNRELEASED; urgency=medium
 
   * debian/patches: removed some unused or not needed patches.
+  * New upstream release.
 
  -- Fabio Fantoni <fantonifabio@tiscali.it>  Fri, 19 Jun 2015 16:53:22 +0200
 
