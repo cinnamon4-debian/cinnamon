@@ -6,6 +6,8 @@ const Lang = imports.lang;
 const Clutter = imports.gi.Clutter;
 const Applet = imports.ui.applet;
 const PopupMenu = imports.ui.popupMenu;
+const Mainloop = imports.mainloop;
+const Util = imports.misc.util;
 
 function MyApplet(orientation, panel_height, instance_id) {
     this._init(orientation, panel_height, instance_id);
@@ -14,20 +16,22 @@ function MyApplet(orientation, panel_height, instance_id) {
 MyApplet.prototype = {
     __proto__: Applet.IconApplet.prototype,
 
-    _init: function(orientation, panel_height, instance_id) {        
+    _init: function(orientation, panel_height, instance_id) {
         Applet.IconApplet.prototype._init.call(this, orientation, panel_height, instance_id);
-        
-        try {        
+
+        try {
             this.set_applet_icon_symbolic_name("user-trash");
             this.set_applet_tooltip(_("Trash"));
-                   
+
             this.trash_path = 'trash:///';
             this.trash_directory =  Gio.file_new_for_uri(this.trash_path);
-            
+
             this._initContextMenu();
 
+            this.trash_changed_timeout = 0;
+
             this._onTrashChange();
-            
+
             this.monitor = this.trash_directory.monitor_directory(0, null, null);
             this.monitor.connect('changed', Lang.bind(this, this._onTrashChange));
         }
@@ -35,7 +39,7 @@ MyApplet.prototype = {
             global.logError(e);
         }
     },
-    
+
     _initContextMenu: function () {
         this.empty_item = new PopupMenu.PopupIconMenuItem(_("Empty Trash"),
                 Gtk.STOCK_REMOVE,
@@ -49,7 +53,7 @@ MyApplet.prototype = {
         this.open_item.connect('activate', Lang.bind(this, this._openTrash));
         this._applet_context_menu.addMenuItem(this.open_item);
     },
-    
+
     on_applet_clicked: function(event) {
         this._openTrash();
     },
@@ -57,17 +61,27 @@ MyApplet.prototype = {
     _openTrash: function() {
         Gio.app_info_launch_default_for_uri(this.trash_directory.get_uri(), null);
     },
-   
+
     _onTrashChange: function() {
-      if (this.trash_directory.query_exists(null)) {
-          let children = this.trash_directory.enumerate_children('standard::*', Gio.FileQueryInfoFlags.NONE, null);          
-          if (children.next_file(null, null) == null) {
-              this.set_applet_icon_symbolic_name("user-trash");        
-          } else {
-              //this.set_applet_icon_name("user-trash-full");
-              this.set_applet_icon_symbolic_name("user-trash");        
-          }
-      }
+      if (this.trash_changed_timeout > 0) {
+            Mainloop.timeout_remove(this.trash_changed_timeout);
+            this.trash_changed_timeout = 0;
+        }
+
+        this.trash_changed_timeout = Mainloop.timeout_add_seconds(1, Lang.bind(this, this._onTrashChangeTimeout));
+    },
+
+    _onTrashChangeTimeout: function() {
+        this.trash_changed_timeout = 0;
+        if (this.trash_directory.query_exists(null)) {
+            let children = this.trash_directory.enumerate_children('standard::*', Gio.FileQueryInfoFlags.NONE, null);
+            if (children.next_file(null, null) == null) {
+                this.set_applet_icon_symbolic_name("user-trash");
+            } else {
+                this.set_applet_icon_symbolic_name("user-trash-full");
+            }
+            children.close();
+        }
     },
 
     _emptyTrash: function() {
@@ -75,16 +89,9 @@ MyApplet.prototype = {
     },
 
     _doEmptyTrash: function() {
-        if (this.trash_directory.query_exists(null)) {
-              let children = this.trash_directory.enumerate_children('*', 0, null, null);
-              let child_info = null;
-              while ((child_info = children.next_file(null, null)) != null) {
-                let child = this.trash_directory.get_child(child_info.get_name());
-                child.delete(null);
-              }
-        }      
+        Util.spawn(['gvfs-trash', '--empty']);
     },
-    
+
     on_orientation_changed: function (orientation) {
         this._initContextMenu();
     }
