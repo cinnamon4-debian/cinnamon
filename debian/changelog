@@ -1,7 +1,11 @@
 cinnamon (2.6.11-1~) UNRELEASED; urgency=medium
 
+  [ Fabio Fantoni ]
   * debian/patches: removed some unused or not needed patches.
   * New upstream release.
+
+  [ Maximiliano Curia ]
+  * New patch: desktop_file_add_main_category.
 
  -- Fabio Fantoni <fantonifabio@tiscali.it>  Fri, 19 Jun 2015 16:53:22 +0200
 

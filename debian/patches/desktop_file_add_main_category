@@ -1,0 +1,12 @@
+Index: cinnamon/files/usr/share/applications/cinnamon-polkit-gnome-authentication-agent-1.desktop
+===================================================================
+--- cinnamon.orig/files/usr/share/applications/cinnamon-polkit-gnome-authentication-agent-1.desktop	2015-06-28 16:52:36.002294838 +0200
++++ cinnamon/files/usr/share/applications/cinnamon-polkit-gnome-authentication-agent-1.desktop	2015-06-28 20:57:20.993691956 +0200
+@@ -82,6 +82,6 @@
+ Exec=/usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1
+ Terminal=false
+ Type=Application
+-Categories=
++Categories=System;Security;
+ NoDisplay=true
+ OnlyShowIn=X-Cinnamon;
