@@ -1,2 +1,4 @@
 # There is no python2 package, but its provided by python-minimal
 cinnamon: python-script-but-no-python-dep *
+# We use the gnome polkit wrapper
+cinnamon: desktop-command-not-in-package usr/share/applications/cinnamon-polkit-gnome-authentication-agent-1.desktop usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1
