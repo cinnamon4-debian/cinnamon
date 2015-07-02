@@ -1,4 +1,4 @@
-cinnamon (2.6.11-1~) UNRELEASED; urgency=medium
+cinnamon (2.6.12-1~) UNRELEASED; urgency=medium
 
   [ Fabio Fantoni ]
   * debian/patches: removed some unused or not needed patches.

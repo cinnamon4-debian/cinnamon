@@ -9,7 +9,7 @@
          self.progress_window = self.builder.get_object("progress_window")
          self.progress_window.set_transient_for(window)
          self.progress_window.set_destroy_with_parent(True)
-@@ -483,9 +483,9 @@
+@@ -479,9 +479,9 @@
                             ui_thread_do(self.progresslabel.set_text, _("Installing %s...") % title)
                      elif "gschema.xml" in file.filename:
                          sentence = _("Please enter your password to install the required settings schema for %s") % (uuid)
@@ -21,7 +21,7 @@
                              command = "%s %s" % (launcher, tool)
                              os.system(command)
                              schema_filename = file.filename
-@@ -584,9 +584,9 @@
+@@ -580,9 +580,9 @@
              if not self.themes:
                  if schema_filename != "":
                      sentence = _("Please enter your password to remove the settings schema for %s") % (uuid)
