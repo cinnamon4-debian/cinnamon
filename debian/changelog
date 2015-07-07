@@ -1,4 +1,4 @@
-cinnamon (2.6.12-1~) UNRELEASED; urgency=medium
+cinnamon (2.6.12-1) unstable; urgency=medium
 
   [ Fabio Fantoni ]
   * debian/patches: removed some unused or not needed patches.
@@ -7,7 +7,7 @@ cinnamon (2.6.12-1~) UNRELEASED; urgency=medium
   [ Maximiliano Curia ]
   * New patch: desktop_file_add_main_category.
 
- -- Fabio Fantoni <fantonifabio@tiscali.it>  Fri, 19 Jun 2015 16:53:22 +0200
+ -- Maximiliano Curia <maxy@debian.org>  Tue, 07 Jul 2015 15:47:14 +0200
 
 cinnamon (2.6.8-1) unstable; urgency=medium
 
