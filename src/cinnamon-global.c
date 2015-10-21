@@ -36,8 +36,6 @@
 static CinnamonGlobal *the_object = NULL;
 
 static void grab_notify (GtkWidget *widget, gboolean is_grab, gpointer user_data);
-static void cinnamon_global_on_gc (GjsContext   *context,
-                                CinnamonGlobal  *global);
 
 struct _CinnamonGlobal {
   GObject parent;
@@ -269,7 +267,6 @@ cinnamon_global_init (CinnamonGlobal *global)
   global->js_context = g_object_new (GJS_TYPE_CONTEXT,
                                      "search-path", search_path,
                                      NULL);
-  // g_signal_connect (global->js_context, "gc", G_CALLBACK (cinnamon_global_on_gc), global);
 
   g_strfreev (search_path);
 }
@@ -645,6 +642,36 @@ cinnamon_global_set_cursor (CinnamonGlobal *global,
     case CINNAMON_CURSOR_POINTING_HAND:
       name = "hand";
       break;
+    case CINNAMON_CURSOR_RESIZE_BOTTOM:
+      name = "bottom_side";
+      break;
+    case CINNAMON_CURSOR_RESIZE_TOP:
+      name = "top_side";
+      break;
+    case CINNAMON_CURSOR_RESIZE_LEFT:
+      name = "left_side";
+      break;
+    case CINNAMON_CURSOR_RESIZE_RIGHT:
+      name = "right_side";
+      break;
+    case CINNAMON_CURSOR_RESIZE_BOTTOM_RIGHT:
+      name = "bottom_right_corner";
+      break;
+    case CINNAMON_CURSOR_RESIZE_BOTTOM_LEFT:
+      name = "bottom_left_corner";
+      break;
+    case CINNAMON_CURSOR_RESIZE_TOP_RIGHT:
+      name = "top_right_corner";
+      break;
+    case CINNAMON_CURSOR_RESIZE_TOP_LEFT:
+      name = "top_left_corner";
+      break;
+    case CINNAMON_CURSOR_CROSSHAIR:
+      name = "crosshair";
+      break;
+    case CINNAMON_CURSOR_TEXT:
+      name = "xterm";
+      break;
     default:
       g_return_if_reached ();
     }
@@ -669,6 +696,36 @@ cinnamon_global_set_cursor (CinnamonGlobal *global,
           break;
         case CINNAMON_CURSOR_DND_UNSUPPORTED_TARGET:
           cursor_type = GDK_X_CURSOR;
+          break;
+        case CINNAMON_CURSOR_RESIZE_BOTTOM:
+          cursor_type = GDK_BOTTOM_SIDE;
+          break;
+        case CINNAMON_CURSOR_RESIZE_TOP:
+          cursor_type = GDK_TOP_SIDE;
+          break;
+        case CINNAMON_CURSOR_RESIZE_LEFT:
+          cursor_type = GDK_LEFT_SIDE;
+          break;
+        case CINNAMON_CURSOR_RESIZE_RIGHT:
+          cursor_type = GDK_RIGHT_SIDE;
+          break;
+        case CINNAMON_CURSOR_RESIZE_BOTTOM_RIGHT:
+          cursor_type = GDK_BOTTOM_RIGHT_CORNER;
+          break;
+        case CINNAMON_CURSOR_RESIZE_BOTTOM_LEFT:
+          cursor_type = GDK_BOTTOM_LEFT_CORNER;
+          break;
+        case CINNAMON_CURSOR_RESIZE_TOP_RIGHT:
+          cursor_type = GDK_TOP_RIGHT_CORNER;
+          break;
+        case CINNAMON_CURSOR_RESIZE_TOP_LEFT:
+          cursor_type = GDK_TOP_LEFT_CORNER;
+          break;
+        case CINNAMON_CURSOR_CROSSHAIR:
+          cursor_type = GDK_CROSSHAIR;
+          break;
+        case CINNAMON_CURSOR_TEXT:
+          cursor_type = GDK_XTERM;
           break;
         default:
           g_return_if_reached ();
@@ -832,46 +889,6 @@ global_stage_after_paint (ClutterStage *stage,
 {
   cinnamon_perf_log_event (cinnamon_perf_log_get_default (),
                         "clutter.stagePaintDone");
-}
-
-static void
-constrain_tooltip (StTooltip             *tooltip,
-                   const ClutterGeometry *geometry,
-                   ClutterGeometry       *adjusted_geometry,
-                   gpointer               data)
-{
-  const ClutterGeometry *tip_area = st_tooltip_get_tip_area (tooltip);
-  CinnamonGlobal *global = cinnamon_global_get ();
-  MetaScreen *screen = cinnamon_global_get_screen (global);
-  int n_monitors = meta_screen_get_n_monitors (screen);
-  int i;
-
-  *adjusted_geometry = *geometry;
-
-  /* A point that determines what screen we'll constrain to */
-  int x = tip_area->x + tip_area->width / 2;
-  int y = tip_area->y + tip_area->height / 2;
-
-  for (i = 0; i < n_monitors; i++)
-    {
-      MetaRectangle rect;
-      meta_screen_get_monitor_geometry (screen, i, &rect);
-      if (x >= rect.x && x < rect.x + rect.width &&
-          y >= rect.y && y < rect.y + rect.height)
-        {
-          if (adjusted_geometry->x + adjusted_geometry->width > rect.x + rect.width)
-            adjusted_geometry->x = rect.x + rect.width - adjusted_geometry->width;
-          if (adjusted_geometry->x < rect.x)
-            adjusted_geometry->x = rect.x;
-
-          if (adjusted_geometry->y + adjusted_geometry->height > rect.y + rect.height)
-            adjusted_geometry->y = rect.y + rect.height - adjusted_geometry->height;
-          if (adjusted_geometry->y < rect.y)
-            adjusted_geometry->y = rect.y;
-
-          return;
-        }
-    }
 }
 
 static void
@@ -1337,13 +1354,6 @@ cinnamon_global_shutdown (void)
     meta_display_unmanage_screen (cinnamon_global_get_display (the_object),
                                   cinnamon_global_get_screen (the_object),
                                   cinnamon_global_get_current_time (the_object));
-}
-
-static void
-cinnamon_global_on_gc (GjsContext   *context,
-                    CinnamonGlobal  *global)
-{
-  global->last_gc_end_time = g_get_monotonic_time ();
 }
 
 /**

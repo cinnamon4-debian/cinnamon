@@ -82,7 +82,7 @@ MyApplet.prototype = {
             } else {
                 this.set_applet_icon_symbolic_name("user-trash-full");
             }
-            children.close();
+            children.close(null);
         }
     },
 
@@ -92,10 +92,6 @@ MyApplet.prototype = {
 
     _doEmptyTrash: function() {
         Util.spawn(['gvfs-trash', '--empty']);
-    },
-
-    on_orientation_changed: function (orientation) {
-        this._initContextMenu();
     }
 };
 
