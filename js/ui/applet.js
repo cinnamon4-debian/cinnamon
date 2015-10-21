@@ -271,13 +271,7 @@ Applet.prototype = {
     set_applet_enabled: function (enabled) {
         if (enabled != this._applet_enabled) {
             this._applet_enabled = enabled;
-            if (enabled) {
-                this.actor.set_style_class_name('applet-box');
-            }
-            else {
-                this.set_applet_tooltip('');
-                this.actor.set_style("padding:0px;");
-            }
+            this.actor.visible = enabled;
         }
     },
 
@@ -680,6 +674,23 @@ TextIconApplet.prototype = {
         }
         else {
             this._applet_label.set_margin_left(0);
+        }
+    },
+
+    /**
+     * set_applet_enabled:
+     * @enabled (boolean): whether this applet is enabled or not
+     * 
+     * Sets whether the applet is enabled or not. A disabled applet sets its
+     * padding to 0px and doesn't react to clicks
+     */
+    set_applet_enabled: function (enabled) {
+        if (enabled != this._applet_enabled) {
+            this._applet_enabled = enabled;
+            this.actor.visible = enabled;
+            if (this._applet_icon) {
+                this._applet_icon.visible = enabled;
+            }
         }
     },
 
