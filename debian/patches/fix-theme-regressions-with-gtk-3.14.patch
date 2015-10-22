@@ -2,8 +2,10 @@ Description: Fix theme regressions with gtk 3.14
 Author: leigh123linux
 Origin: git of fedora packages
 ---
---- a/files/usr/lib/cinnamon-settings/modules/cs_themes.py
-+++ b/files/usr/lib/cinnamon-settings/modules/cs_themes.py
+Index: cinnamon/files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py
+===================================================================
+--- cinnamon.orig/files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py	2015-10-21 12:58:53.194240472 +0200
++++ cinnamon/files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py	2015-10-22 13:10:58.983148384 +0200
 @@ -262,7 +262,7 @@
  
      def _load_icon_themes(self):

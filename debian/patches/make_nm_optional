@@ -1,6 +1,8 @@
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -292,7 +292,10 @@
+Index: cinnamon/src/Makefile.am
+===================================================================
+--- cinnamon.orig/src/Makefile.am	2015-10-22 13:02:49.970798376 +0200
++++ cinnamon/src/Makefile.am	2015-10-22 13:02:49.962798698 +0200
+@@ -288,7 +288,10 @@
  libcinnamon_la_CPPFLAGS = $(cinnamon_cflags)
  
  Cinnamon-0.1.gir: libcinnamon.la St-1.0.gir
@@ -12,8 +14,10 @@
  Cinnamon_0_1_gir_CFLAGS = $(libcinnamon_la_CPPFLAGS) -I $(srcdir)
  Cinnamon_0_1_gir_LIBS = libcinnamon.la
  Cinnamon_0_1_gir_FILES = $(libcinnamon_la_gir_sources)
---- a/configure.ac
-+++ b/configure.ac
+Index: cinnamon/configure.ac
+===================================================================
+--- cinnamon.orig/configure.ac	2015-10-22 13:02:49.970798376 +0200
++++ cinnamon/configure.ac	2015-10-22 13:02:49.970798376 +0200
 @@ -82,7 +82,12 @@
                                 libstartup-notification-1.0 >= $STARTUP_NOTIFICATION_MIN_VERSION
                                 gobject-introspection-1.0 >= $GOBJECT_INTROSPECTION_MIN_VERSION
