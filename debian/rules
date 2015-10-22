@@ -34,14 +34,10 @@ override_dh_auto_test:
 override_dh_install-indep:
 	dh_install --list-missing
 
-	rm -f debian/cinnamon-common/usr/share/cinnamon/cinnamon-settings/bin/capi.py
 	rm -f debian/cinnamon-common/usr/share/cinnamon/js/misc/config.js
 
 override_dh_install-arch:
 	dh_install -X.la --list-missing
-
-	sed -i 's!lib/cinnamon!lib/$(DEB_HOST_MULTIARCH)/cinnamon!' \
-	    debian/cinnamon/usr/lib/cinnamon/capi.py
 
 override_dh_girepository:
 	dh_girepository -l src /usr/lib/$(DEB_HOST_MULTIARCH)/cinnamon
