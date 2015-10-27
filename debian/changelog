@@ -1,6 +1,6 @@
-cinnamon (2.8.0-1~) UNRELEASED; urgency=medium
+cinnamon (2.8.1-1~) UNRELEASED; urgency=medium
 
-  * New upstream release (2.8.0).
+  * New upstream release (2.8.1).
   * Update debian patches.
 
  -- Maximiliano Curia <maxy@debian.org>  Wed, 21 Oct 2015 12:58:53 +0200
