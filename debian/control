@@ -134,6 +134,7 @@ Package: cinnamon-common
 Architecture: all
 Depends: gir1.2-cinnamondesktop-3.0 (>= 2.8),
          gir1.2-meta-muffin-0.0 (>= 2.8),
+         gvfs-bin,
          python,
          python-pil,
          ${misc:Depends},
