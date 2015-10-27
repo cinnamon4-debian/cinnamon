@@ -3,11 +3,9 @@ Description: changed the background folder from mint specific package to
 Author: leigh123linux <leigh123linux@googlemail.com>
 Origin: Fedora
 Forwarded: not-needed
-Index: cinnamon/files/usr/share/cinnamon/cinnamon-settings/modules/cs_backgrounds.py
-===================================================================
---- cinnamon.orig/files/usr/share/cinnamon/cinnamon-settings/modules/cs_backgrounds.py	2015-10-22 13:14:32.414571997 +0200
-+++ cinnamon/files/usr/share/cinnamon/cinnamon-settings/modules/cs_backgrounds.py	2015-10-22 13:14:32.410572156 +0200
-@@ -211,7 +211,7 @@
+--- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_backgrounds.py
++++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_backgrounds.py
+@@ -219,7 +219,7 @@
      def get_system_backgrounds(self):
          picture_list = []
          folder_list = []
