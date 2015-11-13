@@ -1,9 +1,8 @@
-cinnamon (2.8.3-1~) UNRELEASED; urgency=medium
+cinnamon (2.8.4-1~) UNRELEASED; urgency=medium
 
-  * New upstream release (2.8.2).
+  * New upstream release (2.8.4).
   * Update debian patches.
   * Add missing dependency of gvfs-open.
-  * New upstream release (2.8.3).
 
  -- Maximiliano Curia <maxy@debian.org>  Tue, 10 Nov 2015 15:42:42 +0100
 
