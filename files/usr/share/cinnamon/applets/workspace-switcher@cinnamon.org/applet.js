@@ -21,6 +21,11 @@ WorkspaceButton.prototype = {
         this.workspace = global.screen.get_workspace_by_index(this.index);
         this.workspace_name = Main.getWorkspaceName(index);
         this.actor = null; // defined in subclass
+
+        this.ws_signals = new SignalManager.SignalManager(this);
+
+        this.ws_signals.connect(this.workspace, "window-added", this.update);
+        this.ws_signals.connect(this.workspace, "window-removed", this.update);
     },
 
     show : function() {
@@ -39,6 +44,7 @@ WorkspaceButton.prototype = {
     },
 
     destroy: function() {
+        this.ws_signals.disconnectAllSignals();
         this._tooltip.destroy();
         this.actor.destroy();
     }
@@ -109,7 +115,7 @@ WorkspaceGraph.prototype = {
             windows = windows.filter( Main.isInteresting );
             windows = windows.filter(
                 function(w) {
-                    return !w.is_skip_taskbar() && !w.minimized && !(w.maximized_horizontally && w.maximized_vertically);
+                    return !w.is_skip_taskbar() && !w.minimized;
                 });
             windows.sort(this.sortWindowsByUserTime);
 
