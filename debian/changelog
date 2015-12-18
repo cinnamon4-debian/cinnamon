@@ -1,6 +1,6 @@
 cinnamon (2.8.6-1~) UNRELEASED; urgency=medium
 
-  * New upstream release.
+  * New upstream release. (Closes: #802552)
   * Update debian patches.
   * Add missing dependency of gvfs-open.
 
