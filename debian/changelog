@@ -1,6 +1,7 @@
 cinnamon (2.8.6-2~) UNRELEASED; urgency=medium
 
-  * 
+  * Add cinnamon-doc suggests. (Closes: 805900) Thanks to Christoph
+    Anton Mitterer for reporting.
 
  -- Maximiliano Curia <maxy@debian.org>  Sat, 20 Feb 2016 09:45:50 +0100
 

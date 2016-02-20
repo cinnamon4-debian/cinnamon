@@ -104,7 +104,7 @@ Recommends: cinnamon-l10n,
             gksu,
             gnome-terminal | x-terminal-emulator,
             network-manager-gnome [linux-any]
-Suggests: python-opencv
+Suggests: cinnamon-doc, python-opencv
 Provides: notification-daemon, x-window-manager
 Replaces: cinnamon-common (<= 2.2.14-1)
 Breaks: cinnamon-common (<= 2.2.14-1)
