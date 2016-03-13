@@ -12,6 +12,7 @@ const DeskletManager = imports.ui.deskletManager;
 const ExtensionSystem = imports.ui.extensionSystem;
 const SearchProviderManager = imports.ui.searchProviderManager;
 const Util = imports.misc.util;
+const Cinnamon = imports.gi.Cinnamon;
 
 const CinnamonIface =
     '<node> \
@@ -102,11 +103,11 @@ const CinnamonIface =
         </interface> \
     </node>';
 
-function Cinnamon() {
+function CinnamonDBus() {
     this._init();
 }
 
-Cinnamon.prototype = {
+CinnamonDBus.prototype = {
     _init: function() {
         this._dbusImpl = Gio.DBusExportedObject.wrapJSObject(CinnamonIface, this);
         this._dbusImpl.export(Gio.DBus.session, '/org/Cinnamon');
@@ -142,14 +143,11 @@ Cinnamon.prototype = {
         return [success, returnValue];
     },
 
-    _onScreenshotComplete: function(obj, result, area, flash, invocation) {
+    _onScreenshotComplete: function(obj, result, area, flash) {
         if (flash) {
             let flashspot = new Flashspot.Flashspot(area);
             flashspot.fire();
         }
-
-        let retval = GLib.Variant.new('(b)', [result]);
-        invocation.return_value(retval);
     },
 
     /**
@@ -167,12 +165,10 @@ Cinnamon.prototype = {
      * indicating whether the operation was successful or not.
      *
      */
-    ScreenshotAreaAsync : function (params, invocation) {
-        let [include_cursor, x, y, width, height, flash, filename, callback] = params;
+    ScreenshotArea: function (include_cursor, x, y, width, height, flash, filename) {
         let screenshot = new Cinnamon.Screenshot();
-        screenshot.screenshot_area (include_cursor, x, y, width, height, filename,
-                                Lang.bind(this, this._onScreenshotComplete,
-                                          flash, invocation));
+        screenshot.screenshot_area (include_cursor, x, y, width, 200, filename,
+                                Lang.bind(this, this._onScreenshotComplete, flash));
     },
 
     /**
@@ -187,8 +183,7 @@ Cinnamon.prototype = {
      * indicating whether the operation was successful or not.
      *
      */
-    ScreenshotWindowAsync : function (params, invocation) {
-        let [include_frame, include_cursor, flash, filename] = params;
+    ScreenshotWindow: function (include_frame, include_cursor, flash, filename) {
         let screenshot = new Cinnamon.Screenshot();
         screenshot.screenshot_window (include_frame, include_cursor, filename,
                                       Lang.bind(this, this._onScreenshotComplete,
@@ -206,8 +201,7 @@ Cinnamon.prototype = {
      * indicating whether the operation was successful or not.
      *
      */
-    ScreenshotAsync : function (params, invocation) {
-        let [include_cursor, flash, filename] = params;
+    Screenshot: function (include_cursor, flash, filename) {
         let screenshot = new Cinnamon.Screenshot();
         screenshot.screenshot(include_cursor, filename,
                           Lang.bind(this, this._onScreenshotComplete,

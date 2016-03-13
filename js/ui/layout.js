@@ -384,7 +384,7 @@ Chrome.prototype = {
         this._screenSaverProxy.GetActiveRemote(Lang.bind(this,
             function(result, err) {
                 if (!err)
-                    this._onScreenSaverActiveChanged(this._screenSaverProxy, result);
+                    this._onScreenSaverActiveChanged(this._screenSaverProxy, null, result);
             }));
 
         this._relayout();
@@ -519,8 +519,9 @@ Chrome.prototype = {
             if (!actorData.isToplevel)
                 continue;
 
-            if (this._screenSaverActive)
+            if (this._screenSaverActive) {
                 visible = false;
+            }
             else if (this._inOverview)
                 visible = true;
             else if (!actorData.visibleInFullscreen &&
@@ -552,8 +553,8 @@ Chrome.prototype = {
         this._queueUpdateRegions();
     },
 
-    _onScreenSaverActiveChanged: function(proxy, screenSaverActive) {
-        this._screenSaverActive = screenSaverActive;
+    _onScreenSaverActiveChanged: function(proxy, connection, screenSaverActive) {
+        this._screenSaverActive = screenSaverActive[0];
         this._updateVisibility();
         this._queueUpdateRegions();
     },
