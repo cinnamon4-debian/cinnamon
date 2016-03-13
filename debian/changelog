@@ -1,4 +1,4 @@
-cinnamon (2.8.7-1~) UNRELEASED; urgency=medium
+cinnamon (2.8.7-1) unstable; urgency=medium
 
   [ Maximiliano Curia ]
   * Add cinnamon-doc suggests. (Closes: 805900) Thanks to Christoph
@@ -10,7 +10,7 @@ cinnamon (2.8.7-1~) UNRELEASED; urgency=medium
   * New upstream release.
   * Update debian patches.
 
- -- Maximiliano Curia <maxy@debian.org>  Sat, 20 Feb 2016 09:45:50 +0100
+ -- Maximiliano Curia <maxy@debian.org>  Sun, 13 Mar 2016 19:43:24 +0100
 
 cinnamon (2.8.6-1) unstable; urgency=medium
 
