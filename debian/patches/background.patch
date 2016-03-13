@@ -5,7 +5,7 @@ Origin: Fedora
 Forwarded: not-needed
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_backgrounds.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_backgrounds.py
-@@ -219,7 +219,7 @@
+@@ -221,7 +221,7 @@
      def get_system_backgrounds(self):
          picture_list = []
          folder_list = []
