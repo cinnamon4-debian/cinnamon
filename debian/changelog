@@ -3,6 +3,8 @@ cinnamon (2.8.7-1~) UNRELEASED; urgency=medium
   [ Maximiliano Curia ]
   * Add cinnamon-doc suggests. (Closes: 805900) Thanks to Christoph
     Anton Mitterer for reporting.
+  * New patch: 0007-Drop-nm-applet-from-the-session-files.patch (Closes:
+    #818084) Thanks to Christian Pernegger for reporting.
 
   [ Fabio Fantoni ]
   * New upstream release.
