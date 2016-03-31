@@ -1,3 +1,10 @@
+cinnamon (2.8.8-1~) UNRELEASED; urgency=medium
+
+  * New upstream release.
+  * Update debian patches.
+
+ -- Fabio Fantoni <fantonifabio@tiscali.it>  Thu, 31 Mar 2016 12:11:38 +0200
+
 cinnamon (2.8.7-1) unstable; urgency=medium
 
   [ Maximiliano Curia ]
