@@ -6,6 +6,7 @@ cinnamon (2.8.8-1~) UNRELEASED; urgency=medium
 
   [ Maximiliano Curia ]
   * Update default favorite apps. Thanks to musca for reporting via irc.
+  * Bump Standards-Version to 3.9.7, no changes needed.
 
  -- Fabio Fantoni <fantonifabio@tiscali.it>  Thu, 31 Mar 2016 12:11:38 +0200
 
