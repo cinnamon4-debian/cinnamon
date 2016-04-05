@@ -1,7 +1,11 @@
 cinnamon (2.8.8-1~) UNRELEASED; urgency=medium
 
+  [ Fabio Fantoni ]
   * New upstream release.
   * Update debian patches.
+
+  [ Maximiliano Curia ]
+  * Update default favorite apps. Thanks to musca for reporting via irc.
 
  -- Fabio Fantoni <fantonifabio@tiscali.it>  Thu, 31 Mar 2016 12:11:38 +0200
 

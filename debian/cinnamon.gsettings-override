@@ -1,5 +1,5 @@
 [org.cinnamon]
-favorite-apps=[ 'iceweasel.desktop', 'cinnamon-settings.desktop', 'pidgin.desktop', 'gnome-terminal.desktop', 'nemo.desktop' ]
+favorite-apps=[ 'firefox.desktop', 'cinnamon-settings.desktop', 'pidgin.desktop', 'org.gnome.Terminal.desktop', 'nemo.desktop' ]
 
 [org.cinnamon.settings-daemon.plugins.power]
 lock-on-suspend=true
