@@ -1,0 +1,25 @@
+From: =?utf-8?q?Mart=C3=ADn_Ferrari?= <ticho@debian.org>
+Date: Wed, 6 Apr 2016 15:39:48 +0200
+Subject: Avoid using unescaped file names
+
+---
+ .../usr/share/cinnamon/desklets/photoframe@cinnamon.org/desklet.js  | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/files/usr/share/cinnamon/desklets/photoframe@cinnamon.org/desklet.js b/files/usr/share/cinnamon/desklets/photoframe@cinnamon.org/desklet.js
+index 79c415d..d90d1e0 100644
+--- a/files/usr/share/cinnamon/desklets/photoframe@cinnamon.org/desklet.js
++++ b/files/usr/share/cinnamon/desklets/photoframe@cinnamon.org/desklet.js
+@@ -245,9 +245,9 @@ MyDesklet.prototype = {
+             if (event.get_button() == 1) {
+                 this._update();
+             }
+-            else if (event.get_button() == 2) {     
+-                Util.spawnCommandLine("xdg-open " + this.currentPicture);                
+-            }            
++            else if (event.get_button() == 2) {
++                Util.spawn(["xdg-open", this.currentPicture._path]);
++            }
+         }
+         catch (e) {
+             global.logError(e);

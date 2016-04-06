@@ -4,4 +4,5 @@ add_policykit-1-gnome_to_session
 make_nm_optional
 fix-theme-regressions-with-gtk-3.14.patch
 background.patch
-0007-Drop-nm-applet-from-the-session-files.patch
+Drop-nm-applet-from-the-session-files.patch
+Avoid-using-unescaped-file-names.patch
