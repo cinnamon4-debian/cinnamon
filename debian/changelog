@@ -9,6 +9,8 @@ cinnamon (2.8.8-1~) UNRELEASED; urgency=medium
   * Bump Standards-Version to 3.9.7, no changes needed.
   * Add new patch: Fix-middle-click-action-in-the-photo-frame.patch
     (Closes: #761309) Thanks to Martín Ferrari for the report and patch
+  * Add new patch: photoframe-recurse-subdirectories.patch (Closes:
+    #761310) Thanks to Martín Ferrari for the report and patch
 
  -- Fabio Fantoni <fantonifabio@tiscali.it>  Thu, 31 Mar 2016 12:11:38 +0200
 

@@ -6,3 +6,4 @@ fix-theme-regressions-with-gtk-3.14.patch
 background.patch
 Drop-nm-applet-from-the-session-files.patch
 Fix-middle-click-action-in-the-photo-frame.patch
+photoframe-recurse-subdirectories.patch
