@@ -1830,7 +1830,7 @@ PopupMenuBase.prototype = {
             let items = this._getMenuItems();
             if (position < items.length) {
                 before_item = items[position].actor;
-                this.box.insert_before(menuItem.actor, before_item);
+                this.box.insert_child_below(menuItem.actor, before_item);
             } else
                 this.box.add(menuItem.actor);
         }
@@ -1846,7 +1846,7 @@ PopupMenuBase.prototype = {
             if (before_item == null)
                 this.box.add(menuItem.menu.actor);
             else
-                this.box.insert_before(menuItem.menu.actor, before_item);
+                this.box.insert_child_below(menuItem.menu.actor, before_item);
             this._connectSubMenuSignals(menuItem, menuItem.menu);
             this._connectItemSignals(menuItem);
             menuItem._closingId = this.connect('open-state-changed', function(self, open) {
@@ -3200,6 +3200,9 @@ PopupMenuManager.prototype = {
     _onEventCapture: function(actor, event) {
         if (!this.grabbed)
             return false;
+
+        if (Main.keyboard.shouldTakeEvent(event))
+            return Clutter.EVENT_PROPAGATE;
 
         if (this._owner.menuEventFilter &&
             this._owner.menuEventFilter(event))
