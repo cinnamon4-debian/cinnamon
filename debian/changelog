@@ -1,4 +1,4 @@
-cinnamon (2.8.8-1~) UNRELEASED; urgency=medium
+cinnamon (3.0.1-1~) UNRELEASED; urgency=medium
 
   [ Fabio Fantoni ]
   * New upstream release.
@@ -11,8 +11,9 @@ cinnamon (2.8.8-1~) UNRELEASED; urgency=medium
     (Closes: #761309) Thanks to Martín Ferrari for the report and patch
   * Add new patch: photoframe-recurse-subdirectories.patch (Closes:
     #761310) Thanks to Martín Ferrari for the report and patch
+  * New upstream release (3.0.1).
 
- -- Fabio Fantoni <fantonifabio@tiscali.it>  Thu, 31 Mar 2016 12:11:38 +0200
+ -- Maximiliano Curia <maxy@debian.org>  Wed, 04 May 2016 17:19:03 +0200
 
 cinnamon (2.8.7-1) unstable; urgency=medium
 
