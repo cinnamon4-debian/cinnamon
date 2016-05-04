@@ -96,7 +96,7 @@ class ExtensionSidePage (SidePage):
         extensions_vbox = Gtk.VBox()
 
         self.search_entry = Gtk.Entry()
-        self.search_entry.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, 'edit-find')
+        self.search_entry.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, 'edit-find-symbolic')
         self.search_entry.set_placeholder_text(_("Search"))
         self.search_entry.connect('changed', self.on_entry_refilter)
 
@@ -375,9 +375,8 @@ class ExtensionSidePage (SidePage):
 
 
         right = Gtk.CellRendererText()
-        right.set_property('xalign', 1.0)
+        right.set_property('xalign', 0.5)
         gm_column4 = Gtk.TreeViewColumn("Score", right, markup=4)
-        gm_column4.set_alignment(1.0)
         gm_column4.set_expand(True)
 
         self.gm_treeview.append_column(gm_column1)
@@ -911,7 +910,7 @@ class ExtensionSidePage (SidePage):
             iter = self.gm_model.insert_before(None, None)
             self.gm_model.set_value(iter, 0, uuid)
             if not self.themes:
-                self.gm_model.set_value(iter, 1, '<b>%s</b>\n<b><span foreground="#333333" size="x-small">%s</span></b>' % (extensionName, uuid))
+                self.gm_model.set_value(iter, 1, '<b>%s</b>\n<b><span size="x-small">%s</span></b>' % (extensionName, uuid))
             else:
                 self.gm_model.set_value(iter, 1, '<b>%s</b>' % (extensionName))
             self.gm_model.set_value(iter, 2, 0)
@@ -1192,8 +1191,11 @@ Please contact the developer.""")
                 msg = _("This will restore the default set of enabled applets. Are you sure you want to do this?")
             elif self.collection_type == "desklet":
                 msg = _("This will restore the default set of enabled desklets. Are you sure you want to do this?")
+            elif self.collection_type == "extension":
+                msg = _("This will disable all active extensions. Are you sure you want to do this?")
             if self.show_prompt(msg):
-                os.system(('gsettings reset org.cinnamon next-%s-id') % (self.collection_type))
+                if self.collection_type != "extension":
+                    os.system(('gsettings reset org.cinnamon next-%s-id') % (self.collection_type))
                 os.system(('gsettings reset org.cinnamon enabled-%ss') % (self.collection_type))
         else:
             os.system("gsettings reset org.cinnamon.theme name")
@@ -1300,8 +1302,8 @@ Please contact the developer.""")
                     self.model.set_value(iter, 0, extension_uuid)
                     self.model.set_value(iter, 1, '''\
 <b>%s</b>
-<b><span foreground="#333333" size="xx-small">%s</span></b>
-<i><span foreground="#555555" size="x-small">%s</span></i>''' % (extension_name, extension_uuid, extension_description))
+<b><span size="xx-small">%s</span></b>
+<i><span size="x-small">%s</span></i>''' % (extension_name, extension_uuid, extension_description))
 
                     self.model.set_value(iter, 2, found)
                     self.model.set_value(iter, 3, extension_max_instances)

@@ -1,5 +1,5 @@
 AC_PREREQ(2.63)
-AC_INIT([cinnamon],[2.8.8],[https://github.com/linuxmint/Cinnamon/issues],[cinnamon])
+AC_INIT([cinnamon],[3.0.1],[https://github.com/linuxmint/Cinnamon/issues],[cinnamon])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([src/cinnamon-global.c])
@@ -64,7 +64,7 @@ AM_CONDITIONAL(BUILD_RECORDER, $build_recorder)
 CLUTTER_MIN_VERSION=1.10.0
 GOBJECT_INTROSPECTION_MIN_VERSION=0.9.2
 GJS_MIN_VERSION=2.3.1
-MUFFIN_MIN_VERSION=2.5.0
+MUFFIN_MIN_VERSION=3.0.0
 GTK_MIN_VERSION=3.9.12
 GIO_MIN_VERSION=2.35.0
 POLKIT_MIN_VERSION=0.100
@@ -109,7 +109,6 @@ LIBS=$saved_LIBS
 PKG_CHECK_MODULES(ST, clutter-1.0 gtk+-3.0 libcroco-0.6 >= 0.6.2 cinnamon-desktop >= 2.4.0 x11)
 PKG_CHECK_MODULES(GDMUSER, dbus-glib-1 gtk+-3.0)
 PKG_CHECK_MODULES(TRAY, gtk+-3.0)
-PKG_CHECK_MODULES(GVC, libpulse libpulse-mainloop-glib gobject-2.0)
 PKG_CHECK_MODULES(DESKTOP_SCHEMAS, cinnamon-desktop >= 2.4.0)
 
 AC_MSG_CHECKING([for bluetooth support])

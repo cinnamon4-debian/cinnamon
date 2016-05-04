@@ -359,20 +359,22 @@ TransientButton.prototype = {
     }
 }
 
-function ApplicationButton(appsMenuButton, app) {
-    this._init(appsMenuButton, app);
+function ApplicationButton(appsMenuButton, app, showIcon) {
+    this._init(appsMenuButton, app, showIcon);
 }
 
 ApplicationButton.prototype = {
     __proto__: GenericApplicationButton.prototype,
     
-    _init: function(appsMenuButton, app) {
+    _init: function(appsMenuButton, app, showIcon) {
         GenericApplicationButton.prototype._init.call(this, appsMenuButton, app, true);
         this.category = new Array();
         this.actor.set_style_class_name('menu-application-button');
 
-        this.icon = this.app.create_icon_texture(APPLICATION_ICON_SIZE)
-        this.addActor(this.icon);
+        if (showIcon) {
+            this.icon = this.app.create_icon_texture(APPLICATION_ICON_SIZE)
+            this.addActor(this.icon);
+        }
         this.name = this.app.get_name();
         this.label = new St.Label({ text: this.name, style_class: 'menu-application-button-label' });
         this.label.clutter_text.ellipsize = Pango.EllipsizeMode.END;        
@@ -381,7 +383,9 @@ ApplicationButton.prototype = {
         this._draggable = DND.makeDraggable(this.actor);
         this.isDraggableApp = true;
         this.actor.label_actor = this.label;
-        this.icon.realize();
+        if (showIcon) {
+            this.icon.realize();
+        }
         this.label.realize();
     },     
     
@@ -481,14 +485,14 @@ SearchProviderResultButton.prototype = {
     }
 }
 
-function PlaceButton(appsMenuButton, place, button_name) {
-    this._init(appsMenuButton, place, button_name);
+function PlaceButton(appsMenuButton, place, button_name, showIcon) {
+    this._init(appsMenuButton, place, button_name, showIcon);
 }
 
 PlaceButton.prototype = {
     __proto__: PopupMenu.PopupBaseMenuItem.prototype,
 
-    _init: function(appsMenuButton, place, button_name) {
+    _init: function(appsMenuButton, place, button_name, showIcon) {
         PopupMenu.PopupBaseMenuItem.prototype._init.call(this, {hover: false});
         this.appsMenuButton = appsMenuButton;
         this.place = place;
@@ -498,13 +502,16 @@ PlaceButton.prototype = {
         this.label = new St.Label({ text: this.button_name, style_class: 'menu-application-button-label' });
         this.label.clutter_text.ellipsize = Pango.EllipsizeMode.END;        
         this.label.set_style(MAX_BUTTON_WIDTH);
-        this.icon = place.iconFactory(APPLICATION_ICON_SIZE);
-        if (!this.icon)
-            this.icon = new St.Icon({icon_name: "folder", icon_size: APPLICATION_ICON_SIZE, icon_type: St.IconType.FULLCOLOR});
-        if (this.icon)
-            this.addActor(this.icon);
+        if (showIcon) {
+            this.icon = place.iconFactory(APPLICATION_ICON_SIZE);
+            if (!this.icon)
+                this.icon = new St.Icon({icon_name: "folder", icon_size: APPLICATION_ICON_SIZE, icon_type: St.IconType.FULLCOLOR});
+            if (this.icon)
+                this.addActor(this.icon);
+        }
         this.addActor(this.label);
-        this.icon.realize();
+        if (showIcon)
+            this.icon.realize();
         this.label.realize();
     },
 
@@ -546,14 +553,14 @@ RecentContextMenuItem.prototype = {
     }
 };
 
-function RecentButton(appsMenuButton, file) {
-    this._init(appsMenuButton, file);
+function RecentButton(appsMenuButton, file, showIcon) {
+    this._init(appsMenuButton, file, showIcon);
 }
 
 RecentButton.prototype = {
     __proto__: PopupMenu.PopupSubMenuMenuItem.prototype,
 
-    _init: function(appsMenuButton, file) {
+    _init: function(appsMenuButton, file, showIcon) {
         PopupMenu.PopupBaseMenuItem.prototype._init.call(this, {hover: false});
         this.file = file;
         this.appsMenuButton = appsMenuButton;
@@ -563,10 +570,13 @@ RecentButton.prototype = {
         this.label = new St.Label({ text: this.button_name, style_class: 'menu-application-button-label' });
         this.label.clutter_text.ellipsize = Pango.EllipsizeMode.END;        
         this.label.set_style(MAX_BUTTON_WIDTH);
-        this.icon = file.createIcon(APPLICATION_ICON_SIZE);
-        this.addActor(this.icon);
+        if (showIcon) {
+            this.icon = file.createIcon(APPLICATION_ICON_SIZE);
+            this.addActor(this.icon);
+        }
         this.addActor(this.label);
-        this.icon.realize();
+        if (showIcon)
+            this.icon.realize();
         this.label.realize();
 
         this.menu = new PopupMenu.PopupSubMenu(this.actor);
@@ -740,25 +750,29 @@ RecentClearButton.prototype = {
     }
 };
 
-function CategoryButton(app) {
-    this._init(app);
+function CategoryButton(app, showIcon) {
+    this._init(app, showIcon);
 }
 
 CategoryButton.prototype = {
     __proto__: PopupMenu.PopupBaseMenuItem.prototype,
 
-    _init: function(category) {
+    _init: function(category, showIcon) {
         PopupMenu.PopupBaseMenuItem.prototype._init.call(this, {hover: false});
 
         this.actor.set_style_class_name('menu-category-button');
         var label;
         let icon = null;
         if (category) {
-            icon = category.get_icon();
-            if (icon && icon.get_names)
-                this.icon_name = icon.get_names().toString();
-            else
+            if (showIcon) {
+                icon = category.get_icon();
+                if (icon && icon.get_names)
+                    this.icon_name = icon.get_names().toString();
+                else
+                    this.icon_name = "";
+            } else {
                 this.icon_name = "";
+            }
             label = category.get_name();
         } else
             label = _("All Applications");
@@ -778,41 +792,49 @@ CategoryButton.prototype = {
     }
 };
 
-function PlaceCategoryButton(app) {
-    this._init(app);
+function PlaceCategoryButton(app, showIcon) {
+    this._init(app, showIcon);
 }
 
 PlaceCategoryButton.prototype = {
     __proto__: PopupMenu.PopupBaseMenuItem.prototype,
 
-    _init: function(category) {
+    _init: function(category, showIcon) {
         PopupMenu.PopupBaseMenuItem.prototype._init.call(this, {hover: false});
         this.actor.set_style_class_name('menu-category-button');
         this.actor._delegate = this;
         this.label = new St.Label({ text: _("Places"), style_class: 'menu-category-button-label' });
-        this.icon = new St.Icon({icon_name: "folder", icon_size: CATEGORY_ICON_SIZE, icon_type: St.IconType.FULLCOLOR});
-        this.addActor(this.icon);
-        this.icon.realize();
+        if (showIcon) {
+            this.icon = new St.Icon({icon_name: "folder", icon_size: CATEGORY_ICON_SIZE, icon_type: St.IconType.FULLCOLOR});
+            this.addActor(this.icon);
+            this.icon.realize();
+        } else {
+            this.icon = null;
+        }
         this.addActor(this.label);
         this.label.realize();
     }
 };
 
-function RecentCategoryButton(app) {
-    this._init(app);
+function RecentCategoryButton(app, showIcon) {
+    this._init(app, showIcon);
 }
 
 RecentCategoryButton.prototype = {
     __proto__: PopupMenu.PopupBaseMenuItem.prototype,
 
-    _init: function(category) {
+    _init: function(category, showIcon) {
         PopupMenu.PopupBaseMenuItem.prototype._init.call(this, {hover: false});
         this.actor.set_style_class_name('menu-category-button');
         this.actor._delegate = this;
         this.label = new St.Label({ text: _("Recent Files"), style_class: 'menu-category-button-label' });
-        this.icon = new St.Icon({icon_name: "folder-recent", icon_size: CATEGORY_ICON_SIZE, icon_type: St.IconType.FULLCOLOR});
-        this.addActor(this.icon);
-        this.icon.realize()
+        if (showIcon) {
+            this.icon = new St.Icon({icon_name: "folder-recent", icon_size: CATEGORY_ICON_SIZE, icon_type: St.IconType.FULLCOLOR});
+            this.addActor(this.icon);
+            this.icon.realize()
+        } else {
+            this.icon = null;
+        }
         this.addActor(this.label);
         this.label.realize();
     }
@@ -1001,8 +1023,8 @@ FavoritesBox.prototype = {
             this._dragPlaceholder = new DND.GenericDragPlaceholderItem();
             this._dragPlaceholder.child.set_width (source.actor.height);
             this._dragPlaceholder.child.set_height (source.actor.height);
-            this.actor.insert_actor(this._dragPlaceholder.actor,
-                                   this._dragPlaceholderPos);
+            this.actor.insert_child_at_index(this._dragPlaceholder.actor,
+                                             this._dragPlaceholderPos);
             if (fadeIn)
                 this._dragPlaceholder.animateIn();
         }
@@ -1082,6 +1104,9 @@ MyApplet.prototype = {
         this.settings.bindProperty(Settings.BindingDirection.IN, "menu-icon", "menuIcon", this._updateIconAndLabel, null);
         this.settings.bindProperty(Settings.BindingDirection.IN, "menu-label", "menuLabel", this._updateIconAndLabel, null);
         this.settings.bindProperty(Settings.BindingDirection.IN, "overlay-key", "overlayKey", this._updateKeybinding, null);
+        this.settings.bindProperty(Settings.BindingDirection.IN, "show-category-icons", "showCategoryIcons", this._refreshAll, null);
+        this.settings.bindProperty(Settings.BindingDirection.IN, "show-application-icons", "showApplicationIcons", this._refreshAll, null);
+        this.settings.bindProperty(Settings.BindingDirection.IN, "favbox-show", "favBoxShow", this._favboxtoggle, null);
 
         this._updateKeybinding();
 
@@ -1294,6 +1319,14 @@ MyApplet.prototype = {
         this.set_applet_icon_path("");
     },
 
+    _favboxtoggle: function() {
+        if (!this.favBoxShow) {
+            this.leftPane.remove_actor(this.leftBox);
+        }else{
+            this.leftPane.add_actor(this.leftBox, { y_align: St.Align.END, y_fill: false });
+        }
+    },
+
     _updateIconAndLabel: function(){
         try {
             if (this.menuIconCustom) {
@@ -1360,7 +1393,7 @@ MyApplet.prototype = {
             item_actor = this.appBoxIter.getFirstVisible();
             index = this.appBoxIter.getAbsoluteIndexOfChild(item_actor);
             this._scrollToButton(item_actor._delegate);
-        } else if (this._activeContainer === null && symbol == Clutter.KEY_Left) {
+        } else if (this._activeContainer === null && symbol == Clutter.KEY_Left && this.favBoxShow ) {
             this._activeContainer = this.favoritesBox;
             item_actor = this.favBoxIter.getFirstVisible();
             index = this.favBoxIter.getAbsoluteIndexOfChild(item_actor);
@@ -1410,7 +1443,7 @@ MyApplet.prototype = {
             item_actor = (this._previousTreeSelectedActor != null) ? this._previousTreeSelectedActor : this.catBoxIter.getFirstVisible();
             index = this.catBoxIter.getAbsoluteIndexOfChild(item_actor);
             this._previousTreeSelectedActor = item_actor;
-        } else if (symbol == Clutter.KEY_Left && this._activeContainer === this.categoriesBox && !this.searchActive) {
+        } else if (symbol == Clutter.KEY_Left && this._activeContainer === this.categoriesBox && !this.searchActive && this.favBoxShow ) {
             this._previousSelectedActor = this.categoriesBox.get_child_at_index(index);
             item_actor = this.favBoxIter.getFirstVisible();
             index = this.favBoxIter.getAbsoluteIndexOfChild(item_actor);
@@ -1629,7 +1662,7 @@ MyApplet.prototype = {
 
         // Now generate Places category and places buttons and add to the list
         if (this.showPlaces) {
-            this.placesButton = new PlaceCategoryButton();
+            this.placesButton = new PlaceCategoryButton(null, this.showCategoryIcons);
             this._addEnterEvent(this.placesButton, Lang.bind(this, function() {
                 if (!this.searchActive) {
                     this.placesButton.isHovered = true;
@@ -1678,7 +1711,7 @@ MyApplet.prototype = {
             let places = bookmarks.concat(devices);
             for (let i = 0; i < places.length; i++) {
                 let place = places[i];
-                let button = new PlaceButton(this, place, place.name);
+                let button = new PlaceButton(this, place, place.name, this.showApplicationIcons);
                 this._addEnterEvent(button, Lang.bind(this, function() {
                         this._clearPrevSelection(button.actor);
                         button.actor.style_class = "menu-application-button-selected";
@@ -1714,7 +1747,7 @@ MyApplet.prototype = {
 
         // Now generate recent category and recent files buttons and add to the list
         if (this.privacy_settings.get_boolean(REMEMBER_RECENT_KEY)) {
-            this.recentButton = new RecentCategoryButton();
+            this.recentButton = new RecentCategoryButton(null, this.showCategoryIcons);
             this._addEnterEvent(this.recentButton, Lang.bind(this, function() {
                 if (!this.searchActive) {
                     this.recentButton.isHovered = true;
@@ -1761,7 +1794,7 @@ MyApplet.prototype = {
             
             if (this.RecentManager._infosByTimestamp.length > 0) {
                 for (let id = 0; id < MAX_RECENT_FILES && id < this.RecentManager._infosByTimestamp.length; id++) {
-                    let button = new RecentButton(this, this.RecentManager._infosByTimestamp[id]);
+                    let button = new RecentButton(this, this.RecentManager._infosByTimestamp[id], this.showApplicationIcons);
                     this._addEnterEvent(button, Lang.bind(this, function() {
                             this._clearPrevSelection(button.actor);
                             button.actor.style_class = "menu-application-button-selected";
@@ -1892,7 +1925,7 @@ MyApplet.prototype = {
                 if (dir.get_is_nodisplay())
                     continue;
                 if (this._loadCategory(dir)) {
-                    let categoryButton = new CategoryButton(dir);
+                    let categoryButton = new CategoryButton(dir, this.showCategoryIcons);
                     this._addEnterEvent(categoryButton, Lang.bind(this, function() {
                         if (!this.searchActive) {
                             categoryButton.isHovered = true;
@@ -2080,7 +2113,7 @@ MyApplet.prototype = {
                     }
                     if (!(app_key in this._applicationsButtonFromApp)) {
 
-                        let applicationButton = new ApplicationButton(this, app);                        
+                        let applicationButton = new ApplicationButton(this, app, this.showApplicationIcons);                        
 
                         var app_is_known = false;
                         for (var i = 0; i < this._knownApps.length; i++) {
@@ -2153,14 +2186,15 @@ MyApplet.prototype = {
         let section = new PopupMenu.PopupMenuSection();
         this.menu.addMenuItem(section);
         
-        let leftPane = new St.BoxLayout({ vertical: true });
+        this.leftPane = new St.BoxLayout({ vertical: true });
                   
         this.leftBox = new St.BoxLayout({ style_class: 'menu-favorites-box', vertical: true });        
         
         this._session = new GnomeSession.SessionManager();
         this._screenSaverProxy = new ScreenSaver.ScreenSaverProxy();            
                                        
-        leftPane.add_actor(this.leftBox, { y_align: St.Align.END, y_fill: false });        
+        if (this.favBoxShow)
+        this.leftPane.add_actor(this.leftBox, { y_align: St.Align.END, y_fill: false });        
         
         let rightPane = new St.BoxLayout({ vertical: true });
         
@@ -2220,7 +2254,7 @@ MyApplet.prototype = {
         this.mainBox = new St.BoxLayout({ style_class: 'menu-applications-outer-box', vertical:false });       
         this.mainBox.add_style_class_name('menu-applications-box'); //this is to support old themes
                 
-        this.mainBox.add_actor(leftPane, { span: 1 });
+        this.mainBox.add_actor(this.leftPane, { span: 1 });
         this.mainBox.add_actor(rightPane, { span: 1 });
         
         section.actor.add_actor(this.mainBox);

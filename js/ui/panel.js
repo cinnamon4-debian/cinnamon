@@ -359,12 +359,12 @@ PanelManager.prototype = {
      * setPanelsOpacity:
      * @opacity (int): opacity of panels
      *
-     * Sets the opacity of all hideable panels to @opacity
+     * Sets the opacity of all panels to @opacity
      */
     setPanelsOpacity: function(opacity) {
         for (let i in this.panels) {
-            if (this.panels[i] && this.panels[i].isHideable())
-                this.panels[i].opacity = opacity;
+            if (this.panels[i])
+                this.panels[i].actor.opacity = opacity;
         }
     },
 
@@ -1301,8 +1301,8 @@ PanelZoneDNDHandler.prototype = {
             this._dragPlaceholder = new DND.GenericDragPlaceholderItem();
             this._dragPlaceholder.child.set_width (20);
             this._dragPlaceholder.child.set_height (10);
-            this._panelZone.insert_actor(this._dragPlaceholder.actor,
-                                        this._dragPlaceholderPos);
+            this._panelZone.insert_child_at_index(this._dragPlaceholder.actor,
+                                                  this._dragPlaceholderPos);
             if (fadeIn)
                 this._dragPlaceholder.animateIn();
         }
@@ -1523,7 +1523,7 @@ Panel.prototype = {
      * Returns: whether the panel can be hidden (auto-hide or intellihide)
      */
     isHideable: function() {
-        return this._autohideSettings != "true";
+        return this._autohideSettings != "false";
     },
     
     /**
@@ -1792,7 +1792,7 @@ Panel.prototype = {
         let [centerMinWidth, centerNaturalWidth] = this._centerBox.get_preferred_width(-1);
         let [rightMinWidth, rightNaturalWidth] = this._rightBox.get_preferred_width(-1);
 
-        let centerBoxOccupied = this._centerBox.get_children().length > 0;
+        let centerBoxOccupied = this._centerBox.get_n_children() > 0;
 
         /* If panel edit mode, pretend central box is occupied and give it at
          * least width 25 so that things can be dropped into it */
@@ -1873,7 +1873,7 @@ Panel.prototype = {
      * function to show or hide the panel as necessary.
      */
     _updatePanelVisibility: function() {
-        // false = autohide, true = always show, intel = Intelligent
+        // false = always show, true = autohide, intel = Intelligent
         switch (this._autohideSettings) {
         case "false":
             this._shouldShow = true;
@@ -1885,6 +1885,11 @@ Panel.prototype = {
             if (this._mouseEntered || !global.display.focus_window ||
                 global.display.focus_window.get_window_type() == Meta.WindowType.DESKTOP) {
                 this._shouldShow = true;
+                break;
+            }
+
+            if (global.display.focus_window.get_monitor() != this.monitorIndex) {
+                this._shouldShow = false;
                 break;
             }
 
