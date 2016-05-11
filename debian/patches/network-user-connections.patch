@@ -7,7 +7,7 @@ Subject: network-user-connections
  1 file changed, 28 insertions(+), 4 deletions(-)
 
 diff --git a/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js b/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
-index 958e8f4..5c834b4 100644
+index 72e87b2..b38035b 100644
 --- a/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
 +++ b/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
 @@ -100,6 +100,11 @@ function NMNetworkMenuItem() {
