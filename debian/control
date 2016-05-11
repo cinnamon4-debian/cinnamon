@@ -38,7 +38,7 @@ Build-Depends: debhelper (>= 9),
                libstartup-notification0-dev (>= 0.11),
                libxfixes-dev (>= 1:5.0),
                python
-Standards-Version: 3.9.7
+Standards-Version: 3.9.8
 Homepage: http://cinnamon.linuxmint.com
 Vcs-Browser: https://anonscm.debian.org/git/pkg-cinnamon/cinnamon.git
 Vcs-Git: https://anonscm.debian.org/git/pkg-cinnamon/cinnamon.git
