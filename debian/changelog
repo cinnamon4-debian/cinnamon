@@ -1,8 +1,10 @@
-cinnamon (3.0.2-1~) UNRELEASED; urgency=medium
+cinnamon (3.0.2-1) unstable; urgency=medium
 
   [ Fabio Fantoni ]
   * New upstream release.
   * Update debian patches.
+  * Imported Upstream version 2.8.8
+  * update changelog and patches
 
   [ Maximiliano Curia ]
   * Update default favorite apps. Thanks to musca for reporting via irc.
@@ -13,8 +15,14 @@ cinnamon (3.0.2-1~) UNRELEASED; urgency=medium
     #761310) Thanks to Martín Ferrari for the report and patch
   * New upstream release (3.0.1).
   * New upstream release (3.0.2).
+  * Update default favorite apps.
+  * Automatic update with ddeb_migration3.py
+  * Bump Standards-Version to 3.9.7, no changes needed.
+  * debian/control: Update Vcs-Browser and Vcs-Git fields
+  * Bump Standards-Version to 3.9.8
+  * Refresh patches, drop the applied upstream
 
- -- Maximiliano Curia <maxy@debian.org>  Wed, 11 May 2016 17:11:57 +0200
+ -- Maximiliano Curia <maxy@debian.org>  Sun, 15 May 2016 11:59:31 +0200
 
 cinnamon (2.8.7-1) unstable; urgency=medium
 
