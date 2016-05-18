@@ -3,3 +3,6 @@ favorite-apps=[ 'firefox.desktop', 'cinnamon-settings.desktop', 'pidgin.desktop'
 
 [org.cinnamon.settings-daemon.plugins.power]
 lock-on-suspend=true
+
+[org.cinnamon.desktop.interface]
+gtk-overlay-scrollbars=false

@@ -1,0 +1,23 @@
+Description: Expose gtk-overlay-scrollbar setting.
+Author: miketwebster@gmail.com
+Origin: upstream, https://github.com/linuxmint/Cinnamon/commit/0677dbf4e9fead24b6dbbf2465ee3f0609c54865
+Bug: https://github.com/linuxmint/Cinnamon/issues/5306
+Last-Update: 2016-05-18
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+Index: cinnamon/files/usr/share/cinnamon/cinnamon-settings/modules/cs_effects.py
+===================================================================
+--- cinnamon.orig/files/usr/share/cinnamon/cinnamon-settings/modules/cs_effects.py	2016-05-16 13:41:02.060373818 +0200
++++ cinnamon/files/usr/share/cinnamon/cinnamon-settings/modules/cs_effects.py	2016-05-18 22:47:12.539039531 +0200
+@@ -109,6 +109,11 @@
+             widget = GSettingsSwitch(_("Session startup animation"), "org.cinnamon", "startup-animation")
+             settings.add_row(widget)
+ 
++            widget = GSettingsSwitch(_("Overlay scroll bars (logout required)"), "org.cinnamon.desktop.interface", "gtk-overlay-scrollbars")
++            settings.add_row(widget)
++
++
++
+             self.schema.connect("changed::desktop-effects", self.on_desktop_effects_enabled_changed)
+ 
+             # Customize
