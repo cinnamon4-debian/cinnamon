@@ -1,3 +1,9 @@
+cinnamon (3.0.4-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+
+ -- Margarita Manterola <marga@debian.org>  Sat, 28 May 2016 15:31:28 +0200
+
 cinnamon (3.0.2-2) unstable; urgency=medium
 
   * Apply 0677dbf4e9fead24b6dbbf2465ee3f0609c54865 from upstream to expose
