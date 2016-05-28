@@ -1,6 +1,7 @@
 cinnamon (3.0.4-1) UNRELEASED; urgency=medium
 
   * New upstream release.
+    Drop overlay-scrollbars patch as this is now upstream.
 
  -- Margarita Manterola <marga@debian.org>  Sat, 28 May 2016 15:31:28 +0200
 

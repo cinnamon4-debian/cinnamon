@@ -1,4 +1,3 @@
-overlay-scrollbars
 network-user-connections.patch
 remove-embbeded-jquery.patch
 add_policykit-1-gnome_to_session
