@@ -1,9 +1,9 @@
-cinnamon (3.0.4-1) UNRELEASED; urgency=medium
+cinnamon (3.0.4-1) unstable; urgency=medium
 
   * New upstream release.
     Drop overlay-scrollbars patch as this is now upstream.
 
- -- Margarita Manterola <marga@debian.org>  Sat, 28 May 2016 15:31:28 +0200
+ -- Margarita Manterola <marga@debian.org>  Sat, 28 May 2016 15:36:13 +0200
 
 cinnamon (3.0.2-2) unstable; urgency=medium
 
