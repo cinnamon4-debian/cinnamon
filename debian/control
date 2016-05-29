@@ -103,7 +103,8 @@ Recommends: cinnamon-l10n,
             gir1.2-nmgtk-1.0 [linux-any],
             gksu,
             gnome-terminal | x-terminal-emulator,
-            network-manager-gnome [linux-any]
+            network-manager-gnome [linux-any],
+            metacity-common
 Suggests: cinnamon-doc, python-opencv
 Provides: notification-daemon, x-window-manager
 Replaces: cinnamon-common (<= 2.2.14-1)
