@@ -1,4 +1,4 @@
-cinnamon (3.0.5-1) UNRELEASED; urgency=medium
+cinnamon (3.0.7-1~) UNRELEASED; urgency=medium
 
   [ Margarita Manterola ]
   * Add metacity-common as a recommends, as this package ships a bunch of
@@ -9,8 +9,9 @@ cinnamon (3.0.5-1) UNRELEASED; urgency=medium
   [ Maximiliano Curia ]
   * Add new patch: fix_upower_segfault.patch (Closes: 827507) Thanks to
     Krzysztof Słychań for the report
+  * New upstream release (3.0.7).
 
- -- Margarita Manterola <marga@debian.org>  Tue, 31 May 2016 19:41:27 +0200
+ -- Maximiliano Curia <maxy@debian.org>  Mon, 18 Jul 2016 13:21:12 +0200
 
 cinnamon (3.0.4-1) unstable; urgency=medium
 
