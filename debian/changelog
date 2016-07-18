@@ -1,9 +1,14 @@
 cinnamon (3.0.5-1) UNRELEASED; urgency=medium
 
+  [ Margarita Manterola ]
   * Add metacity-common as a recommends, as this package ships a bunch of
     basic windowing themes including Adwaita (the default).
   * Fix dbgsym-migration rules
   * New upstream release.
+
+  [ Maximiliano Curia ]
+  * Add new patch: fix_upower_segfault.patch (Closes: 827507) Thanks to
+    Krzysztof Słychań for the report
 
  -- Margarita Manterola <marga@debian.org>  Tue, 31 May 2016 19:41:27 +0200
 
