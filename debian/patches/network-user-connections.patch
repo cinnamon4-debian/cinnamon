@@ -7,7 +7,7 @@ Subject: network-user-connections
  1 file changed, 28 insertions(+), 4 deletions(-)
 
 diff --git a/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js b/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
-index 72e87b2..b38035b 100644
+index daddebf..12643af 100644
 --- a/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
 +++ b/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
 @@ -100,6 +100,11 @@ function NMNetworkMenuItem() {
@@ -48,7 +48,7 @@ index 72e87b2..b38035b 100644
          // breaking the layers with this, but cannot call
          // this.connectionValid until I have a device
          this.device = device;
-@@ -1546,12 +1555,27 @@ NMDeviceWireless.prototype = {
+@@ -1555,12 +1564,27 @@ NMDeviceWireless.prototype = {
  
          let connection = new NetworkManager.Connection();
          connection.add_setting(new NetworkManager.SettingWireless());

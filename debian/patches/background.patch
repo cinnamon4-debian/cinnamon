@@ -7,10 +7,10 @@ Subject: background
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_backgrounds.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_backgrounds.py
-index 7252ebf..717a9bd 100644
+index b48a64b..67713a4 100644
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_backgrounds.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_backgrounds.py
-@@ -222,7 +222,7 @@ class Module:
+@@ -264,7 +264,7 @@ class Module:
      def get_system_backgrounds(self):
          picture_list = []
          folder_list = []

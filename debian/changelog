@@ -10,6 +10,8 @@ cinnamon (3.0.7-1~) UNRELEASED; urgency=medium
   * Add new patch: fix_upower_segfault.patch (Closes: 827507) Thanks to
     Krzysztof Słychań for the report
   * New upstream release (3.0.7).
+  * Add new patch: Migrate-away-from-gnome-common-deprecated-vars-and-
+    macros.patch (Closes: #830053)
 
  -- Maximiliano Curia <maxy@debian.org>  Mon, 18 Jul 2016 13:21:12 +0200
 
