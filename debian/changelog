@@ -1,4 +1,4 @@
-cinnamon (3.0.7-1~) UNRELEASED; urgency=medium
+cinnamon (3.0.7-1) unstable; urgency=medium
 
   [ Margarita Manterola ]
   * Add metacity-common as a recommends, as this package ships a bunch of
@@ -13,7 +13,7 @@ cinnamon (3.0.7-1~) UNRELEASED; urgency=medium
   * Add new patch: Migrate-away-from-gnome-common-deprecated-vars-and-
     macros.patch (Closes: #830053)
 
- -- Maximiliano Curia <maxy@debian.org>  Mon, 18 Jul 2016 13:21:12 +0200
+ -- Maximiliano Curia <maxy@debian.org>  Wed, 03 Aug 2016 20:19:46 +0200
 
 cinnamon (3.0.4-1) unstable; urgency=medium
 
