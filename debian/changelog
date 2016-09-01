@@ -1,6 +1,7 @@
 cinnamon (3.0.7-2~) UNRELEASED; urgency=medium
 
-  * 
+  * Drop python-gconf dependency. (Closes: 832324) Thanks to Emilio
+    Pozuelo Monfort for the report
 
  -- Maximiliano Curia <maxy@debian.org>  Thu, 01 Sep 2016 14:09:31 +0200
 
