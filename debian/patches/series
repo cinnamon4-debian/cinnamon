@@ -5,3 +5,4 @@ make_nm_optional
 background.patch
 Drop-nm-applet-from-the-session-files.patch
 Migrate-away-from-gnome-common-deprecated-vars-and-macros.patch
+add-blueman-to-settings
