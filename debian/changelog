@@ -4,7 +4,8 @@ cinnamon (3.0.7-2~1.gbp48a9c4) UNRELEASED; urgency=medium
 
   * Drop python-gconf dependency. (Closes: 832324) Thanks to Emilio
     Pozuelo Monfort for the report
-  * Drop gnome-icon-theme-symbolic dependency.
+  * Drop gnome-icon-theme-symbolic dependency. Cinnamon already depends on
+    gnome-themes-standard that pulls in the right icon themes.
     Thanks to Jeremy Bicha for reporting (Closes: 833480)
 
  -- Maximiliano Curia <maxy@gnuservers.com.ar>  Fri, 02 Sep 2016 12:06:36 +0200
