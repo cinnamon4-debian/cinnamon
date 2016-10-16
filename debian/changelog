@@ -9,6 +9,8 @@ cinnamon (3.0.7-2~2) UNRELEASED; urgency=medium
 
   [ Margarita Manterola ]
   * Add blueman as an option for bluetooth settings in cinnamon-settings.py.
+  * Add explicit dependency on autoconf-archive to prevent future FTBFS.
+    Thanks to Michael Biebl for reporting (Closes: 837842).
 
  -- Maximiliano Curia <maxy@gnuservers.com.ar>  Fri, 02 Sep 2016 12:06:36 +0200
 
