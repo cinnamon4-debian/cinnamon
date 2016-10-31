@@ -1,3 +1,9 @@
+cinnamon (3.0.7-3~) UNRELEASED; urgency=medium
+
+  * Add blueman recommends
+
+ -- Maximiliano Curia <maxy@debian.org>  Mon, 31 Oct 2016 17:38:10 +0100
+
 cinnamon (3.0.7-2) unstable; urgency=medium
 
   [ Maximiliano Curia ]

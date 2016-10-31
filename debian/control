@@ -99,6 +99,7 @@ Depends:
  ${python:Depends},
  ${shlibs:Depends},
 Recommends:
+ blueman,
  cinnamon-l10n (>= 3.0),
  gir1.2-gnomebluetooth-1.0 [linux-any],
  gir1.2-networkmanager-1.0 [linux-any],
