@@ -6,11 +6,11 @@ Subject: network-user-connections
  .../applets/network@cinnamon.org/applet.js         | 32 +++++++++++++++++++---
  1 file changed, 28 insertions(+), 4 deletions(-)
 
-diff --git a/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js b/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
-index daddebf..12643af 100644
---- a/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
-+++ b/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
-@@ -100,6 +100,11 @@ function NMNetworkMenuItem() {
+Index: cinnamon/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
+===================================================================
+--- cinnamon.orig/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js	2016-11-19 13:15:06.034279390 +0100
++++ cinnamon/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js	2016-11-19 13:15:06.030279281 +0100
+@@ -100,6 +100,11 @@
      this._init.apply(this, arguments);
  }
  
@@ -22,7 +22,7 @@ index daddebf..12643af 100644
  NMNetworkMenuItem.prototype = {
      __proto__: PopupMenu.PopupBaseMenuItem.prototype,
  
-@@ -926,12 +931,14 @@ NMDeviceBluetooth.prototype = {
+@@ -926,12 +931,14 @@
          let connection = new NetworkManager.Connection;
          connection._uuid = NetworkManager.utils_uuid_generate();
          connection.add_setting(new NetworkManager.SettingBluetooth);
@@ -39,7 +39,7 @@ index daddebf..12643af 100644
          return connection;
      },
  
-@@ -1012,6 +1019,8 @@ NMDeviceWireless.prototype = {
+@@ -1012,6 +1019,8 @@
          this._overflowItem = null;
          this._networks = [ ];
  
@@ -48,7 +48,7 @@ index daddebf..12643af 100644
          // breaking the layers with this, but cannot call
          // this.connectionValid until I have a device
          this.device = device;
-@@ -1555,12 +1564,27 @@ NMDeviceWireless.prototype = {
+@@ -1555,12 +1564,27 @@
  
          let connection = new NetworkManager.Connection();
          connection.add_setting(new NetworkManager.SettingWireless());

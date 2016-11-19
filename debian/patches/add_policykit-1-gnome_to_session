@@ -9,11 +9,10 @@ Subject: add_policykit-1-gnome_to_session
  3 files changed, 89 insertions(+), 2 deletions(-)
  create mode 100644 files/usr/share/applications/cinnamon-polkit-gnome-authentication-agent-1.desktop
 
-diff --git a/files/usr/share/applications/cinnamon-polkit-gnome-authentication-agent-1.desktop b/files/usr/share/applications/cinnamon-polkit-gnome-authentication-agent-1.desktop
-new file mode 100644
-index 0000000..68713f6
---- /dev/null
-+++ b/files/usr/share/applications/cinnamon-polkit-gnome-authentication-agent-1.desktop
+Index: cinnamon/files/usr/share/applications/cinnamon-polkit-gnome-authentication-agent-1.desktop
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ cinnamon/files/usr/share/applications/cinnamon-polkit-gnome-authentication-agent-1.desktop	2016-11-19 13:15:33.851037630 +0100
 @@ -0,0 +1,87 @@
 +[Desktop Entry]
 +Name=PolicyKit Authentication Agent
@@ -102,10 +101,10 @@ index 0000000..68713f6
 +Categories=System;Security;
 +NoDisplay=true
 +OnlyShowIn=X-Cinnamon;
-diff --git a/files/usr/share/cinnamon-session/sessions/cinnamon.session b/files/usr/share/cinnamon-session/sessions/cinnamon.session
-index 4e3f08f..d0ba7a8 100644
---- a/files/usr/share/cinnamon-session/sessions/cinnamon.session
-+++ b/files/usr/share/cinnamon-session/sessions/cinnamon.session
+Index: cinnamon/files/usr/share/cinnamon-session/sessions/cinnamon.session
+===================================================================
+--- cinnamon.orig/files/usr/share/cinnamon-session/sessions/cinnamon.session	2016-11-19 13:15:33.855037739 +0100
++++ cinnamon/files/usr/share/cinnamon-session/sessions/cinnamon.session	2016-11-19 13:15:33.851037630 +0100
 @@ -1,6 +1,6 @@
  [Cinnamon Session]
  Name=Cinnamon
@@ -114,10 +113,10 @@ index 4e3f08f..d0ba7a8 100644
  DesktopName=X-Cinnamon
  
  
-diff --git a/files/usr/share/cinnamon-session/sessions/cinnamon2d.session b/files/usr/share/cinnamon-session/sessions/cinnamon2d.session
-index 85d4129..f005a5e 100644
---- a/files/usr/share/cinnamon-session/sessions/cinnamon2d.session
-+++ b/files/usr/share/cinnamon-session/sessions/cinnamon2d.session
+Index: cinnamon/files/usr/share/cinnamon-session/sessions/cinnamon2d.session
+===================================================================
+--- cinnamon.orig/files/usr/share/cinnamon-session/sessions/cinnamon2d.session	2016-11-19 13:15:33.855037739 +0100
++++ cinnamon/files/usr/share/cinnamon-session/sessions/cinnamon2d.session	2016-11-19 13:15:33.851037630 +0100
 @@ -1,6 +1,6 @@
  [Cinnamon Session]
  Name=Cinnamon (Software Rendering)

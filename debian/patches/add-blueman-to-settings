@@ -9,9 +9,9 @@ Last-Update: 2016-09-25
 This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
 Index: cinnamon/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py
 ===================================================================
---- cinnamon.orig/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py	2016-09-25 14:01:08.922682364 +0200
-+++ cinnamon/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py	2016-09-25 14:01:08.914682158 +0200
-@@ -81,7 +81,8 @@
+--- cinnamon.orig/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py	2016-11-19 13:15:06.242285060 +0100
++++ cinnamon/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py	2016-11-19 13:15:06.234284842 +0100
+@@ -83,7 +83,8 @@
      [_("Driver Manager"),                "mintdrivers",                  "cs-drivers",         "admin",          _("video, driver, wifi, card, hardware, proprietary, nvidia, radeon, nouveau, fglrx")],
      [_("Software Sources"),              "mintsources",                  "cs-sources",         "admin",          _("ppa, repository, package, source, download")],
      [_("Users and Groups"),              "cinnamon-settings-users",      "cs-user-accounts",   "admin",          _("user, users, account, accounts, group, groups, password")],

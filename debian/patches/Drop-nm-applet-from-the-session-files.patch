@@ -11,10 +11,10 @@ Debian-Bug: https://bugs.debian.org/818084
  files/usr/share/cinnamon-session/sessions/cinnamon2d.session | 2 +-
  2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/files/usr/share/cinnamon-session/sessions/cinnamon.session b/files/usr/share/cinnamon-session/sessions/cinnamon.session
-index d0ba7a8..04fbe02 100644
---- a/files/usr/share/cinnamon-session/sessions/cinnamon.session
-+++ b/files/usr/share/cinnamon-session/sessions/cinnamon.session
+Index: cinnamon/files/usr/share/cinnamon-session/sessions/cinnamon.session
+===================================================================
+--- cinnamon.orig/files/usr/share/cinnamon-session/sessions/cinnamon.session	2016-11-19 13:15:06.210284188 +0100
++++ cinnamon/files/usr/share/cinnamon-session/sessions/cinnamon.session	2016-11-19 13:15:06.206284079 +0100
 @@ -1,6 +1,6 @@
  [Cinnamon Session]
  Name=Cinnamon
@@ -23,10 +23,10 @@ index d0ba7a8..04fbe02 100644
  DesktopName=X-Cinnamon
  
  
-diff --git a/files/usr/share/cinnamon-session/sessions/cinnamon2d.session b/files/usr/share/cinnamon-session/sessions/cinnamon2d.session
-index f005a5e..2125c88 100644
---- a/files/usr/share/cinnamon-session/sessions/cinnamon2d.session
-+++ b/files/usr/share/cinnamon-session/sessions/cinnamon2d.session
+Index: cinnamon/files/usr/share/cinnamon-session/sessions/cinnamon2d.session
+===================================================================
+--- cinnamon.orig/files/usr/share/cinnamon-session/sessions/cinnamon2d.session	2016-11-19 13:15:06.210284188 +0100
++++ cinnamon/files/usr/share/cinnamon-session/sessions/cinnamon2d.session	2016-11-19 13:15:06.206284079 +0100
 @@ -1,6 +1,6 @@
  [Cinnamon Session]
  Name=Cinnamon (Software Rendering)
