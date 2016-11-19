@@ -9,6 +9,7 @@ const Mainloop = imports.mainloop;
 const SignalManager = imports.misc.signalManager;
 
 const ICON_SCALE_FACTOR = .8; // for custom panel heights, 20 (default icon size) / 25 (default panel height)
+
 const DEFAULT_ICON_SIZE = 20;
 
 // Override the factory and create an AppletPopupMenu instead of a PopupMenu
@@ -51,39 +52,57 @@ MyApplet.prototype = {
     _init: function(orientation, panel_height, instance_id) {
         Applet.Applet.prototype._init.call(this, orientation, panel_height, instance_id);
 
+        this.setAllowedLayout(Applet.AllowedLayout.BOTH);
+
         this.actor.remove_style_class_name("applet-box");
         this.actor.style="spacing: 5px;";
 
         this._signalManager = new SignalManager.SignalManager(this);
+        let manager;
 
-        let manager = new Clutter.BoxLayout( { spacing: 2 * global.ui_scale,
-                                               homogeneous: true,
+        this.orientation = orientation;
+
+        if (this.orientation == St.Side.TOP || this.orientation == St.Side.BOTTOM) {
+            manager = new Clutter.BoxLayout( { spacing: 2 * global.ui_scale,
                                                orientation: Clutter.Orientation.HORIZONTAL });
-
+        } else {
+            manager = new Clutter.BoxLayout( { spacing: 2 * global.ui_scale,
+                                               orientation: Clutter.Orientation.VERTICAL });
+        }
+        this.manager = manager;
         this.manager_container = new Clutter.Actor( { layout_manager: manager } );
-
         this.actor.add_actor (this.manager_container);
-
         this.manager_container.show();
 
         this._statusItems = [];
         this._shellIndicators = {};
         this.menuFactory = new IndicatorMenuFactory();
         this.menuManager = new PopupMenu.PopupMenuManager(this);
-        this.signalAdded = 0;
-        this.signalRemoved = 0;
+        this._signalAdded = 0;
+        this._signalRemoved = 0;
     },
 
     _addIndicatorSupport: function() {
-        let currentIndicators = Main.indicatorManager.getIndicatorIds();
+        let manager = Main.indicatorManager;
+
+        // Blacklist some of the icons
+        // quassel: The proper icon in Quassel is "QuasselIRC",
+        // this is a fallback icon which Quassel launches when it fails to detect
+        // our indicator support (i.e. when Cinnamon is restarted for instance)
+        // The problem is.. Quassel doesn't kill that icon when it creates QuasselIRC again..
+        manager.insertInBlackList("quassel");
+
+        let currentIndicators = manager.getIndicatorIds();
         for (let pos in currentIndicators) {
-            let appIndicator = Main.indicatorManager.getIndicatorById(currentIndicators[pos]);
-            this._onIndicatorAdded(Main.indicatorManager, appIndicator);
+            if (!manager.isInBlackList(currentIndicators[pos])) {
+                let appIndicator = manager.getIndicatorById(currentIndicators[pos]);
+                this._onIndicatorAdded(manager, appIndicator);
+            }
         }
-        if (this.signalAdded == 0)
-            this.signalAdded = Main.indicatorManager.connect('indicator-added', Lang.bind(this, this._onIndicatorAdded));
-        if (this.signalRemoved == 0)
-            this.signalRemoved = Main.indicatorManager.connect('indicator-removed', Lang.bind(this, this._onIndicatorRemoved));
+        if (this._signalAdded == 0)
+            this._signalAdded = manager.connect('indicator-added', Lang.bind(this, this._onIndicatorAdded));
+        if (this._signalRemoved == 0)
+            this._signalRemoved = manager.connect('indicator-removed', Lang.bind(this, this._onIndicatorRemoved));
     },
 
     _removeIndicatorSupport: function() {
@@ -95,68 +114,92 @@ MyApplet.prototype = {
             Main.indicatorManager.disconnect(this.signalRemoved);
             this.signalRemoved = 0;
         }
+
         this._shellIndicators.forEach(function(iconActor) {
             iconActor.destroy();
         });
         this._shellIndicators = {};
+
     },
 
     _onIndicatorAdded: function(manager, appIndicator) {
         if (!(appIndicator.id in this._shellIndicators)) {
-            let hiddenIcons = Main.systrayManager.getRoles();
+            let size = null;
+            if (this._scaleMode)
+                size = this._getIconSize();
 
-            if (hiddenIcons.indexOf(appIndicator.id) != -1 ) {
-                // We've got an applet for that
-                global.log("Hiding indicator (role already handled): " + appIndicator.id);
-                return;
-            }
-            else if (["quassel"].indexOf(appIndicator.id) != -1) {
-                // Blacklist some of the icons
-                // quassel: The proper icon in Quassel is "QuasselIRC", this is a fallback icon which Quassel launches when it fails to detect
-                // our indicator support (i.e. when Cinnamon is restarted for instance)
-                // The problem is.. Quassel doesn't kill that icon when it creates QuasselIRC again..
-                global.log("Hiding indicator (blacklisted): " + appIndicator.id);
-                return;
-            }
-            else {
-                global.log("Adding indicator: " + appIndicator.id);
-            }
+            let indicatorActor = appIndicator.getActor(size);
+            indicatorActor._applet = this;
 
-            let iconActor = appIndicator.getIconActor(this._getIndicatorSize(appIndicator));
-            iconActor._applet = this;
+            this._shellIndicators[appIndicator.id] = indicatorActor;
+            this._signalManager.connect(indicatorActor.actor, 'destroy', this._onIndicatorIconDestroy);
+            this._signalManager.connect(indicatorActor.actor, 'enter-event', this._onEnterEvent);
+            this._signalManager.connect(indicatorActor.actor, 'leave-event', this._onLeaveEvent);
 
-            this._shellIndicators[appIndicator.id] = iconActor;
+            this.manager_container.add_actor(indicatorActor.actor);
 
-            this.actor.add_actor(iconActor.actor);
             appIndicator.createMenuClientAsync(Lang.bind(this, function(client) {
                 if (client != null) {
                     let newMenu = client.getShellMenu();
                     if (!newMenu) {
-                        newMenu = this.menuFactory.buildShellMenu(client, iconActor, this._applet_context_menu._arrowSide);
+                        newMenu = this.menuFactory.buildShellMenu(client, indicatorActor, this.orientation);
                         this.menuManager.addMenu(newMenu);
                     }
-                    iconActor.setMenu(newMenu);
+                    indicatorActor.setMenu(newMenu);
                 }
             }));
         }
     },
 
-    _getIndicatorSize: function(appIndicator) {
-        if (this._scaleMode)
-            return this._panelHeight * ICON_SCALE_FACTOR;
-        return 16;
+    _onEnterEvent: function(actor, event) {
+       this.set_applet_tooltip(actor._delegate.getToolTip());
+    },
+
+    _onLeaveEvent: function(actor, event) {
+        this.set_applet_tooltip("");
+    },
+
+    _onIndicatorIconDestroy: function(actor) {
+        for (let id in this._shellIndicators) {
+            if (this._shellIndicators[id].actor == actor) {
+                delete this._shellIndicators[id];
+                break;
+            }
+        }
+    },
+
+    _getIconSize: function() {
+        let size;
+        let disp_size = this._panelHeight * ICON_SCALE_FACTOR;
+        if (disp_size < 22) {
+            size = 16;
+        } else if (disp_size < 32) {
+            size = 22;
+        } else if (disp_size < 48) {
+            size = 32;
+        } else {
+            size = 48;
+        }
+        return size;
     },
 
     _onIndicatorRemoved: function(manager, appIndicator) {
         if (appIndicator.id in this._shellIndicators) {
-            global.log("Removing indicator: " + appIndicator.id);
-            let iconActor = this._shellIndicators[appIndicator.id];
+            let indicatorActor = this._shellIndicators[appIndicator.id];
             delete this._shellIndicators[appIndicator.id];
-            iconActor.destroy();
+            indicatorActor.destroy();
         }
     },
 
     on_applet_clicked: function(event) {
+    },
+
+    on_orientation_changed: function(neworientation) {
+        if (neworientation == St.Side.TOP || neworientation == St.Side.BOTTOM) {
+            this.manager.set_vertical(false);
+        } else {
+            this.manager.set_vertical(true);
+        }
     },
 
     on_applet_removed_from_panel: function () {
@@ -176,10 +219,12 @@ MyApplet.prototype = {
 
     on_panel_height_changed: function() {
         Main.statusIconDispatcher.redisplay();
+        let size = null;
+        if (this._scaleMode)
+            size = this._getIconSize();
         for (let id in this._shellIndicators) {
             let indicator = Main.indicatorManager.getIndicatorById(id);
             if (indicator) {
-                let size = this._getIndicatorSize(indicator);
                 this._shellIndicators[id].setSize(size);
             }
         }
@@ -194,7 +239,11 @@ MyApplet.prototype = {
         }
         this._statusItems = [];
 
-        let children = this.manager_container.get_children();
+        let children = this.manager_container.get_children().filter(function(child) {
+            // We are only interested in the status icons and apparently we can not ask for
+            // child instanceof CinnamonTrayIcon.
+            return (child.toString().indexOf("CinnamonTrayIcon") != -1);
+        });
         for (var i = 0; i < children.length; i++) {
             children[i].destroy();
         }
@@ -226,15 +275,13 @@ MyApplet.prototype = {
                 // The delay is big because resizing/inserting too early
                 // makes pidgin invisible (in absence of disk cache).. even if we resize/insert again later
                 this._insertStatusItemLater(role, icon, -1, 10000);
-            }
-            else if (["shutter", "filezilla", "dropbox", "thunderbird", "unknown", "blueberry-tray.py", "mintupdate.py"].indexOf(role) != -1) {
+            } else if (["shutter", "filezilla", "dropbox", "thunderbird", "unknown", "blueberry-tray.py", "mintupdate.py"].indexOf(role) != -1) {
                 // Delay insertion by 1 second
                 // This fixes an invisible icon in the absence of disk cache for : shutter
                 // filezilla, dropbox, thunderbird, blueberry, mintupdate are known to show up in the wrong size or position, this should fix them as well
                 // Note: as of Oct 2015, the dropbox systray is calling itself "unknown"
                 this._insertStatusItemLater(role, icon, -1, 1000);
-            }
-            else {
+            } else {
                 // Delay all other apps by 1 second...
                 // For many of them, we don't need to do that,
                 // It's a small delay though and that fixes most buggy apps
@@ -271,7 +318,11 @@ MyApplet.prototype = {
         if (icon.obsolete == true) {
             return;
         }
-        let children = this.manager_container.get_children();
+        let children = this.manager_container.get_children().filter(function(child) {
+            // We are only interested in the status icons and apparently we can not ask for
+            // child instanceof CinnamonTrayIcon.
+            return (child.toString().indexOf("CinnamonTrayIcon") != -1);
+        });
         let i;
         for (i = children.length - 1; i >= 0; i--) {
             let rolePosition = children[i]._rolePosition;
@@ -285,6 +336,7 @@ MyApplet.prototype = {
             this.manager_container.insert_child_at_index(icon, 0);
         }
         icon._rolePosition = position;
+
         if (this._scaleMode) {
             let timerId = Mainloop.timeout_add(500, Lang.bind(this, function() {
                 this._resizeStatusItem(role, icon);
@@ -301,24 +353,11 @@ MyApplet.prototype = {
         if (icon.obsolete == true) {
             return;
         }
-        let size;
-        let disp_size = this._panelHeight * ICON_SCALE_FACTOR;
+
         if (["shutter", "filezilla"].indexOf(role) != -1) {
             global.log("Not resizing " + role + " as it's known to be buggy (" + icon.get_width() + "x" + icon.get_height() + "px)");
-        }
-        else {
-            if (disp_size < 22) {
-                size = 16;
-            }
-            else if (disp_size < 32) {
-                size = 22;
-            }
-            else if (disp_size < 48) {
-                size = 32;
-            }
-            else {
-                size = 48;
-            }
+        } else {
+            let size = this._getIconSize();
             icon.set_size(size, size);
             global.log("Resized " + role + " with normalized size (" + icon.get_width() + "x" + icon.get_height() + "px)");
             //Note: dropbox doesn't scale, even though we resize it...

@@ -1,13 +1,102 @@
 const Applet = imports.ui.applet;
-const Gkbd = imports.gi.Gkbd;
+const XApp = imports.gi.XApp;
 const Lang = imports.lang;
 const Cinnamon = imports.gi.Cinnamon;
+const Clutter = imports.gi.Clutter;
 const St = imports.gi.St;
 const Gtk = imports.gi.Gtk;
 const Main = imports.ui.main;
 const PopupMenu = imports.ui.popupMenu;
 const Util = imports.misc.util;
 const Settings = imports.ui.settings;
+const Mainloop = imports.mainloop;
+const Gio = imports.gi.Gio;
+const Cairo = imports.cairo;
+
+function EmblemedIcon() {
+    this._init.apply(this, arguments);
+}
+
+EmblemedIcon.prototype = {
+    _init: function(path, id, style_class) {
+        this.path = path;
+        this.id = id;
+
+        this.actor = new St.DrawingArea({ style_class: style_class });
+
+        this.actor.connect("style-changed", Lang.bind(this, this._style_changed));
+        this.actor.connect("repaint", Lang.bind(this, this._repaint));
+    },
+
+    _style_changed: function(actor) {
+        let icon_size = 0.5 + this.actor.get_theme_node().get_length("icon-size");
+
+        this.actor.natural_width = this.actor.natural_height = icon_size;
+    },
+
+    _repaint: function(actor) {
+        let cr = actor.get_context();
+        let [w, h] = actor.get_surface_size();
+
+        cr.save()
+
+        let surf = St.TextureCache.get_default().load_file_to_cairo_surface(this.path);
+
+        let factor = w / surf.getWidth();
+
+        let true_width = surf.getWidth() * factor;
+        let true_height = surf.getHeight() * factor;
+
+        let y_offset = 0;
+        let x_offset = 0;
+
+        if (surf.getWidth() >= surf.getHeight()) {
+            x_offset = 0;
+            y_offset = ((h * (1 / factor)) - surf.getHeight()) / 2;
+        } else {
+            x_offset = ((w * (1 / factor)) - surf.getWidth()) / 2;
+            y_offset = 0;
+        }
+
+        let true_x_offset = (w - true_width) / 2;
+        let true_y_offset = (h - true_height) / 2;
+
+        cr.scale(factor, factor);
+        cr.setSourceSurface(surf, x_offset, y_offset);
+
+        cr.getSource().setFilter(Cairo.Filter.BEST);
+        cr.setOperator(Cairo.Operator.SOURCE);
+
+        cr.paint();
+
+        cr.restore()
+
+        XApp.KbdLayoutController.render_cairo_subscript(cr,
+                                                        true_x_offset + (true_width / 2),
+                                                        true_y_offset + (true_height / 2),
+                                                        true_width / 2,
+                                                        true_height / 2,
+                                                        this.id);
+
+        cr.$dispose();
+    },
+
+    /* Monkey patch St.Icon functions used in js/ui/applet.js IconApplet so
+       we can use its _setStyle() function for figuring out how big we should
+       be
+     */
+    get_icon_type: function() {
+        return St.IconType.FULLCOLOR;
+    },
+
+    set_icon_size: function(size) {
+        this.actor.width = this.actor.height = size;
+    },
+
+    set_style_class_name: function(name) {
+        return;
+    }
+}
 
 function LayoutMenuItem() {
     this._init.apply(this, arguments);
@@ -29,7 +118,7 @@ LayoutMenuItem.prototype = {
 
     activate: function(event) {
         PopupMenu.PopupBaseMenuItem.prototype.activate.call(this);
-        this._config.lock_group(this._id);
+        this._config.set_current_group(this._id);
     }
 };
 
@@ -42,37 +131,30 @@ MyApplet.prototype = {
 
     _init: function(metadata, orientation, panel_height, instance_id) {        
         Applet.TextIconApplet.prototype._init.call(this, orientation, panel_height, instance_id);
+
+        this.setAllowedLayout(Applet.AllowedLayout.BOTH);
         
         try {
             this.metadata = metadata;
             Main.systrayManager.registerRole("keyboard", metadata.uuid);
 
-            this.icon_theme = Gtk.IconTheme.get_default();
-            this.icon_theme.append_search_path(metadata.path + "/flags");
             this.menuManager = new PopupMenu.PopupMenuManager(this);
             this.menu = new Applet.AppletPopupMenu(this, orientation);
             this.menuManager.addMenu(this.menu);                            
 
             this.actor.add_style_class_name('panel-status-button');            
 
-            this._labelActors = [ ];
             this._layoutItems = [ ];
 
-            this.settings = new Settings.AppletSettings(this, metadata["uuid"], this.instance_id);
+            this.show_flags = false;
+            this.use_upper = false;
+            this.use_variants = false;
 
-            this.settings.bindProperty(Settings.BindingDirection.BIDIRECTIONAL,
-                                       "use-flags",
-                                       "_showFlags",
-                                       this._syncConfig,
-                                       null);
+            this.desktop_settings = new Gio.Settings({ schema_id: "org.cinnamon.desktop.interface" });
 
-            this._config = Gkbd.Configuration.get();
-            this._config.connect('changed', Lang.bind(this, this._syncConfig));
-            this._config.connect('group-changed', Lang.bind(this, this._syncGroup));
-
-            this._config.start_listen();
-
-            this._syncConfig();
+            this.desktop_settings.connect("changed::keyboard-layout-show-flags", Lang.bind(this, this._syncConfig));
+            this.desktop_settings.connect("changed::keyboard-layout-use-upper", Lang.bind(this, this._syncConfig));
+            this.desktop_settings.connect("changed::keyboard-layout-prefer-variant-names", Lang.bind(this, this._syncConfig));
 
             this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             this.menu.addAction(_("Show Keyboard Layout"), Lang.bind(this, function() {
@@ -89,72 +171,75 @@ MyApplet.prototype = {
             global.logError(e);
         }
     },
+
+    on_applet_added_to_panel: function() {
+        this._config = new XApp.KbdLayoutController();
+
+        this._syncConfig();
+
+        this._config.connect('layout-changed', Lang.bind(this, this._syncGroup));
+        this._config.connect('config-changed', Lang.bind(this, this._syncConfig));
+    },
     
     on_applet_clicked: function(event) {
         this.menu.toggle();        
-    },  
-
-   _adjustGroupNames: function(names) {
-        // Disambiguate duplicate names with a subscript
-        // This is O(N^2) to avoid sorting names
-        // but N <= 4 so who cares?
-
-        for (let i = 0; i < names.length; i++) {
-            let name = names[i];
-            let cnt = 0;
-            for (let j = i + 1; j < names.length; j++) {
-                if (names[j] == name) {
-                    cnt++;
-                    // U+2081 SUBSCRIPT ONE
-                    names[j] = name + String.fromCharCode(0x2081 + cnt);
-                }
-            }
-            if (cnt != 0)
-                names[i] = name + '\u2081';
-        }
-
-        return names;
     },
 
     _syncConfig: function() {
-        let groups = this._config.get_group_names();
-        if (groups.length > 1) {
-            this.actor.show();
-        } else {
-            this.menu.close();
-            this.actor.hide();
-        }
-
         for (let i = 0; i < this._layoutItems.length; i++)
             this._layoutItems[i].destroy();
 
-        for (let i = 0; i < this._labelActors.length; i++)
-            this._labelActors[i].destroy();
-
-        let short_names = this._adjustGroupNames(this._config.get_short_group_names());
-
         this._selectedLayout = null;
         this._layoutItems = [ ];
-        this._labelActors = [ ];
-        for (let i = 0; i < groups.length; i++) {
-            let icon_name = this._config.get_group_name(i);
-            let actor;
-            if (this._showFlags && this.icon_theme.lookup_icon(icon_name, 20, 0))
-                actor = new St.Icon({ icon_name: icon_name, icon_type: St.IconType.FULLCOLOR, style_class: 'popup-menu-icon' });
-            else
-                actor = new St.Label({ text: short_names[i] });
-            let item = new LayoutMenuItem(this._config, i, actor, groups[i]);
-            item._short_group_name = short_names[i];
-            item._icon_name = icon_name;
-            item._long_name = groups[i];
-            this._layoutItems.push(item);
-            this.menu.addMenuItem(item, i);
 
-            let shortLabel = new St.Label({ text: short_names[i] });
-            this._labelActors.push(shortLabel);
+        if (!this._config.get_enabled()) {
+            this.menu.close();
+            this.actor.hide();
+            return;
         }
 
-        this._syncGroup();
+        this.show_flags = this.desktop_settings.get_boolean("keyboard-layout-show-flags");
+        this.use_upper = this.desktop_settings.get_boolean("keyboard-layout-use-upper");
+        this.use_variants = this.desktop_settings.get_boolean("keyboard-layout-prefer-variant-names");
+
+        this.actor.show();
+
+        let groups = this._config.get_all_names();
+
+        for (let i = 0; i < groups.length; i++) {
+            let handled = false;
+            let actor = null;
+
+            if (this.show_flags) {
+                let name = this._config.get_icon_name_for_group(i);
+
+                let file = Gio.file_new_for_path("/usr/share/iso-flag-png/" + name + ".png");
+
+                if (file.query_exists(null)) {
+                    actor = new EmblemedIcon(file.get_path(), this._config.get_flag_id_for_group(i), "popup-menu-icon").actor;
+                    handled = true;
+                }
+            }
+
+            if (!handled) {
+                let name;
+
+                if (this.use_variants) {
+                    name = this._config.get_variant_label_for_group(i);
+                } else {
+                    name = this._config.get_short_group_label_for_group(i);
+                }
+
+                name = this.use_upper ? name.toUpperCase() : name;
+                actor = new St.Label({ text: name })
+            }
+
+            let item = new LayoutMenuItem(this._config, i, actor, groups[i]);
+            this._layoutItems.push(item);
+            this.menu.addMenuItem(item, i);
+        }
+
+        Mainloop.idle_add(Lang.bind(this, this._syncGroup));
     },
 
     _syncGroup: function() {
@@ -168,18 +253,43 @@ MyApplet.prototype = {
         let item = this._layoutItems[selected];
         item.setShowDot(true);
 
-        let selectedLabel = this._labelActors[selected];
+        this._selectedLayout = item;
 
-        this.set_applet_tooltip(item._long_name)
-        if (this._showFlags && this.icon_theme.lookup_icon(item._icon_name, 20, 0)) {
-            this.set_applet_icon_name(item._icon_name);
-            this.set_applet_label("");
-        } else {
-            this.hide_applet_icon();
-            this.set_applet_label(selectedLabel.text);
+        this.set_applet_tooltip(this._config.get_current_name());
+
+        let handled = false;
+
+        if (this.show_flags) {
+            let name = this._config.get_current_icon_name();
+
+            let file = Gio.file_new_for_path("/usr/share/iso-flag-png/" + name + ".png");
+
+            if (file.query_exists(null)) {
+                this._applet_icon = new EmblemedIcon(file.get_path(), this._config.get_current_flag_id(), "applet-icon");
+                this._applet_icon_box.set_child(this._applet_icon.actor);
+
+                this._setStyle();
+
+                this.set_applet_label("");
+
+                handled = true;
+            }
         }
 
-        this._selectedLayout = item;
+        if (!handled) {
+            let name;
+
+            if (this.use_variants) {
+                name = this._config.get_current_variant_label();
+            } else {
+                name = this._config.get_current_short_group_label();
+            }
+
+            name = this.use_upper ? name.toUpperCase() : name;
+
+            this.set_applet_label(name)
+            this.hide_applet_icon()
+        }
     },
 
     on_applet_removed_from_panel: function() {

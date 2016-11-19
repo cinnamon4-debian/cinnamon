@@ -1,13 +1,15 @@
 #!/usr/bin/env python2
 
-from ExtensionCore import ExtensionSidePage
 from gi.repository.Gtk import SizeGroup, SizeGroupMode
-from SettingsWidgets import *
+
+from GSettingsWidgets import *
 from CinnamonGtkSettings import GtkSettingsSwitch
+from ExtensionCore import ExtensionSidePage
 
 import glob
 
 ICON_SIZE = 48
+
 
 class Module:
     comment = _("Manage themes to change how your desktop looks")
@@ -274,6 +276,12 @@ class Module:
         valid.sort(lambda a,b: cmp(a[0].lower(), b[0].lower()))
         res = []
         for i in valid:
+            for j in res:
+                if i[0] == j[0]:
+                    if i[1] == dirs[0]:
+                        continue
+                    else:
+                        res.remove(j)
             res.append((i[0], i[1]))
         return res
 
@@ -297,15 +305,21 @@ class Module:
                 try:
                     for line in list(open(path)):
                         if line.startswith("Directories="):
-                            valid.append(directory[0])
+                            valid.append(directory)
                             break
                 except Exception as e:
                     print (e)
 
-        valid.sort(lambda a,b: cmp(a.lower(), b.lower()))
+        valid.sort(lambda a,b: cmp(a[0].lower(), b[0].lower()))
         res = []
         for i in valid:
-            res.append(i)
+            for j in res:
+                if i[0] == j:
+                    if i[1] == dirs[0]:
+                        continue
+                    else:
+                        res.remove(j)
+            res.append(i[0])
         return res
 
     def _load_cursor_themes(self):
@@ -314,6 +328,12 @@ class Module:
         valid.sort(lambda a,b: cmp(a[0].lower(), b[0].lower()))
         res = []
         for i in valid:
+            for j in res:
+                if i[0] == j[0]:
+                    if i[1] == dirs[0]:
+                        continue
+                    else:
+                        res.remove(j)
             res.append((i[0], i[1]))
         return res
 
@@ -323,6 +343,12 @@ class Module:
         valid.sort(lambda a,b: cmp(a[0].lower(), b[0].lower()))
         res = []
         for i in valid:
+            for j in res:
+                if i[0] == j[0]:
+                    if i[1] == dirs[0]:
+                        continue
+                    else:
+                        res.remove(j)
             res.append((i[0], i[1]))
         return res
 
@@ -332,5 +358,11 @@ class Module:
         valid.sort(lambda a,b: cmp(a[0].lower(), b[0].lower()))
         res = []
         for i in valid:
+            for j in res:
+                if i[0] == j[0]:
+                    if i[1] == dirs[0]:
+                        continue
+                    else:
+                        res.remove(j)
             res.append((i[0], i[1]))
         return res
