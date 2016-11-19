@@ -1,8 +1,12 @@
-cinnamon (3.0.7-3~) UNRELEASED; urgency=medium
+cinnamon (3.2.1-1) UNRELEASED; urgency=medium
 
+  [ Maximiliano Curia ]
   * Add blueman recommends
 
- -- Maximiliano Curia <maxy@debian.org>  Mon, 31 Oct 2016 17:38:10 +0100
+  [ Margarita Manterola ]
+  * New upstream release.
+
+ -- Margarita Manterola <marga@debian.org>  Sat, 19 Nov 2016 12:27:17 +0100
 
 cinnamon (3.0.7-2) unstable; urgency=medium
 
