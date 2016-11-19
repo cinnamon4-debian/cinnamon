@@ -1,8 +1,8 @@
+const St = imports.gi.St;
 const PopupMenu = imports.ui.popupMenu;
 const Gio = imports.gi.Gio;
 const Lang = imports.lang;
 const Applet = imports.ui.applet;
-const GConf = imports.gi.GConf;
 const Main = imports.ui.main;
 const Gdk = imports.gi.Gdk;
 
@@ -20,9 +20,6 @@ const DPI_HIGH_REASONABLE_VALUE = 500;
 const DPI_FACTOR_LARGE   = 1.25;
 const DPI_FACTOR_LARGER  = 1.5;
 const DPI_FACTOR_LARGEST = 2.0;
-
-const KEY_META_DIR       = '/apps/metacity/general';
-const KEY_VISUAL_BELL = KEY_META_DIR + '/visual_bell';
 
 const DESKTOP_INTERFACE_SCHEMA = 'org.cinnamon.desktop.interface';
 const KEY_GTK_THEME      = 'gtk-theme';
@@ -42,6 +39,8 @@ MyApplet.prototype = {
 
     _init: function(metadata, orientation, panel_height, instance_id) {
         Applet.TextIconApplet.prototype._init.call(this, orientation, panel_height, instance_id);
+
+        this.setAllowedLayout(Applet.AllowedLayout.BOTH);
         
         try {
             this.metadata = metadata;
@@ -49,14 +48,12 @@ MyApplet.prototype = {
             
             this.set_applet_icon_symbolic_name("preferences-desktop-accessibility");
             this.set_applet_tooltip(_("Accessibility"));
+            this.orientation = orientation;
             
             this.menuManager = new PopupMenu.PopupMenuManager(this);
             this.menu = new Applet.AppletPopupMenu(this, orientation);
             this.menuManager.addMenu(this.menu);            
                                 
-            let client = GConf.Client.get_default();
-            client.add_dir(KEY_META_DIR, GConf.ClientPreloadType.PRELOAD_ONELEVEL, null);
-
             let highContrast = this._buildHCItem();
             this.menu.addMenuItem(highContrast);
 
@@ -74,9 +71,6 @@ MyApplet.prototype = {
             let screenKeyboard = this._buildItem(_("Screen Keyboard"), APPLICATIONS_SCHEMA,
                                                                        'screen-keyboard-enabled');
             this.menu.addMenuItem(screenKeyboard);
-
-            let visualBell = this._buildItemGConf(_("Visual Alerts"), client, KEY_VISUAL_BELL);
-            this.menu.addMenuItem(visualBell);
 
             let stickyKeys = this._buildItem(_("Sticky Keys"), A11Y_SCHEMA, KEY_STICKY_KEYS_ENABLED);
             this.menu.addMenuItem(stickyKeys);
@@ -96,7 +90,7 @@ MyApplet.prototype = {
             this.a11y_settings = new Gio.Settings({ schema_id: A11Y_SCHEMA });
 
             this._keyboardStateChangedId = Keymap.connect('state-changed', Lang.bind(this, this._handleStateChange));
-            this.set_applet_label('');
+            this.hide_applet_label(true);
 
         }
         catch (e) {
@@ -130,15 +124,44 @@ MyApplet.prototype = {
                 modifiers.push('Mod2');
             if (state & Gdk.ModifierType.MOD3_MASK)
                 modifiers.push('Mod3');
-            this.set_applet_label(modifiers.join('+'));
-        }
-        else {
-            this.set_applet_label('');
+            let keystring = modifiers.join('+');
+//
+// horizontal panels - show the sticky keys in the label, vertical - in a tooltip, and hide any label
+//
+            if (this.orientation == St.Side.LEFT || this.orientation == St.Side.RIGHT) {
+                this.hide_applet_label(true);
+                if (keystring) {
+                    this.set_applet_tooltip(keystring);
+                    this._applet_tooltip.show();
+                } else {
+                    this.reset_tooltip();
+                }
+            } else {
+                this.set_applet_label(keystring);
+                this.hide_applet_label(false);
+                this.reset_tooltip();
+            }
+        } else {
+            this.hide_applet_label (this.orientation == St.Side.LEFT || this.orientation == St.Side.RIGHT);
+            this.reset_tooltip();
         }
     },
 
     on_applet_clicked: function(event) {
         this.menu.toggle();
+    },
+
+    on_orientation_changed: function(neworientation) {
+
+        this.orientation = neworientation;
+
+        this.hide_applet_label (this.orientation == St.Side.LEFT || this.orientation == St.Side.RIGHT);
+        this.reset_tooltip();
+    },
+
+    reset_tooltip: function () {
+        this.set_applet_tooltip(_("Accessibility"));
+        this._applet_tooltip.hide();
     },
 
     _buildItemExtended: function(string, initial_value, writable, on_set) {
@@ -148,19 +171,6 @@ MyApplet.prototype = {
         else
             widget.connect('toggled', function(item) {
                 on_set(item.state);
-            });
-        return widget;
-    },
-
-    _buildItemGConf: function(string, client, key) {
-        function on_get() {
-            return client.get_bool(key);
-        }
-        let widget = this._buildItemExtended(string,
-            client.get_bool(key),
-            client.key_is_writable(key),
-            function(enabled) {
-                client.set_bool(key, enabled);
             });
         return widget;
     },

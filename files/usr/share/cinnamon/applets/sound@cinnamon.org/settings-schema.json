@@ -1,8 +1,49 @@
 {
-    "showtrack": {
-        "type": "checkbox",
+    "section1": {
+        "type": "section",
+        "description" : "Menu"
+    },
+    "playerControl": {
+        "type": "switch",
+        "default": true,
+        "description": "Control Players"
+    },
+    "extendedPlayerControl": {
+        "type": "switch",
         "default": false,
-        "description": "Show song information on the panel"
+        "description": "Show Loop and Shuffle controls",
+        "dependency": "playerControl",
+        "indent": true
+    },
+    "positionLabelType": {
+        "type": "combobox",
+        "default": "length",
+        "description": "Position label",
+        "options": {
+            "Song length": "length",
+            "Countdown": "countdown"
+        },
+        "dependency": "playerControl",
+        "indent": true
+    },
+    "showSliderPercentage": {
+        "type": "switch",
+        "default": false,
+        "description": "Show percentage value of the slider"
+    },
+    "_knownPlayers": {
+        "type": "generic",
+        "default": ["banshee", "vlc"]
+    },
+    "section2": {
+        "type": "section",
+        "description" : "Panel"
+    },
+    "showtrack": {
+        "type": "switch",
+        "default": false,
+        "description": "Show song information on the panel",
+        "dependency": "playerControl"
     },
     "truncatetext": {
         "type": "spinbutton",
@@ -25,43 +66,14 @@
         "description": "Action on middle click"
     },
     "showalbum": {
-        "type": "checkbox",
+        "type": "switch",
         "default": false,
-        "description": "Show album art as icon"
+        "description": "Show album art as icon",
+        "dependency": "playerControl"
     },
     "hideSystray" : {
-        "type" : "checkbox",
+        "type" : "switch",
         "description" : "Hide system tray icons for compatible players",
         "default": true
-    },
-    "separator": {
-        "type": "separator"
-    },
-    "playerControl": {
-        "type": "checkbox",
-        "default": true,
-        "description": "Control Players"
-    },
-    "extendedPlayerControl": {
-        "type": "checkbox",
-        "default": false,
-        "description": "Show Loop and Shuffle controls",
-        "dependency": "playerControl",
-        "indent": true
-    },
-    "positionLabelType": {
-        "type": "combobox",
-        "default": "length",
-        "description": "Position label",
-        "options": {
-            "Song length": "length",
-            "Countdown": "countdown"
-        },
-        "dependency": "playerControl",
-        "indent": true
-    },
-    "_knownPlayers": {
-        "type": "generic",
-        "default": ["banshee", "vlc"]
     }
 }

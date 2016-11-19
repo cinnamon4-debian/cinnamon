@@ -359,7 +359,7 @@
     </key>
 
     <key name="overview-corner" type="as">
-      <default>['expo:false:false', 'scale:false:false', 'scale:false:false', 'desktop:false:false']</default>
+      <default>['expo:false:false:0', 'scale:false:false:0', 'scale:false:false:0', 'desktop:false:false:0']</default>
       <_summary>Properties of overview corners</_summary>
       <_description>Properties of overview corners, in the form functionality:hover:icon. The order in which properties are displayed is top left, top right, bottom left, bottom right.</_description>
     </key>
@@ -577,7 +577,7 @@
     <child name="sounds" schema="org.cinnamon.sounds" />
 
     <key name="enable-vfade" type="b">
-      <default>false</default>
+      <default>true</default>
       <_summary>Enable the fade effect in Cinnamon scrollviews</_summary>
       <_description>
         Whether the vfade effect is enabled or not
@@ -901,6 +901,22 @@
       <summary>Which sound to play when a device is plugged</summary>
       <description>
         Which sound to play when a device is unplugged.
+      </description>
+    </key>
+
+    <key name="notification-enabled" type="b">
+      <default>false</default>
+      <summary>Whether to play a sound when showing notifications</summary>
+      <description>
+        Whether to play a sound when showing notifications.
+      </description>
+    </key> 
+   
+    <key name="notification-file" type="s">
+      <default>""</default>
+      <summary>Which sound to play when showing notifications</summary>
+      <description>
+        Which sound to play when showing notifications.
       </description>
     </key>    
 
