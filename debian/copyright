@@ -4,19 +4,13 @@ Upstream-Contact: Linux Mint Project <root@linuxmint.com>
 Source: https://github.com/linuxmint/cinnamon
 
 Files: *
-Copyright: 2009, Bastien Nocera
-           2012, Conor Curran
-           2011, Conor Curran <conor.curran@canonical.com>
-           2012, David Henningsson, Canonical Ltd <david.henningsson@canonical.com>
-           1999-2001, Eazel, Inc
-           1989-1991, Free Software Foundation, Inc
+Copyright: 1989-1991, Free Software Foundation, Inc
+           2011, Giovanni Campagna
            2008, Intel Corp
-           2006-2008, Lennart Poettering
+           2013-2014, Jonas Kümmerlin <rgcjonas@gmail.com>
            2009, Marcelo Jorge Vieira (metal) <metal@alucinados.com>
-           2008, Red Hat, Inc
-           2008, Sjoerd Simons <sjoerd@luon.net>
-           2008, William Jon McCann
-           2000-2001, Eazel, Inc
+           2008-2011, Red Hat, Inc
+           1999-2001, Eazel, Inc
            2001, George Lebl
            2000, Helix Code, Inc
            2006-2008, OpenedHand Ltd
@@ -69,15 +63,15 @@ Files: src/cinnamon-window-tracker.c
        src/st/st-widget.c
        src/st/st-widget.h
 Copyright: 2009, Abderrahim Kitouni
-           2011, Adel Gadllah
+           2010-2011, Adel Gadllah
            2003-2004, Dodji Seketeli
            2009-2010, Florian Müllner
            2010, Giovanni Campagna
            2010, Igalia, S.L
-           2009, Intel Corporation
+           2008-2010, Intel Corporation
            2010, Maxim Ermilov
-           2008, OpenedHand
-           2006-2008, Red Hat, Inc
+           2007-2008, OpenedHand
+           2006-2010, Red Hat, Inc
            2008, litl, LLC
 License: LGPL-2.1
 
@@ -105,10 +99,10 @@ Files: src/st/st-border-image.c
        src/st/st-theme.h
        src/st/test-theme.c
 Copyright: 2010, Adel Gadllah
-           2010, Florian Müllner
+           2009-2010, Florian Müllner
            2010, Giovanni Campagna
            2010, Maxim Ermilov
-           2009-2010, Red Hat, Inc
+           2008-2010, Red Hat, Inc
            2009, Steve Frécinaux
 License: LGPL-2.1+
 
@@ -125,7 +119,7 @@ Copyright: 2009, Abderrahim Kitouni
            2010, Florian Muellner
            2009, Intel Corporation
            2006, OpenedHand
-           2008, Red Hat, Inc
+           2008-2010, Red Hat, Inc
            2006, Travis Watkins
            2006, Travis Watkins, Heinrich Wendel
            2003-2006, Vincent Untz
