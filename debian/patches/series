@@ -5,3 +5,4 @@ make_nm_optional
 background.patch
 Drop-nm-applet-from-the-session-files.patch
 add-blueman-to-settings
+new-iso-flags-folder.patch
