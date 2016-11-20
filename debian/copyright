@@ -37,8 +37,6 @@ Files: src/cinnamon-window-tracker.c
        src/st/st-button.h
        src/st/st-clipboard.c
        src/st/st-clipboard.h
-       src/st/st-container.c
-       src/st/st-container.h
        src/st/st-entry.c
        src/st/st-entry.h
        src/st/st-group.c
@@ -49,8 +47,6 @@ Files: src/cinnamon-window-tracker.c
        src/st/st-im-text.h
        src/st/st-label.c
        src/st/st-label.h
-       src/st/st-overflow-box.c
-       src/st/st-overflow-box.h
        src/st/st-private.c
        src/st/st-private.h
        src/st/st-scroll-bar.c
@@ -68,8 +64,6 @@ Files: src/cinnamon-window-tracker.c
        src/st/st-table.h
        src/st/st-theme-node-drawing.c
        src/st/st-theme.c
-       src/st/st-tooltip.c
-       src/st/st-tooltip.h
        src/st/st-types.h
        src/st/st-widget-accessible.h
        src/st/st-widget.c
@@ -118,9 +112,9 @@ Copyright: 2010, Adel Gadllah
            2009, Steve Frécinaux
 License: LGPL-2.1+
 
-Files: files/usr/lib/cinnamon-menu-editor/cme/MainWindow.py
-       files/usr/lib/cinnamon-menu-editor/cme/MenuEditor.py
-       files/usr/lib/cinnamon-menu-editor/cme/util.py
+Files: files/usr/share/cinnamon/cinnamon-menu-editor/cme/MainWindow.py
+       files/usr/share/cinnamon/cinnamon-menu-editor/cme/MenuEditor.py
+       files/usr/share/cinnamon/cinnamon-menu-editor/cme/util.py
        src/st/st-box-layout.c
        src/tray/na-tray-child.c
        src/tray/na-tray-child.h
@@ -137,12 +131,12 @@ Copyright: 2009, Abderrahim Kitouni
            2003-2006, Vincent Untz
 License: LGPL-2+
 
-Files: files/usr/lib/cinnamon-settings/bin/capi.py
-       files/usr/lib/cinnamon-settings/bin/imtools.py
+Files: files/usr/share/cinnamon/cinnamon-settings/bin/capi.py
+       files/usr/share/cinnamon/cinnamon-settings/bin/imtools.py
 Copyright: 2007-2010, www.stani.be
 License: GPL-3+
 
-Files: files/usr/lib/cinnamon-settings/bin/proxygsettings.py
+Files: files/usr/share/cinnamon/cinnamon-settings/bin/proxygsettings.py
 Copyright: 2011-2012, Canonical Ltd
            2014, Erik Devriendt
 License: GPL-3_SSLException
@@ -152,7 +146,7 @@ Copyright: 2010, Red Hat, Inc
            2008, litl, LLC
 License: Expat
 
-Files: files/usr/lib/cinnamon-settings/bin/tweenEquations.py
+Files: files/usr/share/cinnamon/cinnamon-settings/bin/tweenEquations.py
 Copyright: 2001, Robert Penner
            2008, litl, LLC
 License: BSD-3-clause
