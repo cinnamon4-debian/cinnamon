@@ -1,14 +1,21 @@
 cinnamon (3.2.1-1) UNRELEASED; urgency=medium
 
-  [ Maximiliano Curia ]
-  * Add blueman recommends
-
   [ Margarita Manterola ]
   * New upstream release.
   * Remove old gnome migration patch, it was applied upstream.
   * Added patch for the changed location of iso-flags-png.
 
  -- Margarita Manterola <marga@debian.org>  Sat, 19 Nov 2016 12:27:17 +0100
+
+cinnamon (3.0.7-3) unstable; urgency=medium
+
+  [ Maximiliano Curia ]
+  * Add blueman recommends
+  * Update patch: add_policykit-1-gnome_to_session point to the new
+    polkit-gnome-authentication-agent-1 location. (Closes: 845764)
+    Thanks to halcyon for reporting
+
+ -- Maximiliano Curia <maxy@debian.org>  Tue, 06 Dec 2016 22:47:45 +0100
 
 cinnamon (3.0.7-2) unstable; urgency=medium
 
