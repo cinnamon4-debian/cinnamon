@@ -1,11 +1,11 @@
-cinnamon (3.0.7-3~) UNRELEASED; urgency=medium
+cinnamon (3.0.7-3) unstable; urgency=medium
 
   * Add blueman recommends
   * Update patch: add_policykit-1-gnome_to_session point to the new
     polkit-gnome-authentication-agent-1 location. (Closes: 845764)
     Thanks to halcyon for reporting
 
- -- Maximiliano Curia <maxy@debian.org>  Mon, 31 Oct 2016 17:38:10 +0100
+ -- Maximiliano Curia <maxy@debian.org>  Tue, 06 Dec 2016 22:47:45 +0100
 
 cinnamon (3.0.7-2) unstable; urgency=medium
 
