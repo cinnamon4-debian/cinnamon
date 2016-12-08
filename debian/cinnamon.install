@@ -1,4 +1,5 @@
 /usr/bin/cinnamon*
+/usr/bin/xlet-settings
 /usr/lib/*/cinnamon
 /usr/share/applications/cinnamon-killer-daemon.desktop
 /usr/share/applications/cinnamon-menu-editor.desktop
