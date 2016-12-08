@@ -4,4 +4,6 @@
    authentication agent running (policykit-1-gnome), but the autostart desktop
    file has a OnlyShowIn=GNOME;XFCE;Unity; file, so we should request to add:
    X-Cinnamon to that list.
+2016-12-98 marga:
+ - Reported this in https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=846245
 
