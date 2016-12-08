@@ -35,15 +35,6 @@ const VOLUME_ADJUSTMENT_STEP = 0.05; /* Volume adjustment step in % */
 
 const ICON_SIZE = 28;
 
-function _getDigitWidth(actor){
-    let context = actor.get_pango_context();
-    let themeNode = actor.get_theme_node();
-    let font = themeNode.get_font();
-    let metrics = context.get_metrics(font, context.get_language());
-    let width = metrics.get_approximate_digit_width();
-    return width;
-}
-
 function ControlButton() {
     this._init.apply(this, arguments);
 }
@@ -121,17 +112,7 @@ VolumeSlider.prototype = {
         this.addActor(this.icon, {span: 0});
         this.addActor(this._slider, {span: -1, expand: true});
 
-        this.label = new St.Label({ text: "" });
-        this.label.clutter_text.set_ellipsize(Pango.EllipsizeMode.NONE);
-
-        this.actor.connect('style-changed', Lang.bind(this, this.onStyleChanged));
-
         this.connectWithStream(stream);
-    },
-
-    onStyleChanged: function(actor, event) {
-        let digitWidth = _getDigitWidth(this.actor) / Pango.SCALE;
-        this.label.set_width(digitWidth * 5);
     },
 
     connectWithStream: function(stream){
@@ -186,8 +167,6 @@ VolumeSlider.prototype = {
         }
         this.setValue(value);
 
-        this.label.set_text(percentage);
-
         // send data to applet
         this.emit("values-changed", iconName, percentage);
     },
@@ -204,16 +183,6 @@ VolumeSlider.prototype = {
             icon = "high";
 
         return this.isMic? "microphone-sensitivity-" + icon : "audio-volume-" + icon;
-    },
-
-    _togglePercentageDisplay: function(showPercentage) {
-        if (!showPercentage)
-            this.removeActor(this.label);
-        else {
-            this.removeActor(this._slider);
-            this.addActor(this.label, {span: 0});
-            this.addActor(this._slider, {span: -1, expand: true});
-        }
     }
 }
 
@@ -420,8 +389,6 @@ Player.prototype = {
 
         // Position slider
         this._positionSlider = new Slider.Slider(0, true);
-        this._currentTimeLabel = new St.Label({text: "0:00"});
-        this._songLengthLabel = new St.Label({text: "0:00"});
         this._seeking = false;
         this._positionSlider.connect('drag-begin', Lang.bind(this, function(item) {
             this._seeking = true;
@@ -432,9 +399,7 @@ Player.prototype = {
         }));
         this._positionSlider.connect('value-changed', Lang.bind(this, function(item) {
             //update the label virtually if we are seeking, else set the value (scroll event)
-            if(this._seeking)
-                this._updateTimeLabel(item._value * this._songLength);
-            else
+            if(!this._seeking)
                 this._setPosition("slider");
         }));
         this.vertBox.add_actor(this._positionSlider.actor);
@@ -537,7 +502,6 @@ Player.prototype = {
             let time = this._positionSlider._value * this._songLength;
             this._wantedSeekValue = Math.round(time * 1000000);
             this._mediaServerPlayer.SetPositionRemote(this._trackObj, time * 1000000);
-            this._updateTimeLabel(time);
         }
         else if (value == null && this._playerStatus != 'Stopped') {
             this._updatePositionSlider(false);
@@ -728,19 +692,6 @@ Player.prototype = {
             else
                 this._positionSlider.setValue(0);
         }
-        if(!this._seeking)
-            this._updateTimeLabel();
-    },
-
-    _updateTimeLabel: function(time){
-        if(time === undefined)
-            time = this._currentTime;
-
-        this._currentTimeLabel.text = this._formatTime(time);
-        if(this._applet.positionLabelType === "length")
-            this._songLengthLabel.text = this._formatTime(this._songLength);
-        else
-            this._songLengthLabel.text = "-" + this._formatTime(this._songLength - time);
     },
 
     _runTimerCallback: function() {
@@ -786,25 +737,6 @@ Player.prototype = {
         this._currentTime = 0;
         this._pauseTimer();
         this._updateTimer();
-    },
-
-    _formatTime: function(s) {
-        let ms = s * 1000;
-        let msSecs = (1000);
-        let msMins = (msSecs * 60);
-        let msHours = (msMins * 60);
-        let numHours = Math.floor(ms/msHours);
-        let numMins = Math.floor((ms - (numHours * msHours)) / msMins);
-        let numSecs = Math.floor((ms - (numHours * msHours) - (numMins * msMins))/ msSecs);
-        if (numSecs < 10)
-            numSecs = "0" + numSecs.toString();
-        if (numMins < 10 && numHours > 0)
-            numMins = "0" + numMins.toString();
-        if (numHours > 0)
-            numHours = numHours.toString() + ":";
-        else
-            numHours = "";
-        return numHours + numMins.toString() + ":" + numSecs.toString();
     },
 
     _onDownloadedCover: function() {
@@ -922,11 +854,6 @@ MyApplet.prototype = {
                 for(let i in this._players)
                     this._players[i].onSettingsChanged();
             });
-            this.settings.bind("positionLabelType", "positionLabelType", function(){
-                for(let i in this._players)
-                    this._players[i].onSettingsChanged();
-            });
-            this.settings.bind("showSliderPercentage", "showSliderPercentage", this._showPercentageChanged);
 
             this.settings.bind("_knownPlayers", "_knownPlayers");
             if (this.hideSystray) this.registerSystrayIcons();
@@ -1350,7 +1277,6 @@ MyApplet.prototype = {
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem);
         this._outputVolumeSection = new VolumeSlider(this, null, _("Volume"), null);
         this._outputVolumeSection.connect("values-changed", Lang.bind(this, this._outputValuesChanged));
-        this._showPercentageChanged();
 
         this.menu.addMenuItem(this._outputVolumeSection);
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem);
@@ -1437,10 +1363,6 @@ MyApplet.prototype = {
     _inputValuesChanged: function(actor, iconName) {
         this.mute_in_switch.setIconSymbolicName(iconName);
     },
-
-     _showPercentageChanged: function() {
-         this._outputVolumeSection._togglePercentageDisplay(this.showSliderPercentage);
-     },
 
     _onControlStateChanged: function() {
         if (this._control.get_state() == Cvc.MixerControlState.READY) {

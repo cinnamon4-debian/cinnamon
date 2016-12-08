@@ -142,8 +142,7 @@ ApplicationContextMenuItem.prototype = {
                 let destFile = Gio.file_new_for_path(USER_DESKTOP_PATH+"/"+this._appButton.app.get_id());
                 try{
                     file.copy(destFile, 0, null, function(){});
-                    // Need to find a way to do that using the Gio library, but modifying the access::can-execute attribute on the file object seems unsupported
-                    Util.spawnCommandLine("chmod +x \""+USER_DESKTOP_PATH+"/"+this._appButton.app.get_id()+"\"");
+                    FileUtils.changeModeGFile(destFile, 755);
                 }catch(e){
                     global.log(e);
                 }
@@ -1150,7 +1149,7 @@ MyApplet.prototype = {
         this.settings.bind("activate-on-hover", "activateOnHover", this._updateActivateOnHover);
         this._updateActivateOnHover();
 
-        this.menu.actor.add_style_class_name('menu-background');
+        this.menu.setCustomStyleClass('menu-background');
         this.menu.connect('open-state-changed', Lang.bind(this, this._onOpenStateChanged));
 
         this.settings.bind("menu-icon-custom", "menuIconCustom", this._updateIconAndLabel);
@@ -1624,8 +1623,8 @@ MyApplet.prototype = {
                     whichWay = "right";
                 if (this._activeContainer === this.applicationsBox)
                     whichWay = "none";
-                else if ((this.categoriesBox.get_child_at_index(index))._delegate instanceof RecentCategoryButton &&
-                            this.noRecentDocuments)
+                else if (this._activeContainer === this.categoriesBox && this.noRecentDocuments &&
+                         (this.categoriesBox.get_child_at_index(index))._delegate instanceof RecentCategoryButton)
                     whichWay = "none";
                 break;
             case Clutter.KEY_Left:
@@ -1715,6 +1714,8 @@ MyApplet.prototype = {
                                 if(this.favBoxShow) {
                                     this._previousSelectedActor = this.categoriesBox.get_child_at_index(index);
                                     item_actor = this.favBoxIter.getFirstVisible();
+                                } else {
+                                    item_actor = this.categoriesBox.get_child_at_index(index);
                                 }
                             }
                             else {
@@ -1728,9 +1729,14 @@ MyApplet.prototype = {
                                 this._previousSelectedActor = this.categoriesBox.get_child_at_index(index);
                                 item_actor = this.favBoxIter.getFirstVisible();
                             } else {
-                                item_actor = (this._previousVisibleIndex != null) ?
-                                                this.appBoxIter.getVisibleItem(this._previousVisibleIndex) :
-                                                this.appBoxIter.getFirstVisible();
+                                if ((this.categoriesBox.get_child_at_index(index))._delegate instanceof RecentCategoryButton &&
+                                    this.noRecentDocuments) {
+                                    item_actor = this.categoriesBox.get_child_at_index(index);
+                                } else {
+                                    item_actor = (this._previousVisibleIndex != null) ?
+                                                    this.appBoxIter.getVisibleItem(this._previousVisibleIndex) :
+                                                    this.appBoxIter.getFirstVisible();
+                                }
                             }
                             break;
                         case "top":
