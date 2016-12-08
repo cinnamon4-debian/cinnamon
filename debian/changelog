@@ -1,10 +1,9 @@
-cinnamon (3.2.2-1) UNRELEASED; urgency=medium
+cinnamon (3.2.2-1~) UNRELEASED; urgency=medium
 
   [ Margarita Manterola ]
   * New upstream release.
   * Remove old gnome migration patch, it was applied upstream.
   * Added patch for the changed location of iso-flags-png.
-  * New upstream release.
 
  -- Margarita Manterola <marga@debian.org>  Thu, 08 Dec 2016 13:52:52 -0300
 
