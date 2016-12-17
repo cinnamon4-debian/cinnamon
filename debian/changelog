@@ -1,4 +1,4 @@
-cinnamon (3.2.6-1~) UNRELEASED; urgency=medium
+cinnamon (3.2.6-1) experimental; urgency=medium
 
   [ Margarita Manterola ]
   * New upstream release. (Closes: 845136)
@@ -9,7 +9,7 @@ cinnamon (3.2.6-1~) UNRELEASED; urgency=medium
   * New upstream release (3.2.6).
   * Add python runtime dependency (needed for cinnamon-menu-editor)
 
- -- Maximiliano Curia <maxy@debian.org>  Sat, 17 Dec 2016 19:53:56 +0100
+ -- Maximiliano Curia <maxy@debian.org>  Sat, 17 Dec 2016 20:33:18 +0100
 
 cinnamon (3.0.7-3) unstable; urgency=medium
 
