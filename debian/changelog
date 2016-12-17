@@ -7,6 +7,7 @@ cinnamon (3.2.6-1~) UNRELEASED; urgency=medium
 
   [ Maximiliano Curia ]
   * New upstream release (3.2.6).
+  * Add python runtime dependency (needed for cinnamon-menu-editor)
 
  -- Maximiliano Curia <maxy@debian.org>  Sat, 17 Dec 2016 19:53:56 +0100
 

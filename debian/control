@@ -91,6 +91,7 @@ Depends:
  python-gi-cairo,
  python-imaging,
  python-lxml,
+ python,
  python-pam,
  python-pexpect,
  python-pyinotify,
