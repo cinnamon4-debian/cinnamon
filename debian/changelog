@@ -1,3 +1,9 @@
+cinnamon (3.2.6-3) unstable; urgency=medium
+
+  * Release to unstable
+
+ -- Margarita Manterola <marga@debian.org>  Tue, 20 Dec 2016 20:34:20 -0300
+
 cinnamon (3.2.6-2) experimental; urgency=medium
 
   * Explicitly depend on automake, as some buildds sometimes pull
