@@ -86,6 +86,7 @@ Depends:
  libglib2.0-bin,
  libjs-jquery,
  mesa-utils,
+ muffin (>= 3.2),
  nemo (>= 3.0),
  policykit-1-gnome,
  python,
