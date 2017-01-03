@@ -1,8 +1,9 @@
-cinnamon (3.2.6-4~) UNRELEASED; urgency=medium
+cinnamon (3.2.7-1~) UNRELEASED; urgency=medium
 
   * Add muffin runtime dependency
+  * New upstream release (3.2.7).
 
- -- Maximiliano Curia <maxy@debian.org>  Thu, 22 Dec 2016 14:55:22 +0100
+ -- Maximiliano Curia <maxy@debian.org>  Tue, 03 Jan 2017 20:15:02 +0100
 
 cinnamon (3.2.6-3) unstable; urgency=medium
 
