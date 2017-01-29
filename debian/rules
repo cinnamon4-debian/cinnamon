@@ -31,8 +31,13 @@ override_dh_auto_test:
 	# Disable tests, upstream doesn't use them
 	:
 
+# Thumbnail path for the window manager themes
+TH_DIR=debian/cinnamon-common/usr/share/cinnamon/thumbnails/metacity-1
+
 override_dh_install-indep:
 	dh_install --list-missing
+
+	mv $(TH_DIR)/Adwaita.png $(TH_DIR)/Default.png
 
 	rm -f debian/cinnamon-common/usr/share/cinnamon/js/misc/config.js
 
