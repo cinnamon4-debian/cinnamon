@@ -3,7 +3,6 @@
 /usr/lib/*/cinnamon
 /usr/share/applications/cinnamon-killer-daemon.desktop
 /usr/share/applications/cinnamon-menu-editor.desktop
-/usr/share/applications/cinnamon-polkit-gnome-authentication-agent-1.desktop
 /usr/share/applications/cinnamon-settings-*.desktop
 /usr/share/applications/cinnamon-settings.desktop
 /usr/share/applications/cinnamon.desktop

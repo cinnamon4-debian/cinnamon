@@ -88,7 +88,7 @@ Depends:
  mesa-utils,
  muffin (>= 3.2),
  nemo (>= 3.0),
- policykit-1-gnome,
+ policykit-1-gnome (>= 0.105-6),
  python,
  python-dbus,
  python-gi-cairo,
