@@ -1,10 +1,10 @@
-cinnamon (3.2.7-3) UNRELEASED; urgency=medium
+cinnamon (3.2.7-3) unstable; urgency=medium
 
   * Revert the policykit patch now that the new polkit-1-gnome agent gets
     started by the desktop file. Add a versioned dependency on the fixed
     polkit-1-agent.
 
- -- Margarita Manterola <marga@debian.org>  Sat, 22 Apr 2017 13:40:29 +0200
+ -- Margarita Manterola <marga@debian.org>  Sat, 22 Apr 2017 16:15:58 +0200
 
 cinnamon (3.2.7-2) unstable; urgency=medium
 
