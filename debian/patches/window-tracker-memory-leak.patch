@@ -1,0 +1,22 @@
+From e2dfda9c51cf43ae36bbd6b8c266fe49ed4158df Mon Sep 17 00:00:00 2001
+From: brownsr <simonrossbrown@gmail.com>
+Date: Thu, 5 Jan 2017 06:15:28 +0000
+Subject: [PATCH] window-tracker: fix memory leak from upstream
+ https://github.com/GNOME/gnome-shell/commit/ac22172a6ec37a158ca4cecf8c18f8fb29c1aa97
+
+---
+ src/cinnamon-window-tracker.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+Index: cinnamon/src/cinnamon-window-tracker.c
+===================================================================
+--- cinnamon.orig/src/cinnamon-window-tracker.c	2017-05-19 12:43:45.367099412 +0200
++++ cinnamon/src/cinnamon-window-tracker.c	2017-05-19 12:43:45.367099412 +0200
+@@ -435,6 +435,7 @@
+   new_focus_app = new_focus_win ? cinnamon_window_tracker_get_window_app (self, new_focus_win) : NULL;
+ 
+   set_focus_app (self, new_focus_app);
++  g_clear_object (&new_focus_app);
+ }
+ 
+ static void

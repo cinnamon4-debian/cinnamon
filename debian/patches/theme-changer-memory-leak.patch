@@ -1,0 +1,64 @@
+From 62c7d5c109540d769910f39873ffa93ad2cb00d9 Mon Sep 17 00:00:00 2001
+From: brownsr <simonrossbrown@gmail.com>
+Date: Mon, 2 Jan 2017 22:09:23 +0000
+Subject: [PATCH] theme-node: Fix leak on stylesheet change. From upstream
+ https://github.com/GNOME/gnome-shell/commit/72bfa9125945919e9d69505d3e739480855f331e
+
+---
+ src/st/st-theme-node.c | 32 ++++++++++++++++++++------------
+ 1 file changed, 20 insertions(+), 12 deletions(-)
+
+Index: cinnamon/src/st/st-theme-node.c
+===================================================================
+--- cinnamon.orig/src/st/st-theme-node.c	2017-05-19 12:56:29.496236687 +0200
++++ cinnamon/src/st/st-theme-node.c	2017-05-19 12:56:29.492236577 +0200
+@@ -61,10 +61,29 @@
+ }
+ 
+ static void
++maybe_free_properties (StThemeNode *node)
++{
++  if (node->properties)
++    {
++      g_free (node->properties);
++      node->properties = NULL;
++      node->n_properties = 0;
++    }
++
++  if (node->inline_properties)
++    {
++      /* This destroys the list, not just the head of the list */
++      cr_declaration_destroy (node->inline_properties);
++      node->inline_properties = NULL;
++    }
++}
++
++static void
+ on_custom_stylesheets_changed (StTheme *theme,
+                                gpointer data)
+ {
+   StThemeNode *node = data;
++  maybe_free_properties (node);
+   node->properties_computed = FALSE;
+ }
+ 
+@@ -117,18 +136,7 @@
+   g_strfreev (node->pseudo_classes);
+   g_free (node->inline_style);
+ 
+-  if (node->properties)
+-    {
+-      g_free (node->properties);
+-      node->properties = NULL;
+-      node->n_properties = 0;
+-    }
+-
+-  if (node->inline_properties)
+-    {
+-      /* This destroys the list, not just the head of the list */
+-      cr_declaration_destroy (node->inline_properties);
+-    }
++  maybe_free_properties (node);
+ 
+   if (node->font_desc)
+     {

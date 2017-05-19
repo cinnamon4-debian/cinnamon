@@ -6,3 +6,10 @@ Drop-nm-applet-from-the-session-files.patch
 add-blueman-to-settings
 new-iso-flags-folder.patch
 always-add-default-theme.patch
+window-tracker-memory-leak.patch
+sound-applet-segfault.patch
+theme-changer-memory-leak.patch
+fix-hotcorners-error.patch
+desktop-editor-missing-icon.patch
+fill-y-typo.patch
+disable-floats-setting.patch

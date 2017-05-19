@@ -1,0 +1,24 @@
+From a625a9537806cab3c26a878a34c9e4aaa7ce3dbd Mon Sep 17 00:00:00 2001
+From: Michael Webster <miketwebster@gmail.com>
+Date: Wed, 11 Jan 2017 21:55:25 -0500
+Subject: [PATCH] cs_screensaver.py: Expose setting for floating widgets.
+
+---
+ files/usr/share/cinnamon/cinnamon-settings/modules/cs_screensaver.py | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+Index: cinnamon/files/usr/share/cinnamon/cinnamon-settings/modules/cs_screensaver.py
+===================================================================
+--- cinnamon.orig/files/usr/share/cinnamon/cinnamon-settings/modules/cs_screensaver.py	2017-05-19 17:53:03.833586490 +0200
++++ cinnamon/files/usr/share/cinnamon/cinnamon-settings/modules/cs_screensaver.py	2017-05-19 17:53:03.829586389 +0200
+@@ -164,6 +164,10 @@
+         widget.set_tooltip_text(_("Show the number of missed notifications and the battery status"))
+         settings.add_row(widget)
+ 
++        widget = GSettingsSwitch(_("Allow floating clock and album art widgets"), schema, "floating-widgets")
++        widget.set_tooltip_text(_("When the default screensaver is active, allow the clock and album art widgets to float around randomly"))
++        settings.add_row(widget)
++
+ class ScreensaverBox(Gtk.Box):
+     def __init__(self, title):
+         Gtk.Box.__init__(self)

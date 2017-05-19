@@ -1,0 +1,52 @@
+From 887e8cde6ac71f0cacd0857a3495051008b5d010 Mon Sep 17 00:00:00 2001
+From: itzexor <itzexor@gmail.com>
+Date: Mon, 9 Jan 2017 19:42:25 -0800
+Subject: [PATCH] cinnamon-desktop-editor: use the default icon when file is
+ nonexistent
+
+If the custom icon file no longer exists, use the default panel launchers
+icon instead. Without this an uncaught Glib.Error is generated which causes
+the panel launchers edit action to do nothing.
+---
+ .../cinnamon-desktop-editor/cinnamon-desktop-editor.py    | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
+
+Index: cinnamon/files/usr/share/cinnamon/cinnamon-desktop-editor/cinnamon-desktop-editor.py
+===================================================================
+--- cinnamon.orig/files/usr/share/cinnamon/cinnamon-desktop-editor/cinnamon-desktop-editor.py	2017-05-19 17:02:37.471946119 +0200
++++ cinnamon/files/usr/share/cinnamon/cinnamon-desktop-editor/cinnamon-desktop-editor.py	2017-05-19 17:02:37.467946022 +0200
+@@ -28,6 +28,7 @@
+ 
+ EXTENSIONS = (".png", ".xpm", ".svg")
+ 
++DEFAULT_ICON_NAME = "cinnamon-panel-launcher"
+ 
+ def escape_space(string):
+     return string.replace(" ", "\ ")
+@@ -76,10 +77,14 @@
+ 
+ def set_icon_string(image, icon):
+     if GLib.path_is_absolute(icon):
+-        image._file = icon
+-        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon, 64, 64)
+-        if pixbuf is not None:
+-            image.set_from_pixbuf(pixbuf)
++        if os.path.isfile(icon):
++            image._file = icon
++            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon, 64, 64)
++            if pixbuf is not None:
++                image.set_from_pixbuf(pixbuf)
++        else:
++            image._icon_name = DEFAULT_ICON_NAME
++            image.set_from_icon_name(DEFAULT_ICON_NAME, Gtk.IconSize.BUTTON)
+     else:
+         image._icon_name = strip_extensions(icon)
+         image.set_from_icon_name(strip_extensions(icon), Gtk.IconSize.BUTTON)
+@@ -527,6 +532,6 @@
+         Gtk.main_quit()
+ 
+ if __name__ == "__main__":
+-    Gtk.Window.set_default_icon_name('cinnamon-panel-launcher')
++    Gtk.Window.set_default_icon_name(DEFAULT_ICON_NAME)
+     Main()
+     Gtk.main()
