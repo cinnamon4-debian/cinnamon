@@ -1,3 +1,9 @@
+cinnamon (3.4.4-1~) UNRELEASED; urgency=medium
+
+  * New upstream release (3.4.4).
+
+ -- Maximiliano Curia <maxy@debian.org>  Fri, 04 Aug 2017 21:49:43 +0200
+
 cinnamon (3.2.7-2) unstable; urgency=medium
 
   * Rename "Adwaita" metacity-1 thumbnail to "Default". Force "Default" theme
