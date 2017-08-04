@@ -78,6 +78,14 @@ function spawn(argv) {
 
 let subprocess_id = 0;
 let subprocess_callbacks = {};
+/**
+ * spawn_async:
+ * @args: an array containing all arguments of the command to be run
+ * @callback: the callback to run when the command has completed
+ *
+ * Asynchronously Runs the command passed to @args. When the command is complete, the callback will
+ * be called with the contents of stdout from the command passed as the only argument.
+ */
 function spawn_async(args, callback) {
     subprocess_id++;
     subprocess_callbacks[subprocess_id] = callback;
@@ -107,15 +115,22 @@ function spawnCommandLine(command_line) {
 /**
  * trySpawn:
  * @argv: an argv array
+ * @doNotReap: whether to set the DO_NOT_REAP_CHILD flag
  *
  * Runs @argv in the background. If launching @argv fails,
  * this will throw an error.
  */
-function trySpawn(argv)
+function trySpawn(argv, doNotReap)
 {
-    let [success, pid]  = GLib.spawn_async(null, argv, null,
-                     GLib.SpawnFlags.SEARCH_PATH | GLib.SpawnFlags.STDOUT_TO_DEV_NULL  | GLib.SpawnFlags.STDERR_TO_DEV_NULL,
-                     null, null);
+    let spawn_flags = GLib.SpawnFlags.SEARCH_PATH
+                      | GLib.SpawnFlags.STDOUT_TO_DEV_NULL
+                      | GLib.SpawnFlags.STDERR_TO_DEV_NULL;
+
+    if (doNotReap) {
+        spawn_flags |= GLib.SpawnFlags.DO_NOT_REAP_CHILD;
+    }
+
+    let [success, pid] = GLib.spawn_async(null, argv, null, spawn_flags, null);
     return pid;
 }
 
@@ -133,6 +148,37 @@ function trySpawnCommandLine(command_line) {
     pid = trySpawn(argv);
 
     return pid;
+}
+
+/**
+ * spawnCommandLineAsync:
+ * @command_line: a command line
+ * @callback (function): called on success
+ * @errback (function): called on error
+ *
+ * Runs @command_line in the background. If the process exits without
+ * error, a callback will be called, or an error callback will be
+ * called if one is provided.
+ */
+function spawnCommandLineAsync(command_line, callback, errback) {
+    let pid;
+
+    let [success, argv] = GLib.shell_parse_argv(command_line);
+    pid = trySpawn(argv, true);
+
+    GLib.child_watch_add(GLib.PRIORITY_DEFAULT, pid, function(pid, status) {
+        GLib.spawn_close_pid(pid);
+
+        if (status !== 0) {
+            if (typeof errback === 'function') {
+                errback();
+            }
+        } else {
+            if (typeof callback === 'function') {
+                callback();
+            }
+        }
+    });
 }
 
 function _handleSpawnError(command, err) {
@@ -158,7 +204,7 @@ function killall(processName) {
         // whatever...
 
         let argv = ['pkill', '-f', '^([^ ]*/)?' + processName + '($| )'];
-        GLib.spawn_sync(null, argv, null, GLib.SpawnFlags.SEARCH_PATH, null, null);
+        GLib.spawn_sync(null, argv, null, GLib.SpawnFlags.SEARCH_PATH, null);
         // It might be useful to return success/failure, but we'd need
         // a wrapper around WIFEXITED and WEXITSTATUS. Since none of
         // the current callers care, we don't bother.

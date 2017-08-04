@@ -54,8 +54,9 @@ MyApplet.prototype = {
 
         this.setAllowedLayout(Applet.AllowedLayout.BOTH);
 
-        this.actor.remove_style_class_name("applet-box");
-        this.actor.style="spacing: 5px;";
+        this.actor.remove_style_class_name('applet-box');
+        this.actor.set_style_class_name('systray');
+        this.actor.set_important(true);  // ensure we get class details from the default theme if not present
 
         this._signalManager = new SignalManager.SignalManager(this);
         let manager;
@@ -115,9 +116,10 @@ MyApplet.prototype = {
             this.signalRemoved = 0;
         }
 
-        this._shellIndicators.forEach(function(iconActor) {
-            iconActor.destroy();
-        });
+        for (let id in this._shellIndicators) {
+            this._shellIndicators[id].destroy();
+        }
+
         this._shellIndicators = {};
 
     },
@@ -310,7 +312,11 @@ MyApplet.prototype = {
                 this._statusItems.splice(i, 1);
             }
         }
-        this.manager_container.remove_child(icon);
+
+        if (icon.get_parent() == this.manager_container) {
+            this.manager_container.remove_child(icon);
+        }
+
         icon.destroy();
     },
 

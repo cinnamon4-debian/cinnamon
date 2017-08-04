@@ -53,6 +53,7 @@ Key.prototype = {
         this._key = key;
 
         this.actor = this._makeKey();
+        this.actor.connect('destroy', Lang.bind(this, this._onDestroy));
 
         this._extended_keys = this._key.get_extended_keys();
         this._extended_keyboard = null;
@@ -79,6 +80,13 @@ Key.prototype = {
             this.actor._extended_keys = this._extended_keyboard;
             this._boxPointer.actor.hide();
             Main.layoutManager.addChrome(this._boxPointer.actor, { visibleInFullscreen: true });
+        }
+    },
+
+    _onDestroy: function() {
+        if (this._boxPointer) {
+            this._boxPointer.actor.destroy();
+            this._boxPointer = null;
         }
     },
 
@@ -483,7 +491,8 @@ Keyboard.prototype = {
     shouldTakeEvent: function(event) {
         let actor = event.get_source();
         return Main.layoutManager.keyboardBox.contains(actor) ||
-               actor._extended_keys || actor.extended_key;
+               actor.maybeGet("_extended_keys") ||
+               actor.maybeGet("extended_key");
     },
 
     // D-Bus methods

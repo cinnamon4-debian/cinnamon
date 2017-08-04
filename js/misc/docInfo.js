@@ -55,15 +55,7 @@ DocInfo.prototype = {
     // },
 
     createIcon : function(size) {
-        // let existing = this.factory.lookup(this.uri, this.mtime); // EXPENSIVE
-        // if (existing) {
-        //     let file = Gio.file_new_for_path(existing);
-        //     let thumb_uri = file.get_uri();
-        //     return St.TextureCache.get_default().load_uri_async(thumb_uri, size, size);
-        // }
-        // else {
-            return St.TextureCache.get_default().load_gicon(null, this.gicon, size);
-        // }
+        return new St.Icon({ gicon: this.gicon, icon_size: size });
     },
 
     _realLaunch : function() {
@@ -146,11 +138,17 @@ DocManager.prototype = {
         let docs = this._docSystem.get_all();
         this._infosByTimestamp = [];
         this._infosByUri = {};
-        for (let i = 0; i < docs.length && i < MAX_RECENT_FILES; i++) {
+
+        let valid_count = 0;
+        let i = 0; 
+
+        while (i < docs.length && valid_count < MAX_RECENT_FILES) {
             let recentInfo = docs[i];
             let docInfo = new DocInfo(recentInfo);
             this._infosByTimestamp.push(docInfo);
             this._infosByUri[docInfo.uri] = docInfo;
+            valid_count++;
+            i++;
         }
     },
 

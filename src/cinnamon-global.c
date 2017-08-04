@@ -26,11 +26,9 @@
 
 #include "cinnamon-enum-types.h"
 #include "cinnamon-global-private.h"
-#include "cinnamon-marshal.h"
 #include "cinnamon-perf-log.h"
 #include "cinnamon-window-tracker.h"
 #include "cinnamon-wm.h"
-#include "cinnamon-js.h"
 #include "st.h"
 
 static CinnamonGlobal *the_object = NULL;
@@ -301,8 +299,7 @@ cinnamon_global_class_init (CinnamonGlobalClass *klass)
                     G_TYPE_FROM_CLASS (klass),
                     G_SIGNAL_RUN_LAST,
                     0,
-                    NULL, NULL,
-                    _cinnamon_marshal_VOID__INT_INT,
+                    NULL, NULL, NULL,
                     G_TYPE_NONE, 2, G_TYPE_INT, G_TYPE_INT);
 
   /* Emitted from cinnamon-plugin.c during event handling */
@@ -311,8 +308,7 @@ cinnamon_global_class_init (CinnamonGlobalClass *klass)
                     G_TYPE_FROM_CLASS (klass),
                     G_SIGNAL_RUN_LAST,
                     0,
-                    NULL, NULL,
-                    g_cclosure_marshal_VOID__VOID,
+                    NULL, NULL, NULL,
                     G_TYPE_NONE, 0);
 
   /* Emitted from cinnamon-plugin.c during event handling */
@@ -321,8 +317,7 @@ cinnamon_global_class_init (CinnamonGlobalClass *klass)
                     G_TYPE_FROM_CLASS (klass),
                     G_SIGNAL_RUN_LAST,
                     0,
-                    NULL, NULL,
-                    g_cclosure_marshal_VOID__VOID,
+                    NULL, NULL, NULL,
                     G_TYPE_NONE, 0);
 
   cinnamon_global_signals[NOTIFY_ERROR] =
@@ -330,8 +325,7 @@ cinnamon_global_class_init (CinnamonGlobalClass *klass)
                     G_TYPE_FROM_CLASS (klass),
                     G_SIGNAL_RUN_LAST,
                     0,
-                    NULL, NULL,
-                    gi_cclosure_marshal_generic,
+                    NULL, NULL, NULL,
                     G_TYPE_NONE, 2,
                     G_TYPE_STRING,
                     G_TYPE_STRING);
@@ -341,8 +335,7 @@ cinnamon_global_class_init (CinnamonGlobalClass *klass)
                     G_TYPE_FROM_CLASS (klass),
                     G_SIGNAL_RUN_LAST,
                     0,
-                    NULL, NULL,
-                    g_cclosure_marshal_VOID__VOID,
+                    NULL, NULL, NULL,
                     G_TYPE_NONE, 0);
 
   cinnamon_global_signals[SHUTDOWN] =
@@ -350,8 +343,7 @@ cinnamon_global_class_init (CinnamonGlobalClass *klass)
                     G_TYPE_FROM_CLASS (klass),
                     G_SIGNAL_RUN_LAST,
                     0,
-                    NULL, NULL,
-                    g_cclosure_marshal_VOID__VOID,
+                    NULL, NULL, NULL,
                     G_TYPE_NONE, 0);
 
   g_object_class_install_property (gobject_class,
@@ -1092,19 +1084,6 @@ _cinnamon_global_set_plugin (CinnamonGlobal *global,
 }
 
 /**
- * cinnamon_global_get_memory_info:
- * @global: A #CinnamonGlobal
- * @meminfo: (out caller-allocates): Output location for memory information
- *
- * Get Cinnamon memory usage information.
- */
-void
-cinnamon_global_get_memory_info (CinnamonGlobal *global, CinnamonJSMemoryInfo *meminfo)
-{
-  cinnamon_js_get_memory_info (global->js_context, global->last_gc_end_time, meminfo);
-}
-
-/**
  * cinnamon_global_dump_gjs_stack:
  * @global: A #CinnamonGlobal
  *
@@ -1387,18 +1366,6 @@ grab_notify (GtkWidget *widget, gboolean was_grabbed, gpointer user_data)
 }
 
 /**
- * cinnamon_global_get_last_gc_end_time:
- * @global: A #CinnamonGlobal
- *
- * Returns: The timestamp of the last js garbage collection.
- */
-gint64
-cinnamon_global_get_last_gc_end_time (CinnamonGlobal *global)
-{
-    return global->last_gc_end_time;
-}
-
-/**
  * cinnamon_global_init_xdnd:
  * @global: the #CinnamonGlobal
  *
@@ -1590,22 +1557,22 @@ cinnamon_global_get_current_time (CinnamonGlobal *global)
 /**
  * cinnamon_global_get_pid:
  *
- * Returns: the pid of the cinnamon process.
+ * Return value: the pid of the cinnamon process.
  */
 pid_t
-cinnamon_global_get_pid ()
+cinnamon_global_get_pid (CinnamonGlobal *global)
 {
   return getpid();
 }
 
 /**
  * cinnamon_global_get_md5_for_string:
+ * @string: input string
  *
- * Returns: the MD5 sum for the given string
+ * Return value: (transfer full): the MD5 sum for the given string
  */
-
 gchar *
-cinnamon_global_get_md5_for_string (const gchar *string)
+cinnamon_global_get_md5_for_string (CinnamonGlobal *global, const gchar *string)
 {
     return g_compute_checksum_for_string (G_CHECKSUM_MD5, string, -1);
 }

@@ -15,7 +15,7 @@ from PIL import Image
 import gi
 gi.require_version("Gtk", "3.0")
 gi.require_version("AccountsService", "1.0")
-from gi.repository import Gtk, GObject, Gio, GdkPixbuf, AccountsService
+from gi.repository import Gtk, GObject, Gio, GdkPixbuf, AccountsService, GLib
 
 gettext.install("cinnamon", "/usr/share/locale")
 
@@ -480,6 +480,7 @@ class Module:
 
             self.face_button = Gtk.Button()
             self.face_image = Gtk.Image()
+            self.face_image.set_size_request(96, 96)
             self.face_button.set_image(self.face_image)
             self.face_image.set_from_file("/usr/share/cinnamon/faces/user-generic.png")
             self.face_button.set_alignment(0.0, 0.5)
@@ -619,30 +620,26 @@ class Module:
             filter.add_mime_type("image/*")
             dialog.add_filter(filter)
 
-            preview = Gtk.Image()
-            dialog.set_preview_widget(preview);
-            dialog.connect("update-preview", self.update_preview_cb, preview)
+            box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            self.frame = Gtk.Frame(visible=False, no_show_all=True)
+            preview = Gtk.Image(visible=True)
+
+            box.pack_start(self.frame, False, False, 0)
+            self.frame.add(preview)
+            dialog.set_preview_widget(box)
+            dialog.set_preview_widget_active(True)
             dialog.set_use_preview_label(False)
+
+            box.set_margin_end(12)
+            box.set_margin_top(12)
+            box.set_size_request(128, -1)
+
+            dialog.connect("update-preview", self.update_preview_cb, preview)
 
             response = dialog.run()
             if response == Gtk.ResponseType.OK:
                 path = dialog.get_filename()
                 image = PIL.Image.open(path)
-                width, height = image.size
-                if width > height:
-                    new_width = height
-                    new_height = height
-                elif height > width:
-                    new_width = width
-                    new_height = width
-                else:
-                    new_width = width
-                    new_height = height
-                left = (width - new_width)/2
-                top = (height - new_height)/2
-                right = (width + new_width)/2
-                bottom = (height + new_height)/2
-                image = image.crop((left, top, right, bottom))
                 image.thumbnail((96, 96), Image.ANTIALIAS)
                 face_path = os.path.join(user.get_home_dir(), ".face")
                 image.save(face_path, "png")
@@ -654,15 +651,22 @@ class Module:
             dialog.destroy()
 
     def update_preview_cb (self, dialog, preview):
+        # Different widths make the dialog look really crappy as it resizes -
+        # constrain the width and adjust the height to keep perspective.
         filename = dialog.get_preview_filename()
-        if filename is None:
-            return
-        dialog.set_preview_widget_active(False)
-        if os.path.isfile(filename):
-            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(filename, 128, 128)
-            if pixbuf is not None:
-                preview.set_from_pixbuf (pixbuf)
-                dialog.set_preview_widget_active(True)
+        if filename is not None:
+            if os.path.isfile(filename):
+                try:
+                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(filename, 128, 128)
+                    if pixbuf is not None:
+                        preview.set_from_pixbuf(pixbuf)
+                        self.frame.show()
+                        return
+                except GLib.Error as e:
+                    print("Unable to generate preview for file '%s' - %s\n" % (filename, e.message))
+
+        preview.clear()
+        self.frame.hide()
 
     def _on_face_menuitem_activated(self, menuitem, path):
         if os.path.exists(path):
@@ -749,9 +753,30 @@ class Module:
             else:
                 self.account_type_combo.set_active(0)
 
-            if os.path.exists(user.get_icon_file()):
-                self.face_image.set_from_file(user.get_icon_file())
+            pixbuf = None
+            path = user.get_icon_file()
+            message = ""
+
+            if os.path.exists(path):
+                try:
+                    pixbuf = GdkPixbuf.Pixbuf.new_from_file(path)
+                except GLib.Error as e:
+                    message = "Could not load pixbuf from '%s': %s" % (path, e.message)
+                    error = True
+
+                if pixbuf != None:
+                    if pixbuf.get_height() > 96 or pixbuf.get_width() > 96:
+                        try:
+                            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(path, 96, 96)
+                        except GLib.Error as e:
+                            message = "Could not scale pixbuf from '%s': %s" % (path, e.message)
+                            error = True
+
+            if pixbuf:
+                self.face_image.set_from_pixbuf(pixbuf)
             else:
+                if message != "":
+                    print message
                 self.face_image.set_from_file("/usr/share/cinnamon/faces/user-generic.png")
 
             groups = []

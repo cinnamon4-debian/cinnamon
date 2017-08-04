@@ -481,7 +481,7 @@ class SoundTest(Gtk.Dialog):
             sound = "audio-channel-"+position[1]
 
         session_bus = dbus.SessionBus()
-        sound_dbus = session_bus.get_object("org.cinnamon.SettingsDaemon", "/org/cinnamon/SettingsDaemon/Sound")
+        sound_dbus = session_bus.get_object("org.cinnamon.SettingsDaemon.Sound", "/org/cinnamon/SettingsDaemon/Sound")
         play = sound_dbus.get_dbus_method('PlaySoundWithChannel', 'org.cinnamon.SettingsDaemon.Sound')
         play(0, sound, position[1])
 
@@ -682,7 +682,8 @@ class Module:
             lookup = iconTheme.lookup_by_gicon(gicon, 32, 0)
             if lookup is not None:
                 icon = lookup.load_icon()
-        if icon is not None:
+
+        if icon is None:
             if ("bluetooth" in device.get_icon_name()):
                 icon = iconTheme.load_icon("bluetooth", 32, 0)
             else:

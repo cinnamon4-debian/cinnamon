@@ -1,8 +1,5 @@
 /* -*- mode: C; c-file-style: "gnu"; indent-tabs-mode: nil; -*- */
 
-#define COGL_ENABLE_EXPERIMENTAL_API
-#define CLUTTER_ENABLE_EXPERIMENTAL_API
-
 #include <X11/extensions/Xfixes.h>
 #include <clutter/x11/clutter-x11.h>
 #include <clutter/clutter.h>
@@ -101,7 +98,7 @@ do_grab_screenshot (_screenshot_data *screenshot_data,
   backend = clutter_get_default_backend ();
   context = clutter_backend_get_cogl_context (backend);
 
-  screenshot_data->image = cairo_image_surface_create (CAIRO_FORMAT_RGB24,
+  screenshot_data->image = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
                                                        width, height);
 
 
@@ -120,6 +117,8 @@ do_grab_screenshot (_screenshot_data *screenshot_data,
                                             x, y,
                                             COGL_READ_PIXELS_COLOR_BUFFER,
                                             bitmap);
+
+  cairo_surface_mark_dirty (screenshot_data->image);
   cogl_object_unref (bitmap);
 }
 

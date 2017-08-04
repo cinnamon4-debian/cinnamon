@@ -1698,6 +1698,11 @@ MessageTray.prototype = {
         let margin = this._notification._table.get_theme_node().get_length('margin-from-right-edge-of-screen');
         this._notificationBin.x = monitor.x + monitor.width - this._notification._table.width - margin - rightGap;
         Main.soundManager.play('notification');
+        if (this._notification.urgency == Urgency.CRITICAL) {
+            Main.layoutManager._chrome.modifyActorParams(this._notificationBin, { visibleInFullscreen: true });
+        } else {
+            Main.layoutManager._chrome.modifyActorParams(this._notificationBin, { visibleInFullscreen: false });
+        }
         this._notificationBin.show();
 
         this._updateShowingNotification();
@@ -1854,7 +1859,7 @@ MessageTray.prototype = {
 
         if (this._notificationBin.y < expandedY)
             this._notificationBin.y = expandedY;
-        else if (this._notification.y != expandedY)
+        else if (this._notification.actor.y != expandedY)
             this._tween(this._notificationBin, '_notificationState', State.SHOWN,
                         { y: newY,
                           time: ANIMATION_TIME,

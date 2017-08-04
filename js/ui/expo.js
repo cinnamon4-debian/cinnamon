@@ -21,6 +21,10 @@ function Expo() {
 
 Expo.prototype = {
     _init : function() {
+        this.visible = false;           // animating to overview, in overview, animating out
+        this._shown = false;            // show() and not hide()
+        this._modal = false;            // have a modal grab
+
         Main.layoutManager.connect('monitors-changed', Lang.bind(this, this._relayout));
     },
 
@@ -468,10 +472,14 @@ Expo.prototype = {
             this._animateVisible();
 
         this._syncInputMode();
+
         global.overlay_group.remove_actor(this._group);
         this._group.destroy();
+        this._group = null;
+
         global.overlay_group.remove_actor(this._background);
         this._background.destroy();
+        this._background = null;
 
         Main.layoutManager._chrome.updateRegions();
     }

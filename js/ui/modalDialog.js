@@ -175,6 +175,9 @@ ModalDialog.prototype = {
 
         for (let i = 0; i < buttons.length; i ++) {
             let buttonInfo = buttons[i];
+            if (!buttonInfo.focused) {
+                buttonInfo.focused = false;
+            }
             let label = buttonInfo['label'];
             let action = buttonInfo['action'];
             let key = buttonInfo['key'];
@@ -446,14 +449,13 @@ SpicesAboutDialog.prototype = {
 
         //prepare translation
         this.uuid = metadata.uuid;
-        Gettext.bindtextdomain(metadata.uuid, GLib.get_home_dir() + "/.local/share/locale");
 
         let contentBox = new St.BoxLayout({vertical: true, style_class: "about-content" });
         this.contentLayout.add_actor(contentBox);
-        
+
         let topBox = new St.BoxLayout();
         contentBox.add_actor(topBox);
-        
+
         //icon
         let icon;
         if (metadata.icon) {
@@ -468,28 +470,41 @@ SpicesAboutDialog.prototype = {
             }
         }
         topBox.add_actor(icon);
-        
+
         let topTextBox = new St.BoxLayout({vertical: true});
         topBox.add_actor(topTextBox);
-        
+
         /*title*/
         let titleBox = new St.BoxLayout();
         topTextBox.add_actor(titleBox);
 
         let title = new St.Label({text: this._(metadata.name), style_class: "about-title"});
         titleBox.add_actor(title);
-        
-        if (metadata.version) {
+
+        //version
+        if (!('last-edited' in metadata) && metadata.version) {
             let versionBin = new St.Bin({x_align: St.Align.START, y_align: St.Align.END});
             titleBox.add_actor(versionBin);
             let version = new St.Label({text: " v%s".format(metadata.version), style_class: "about-version"});
             versionBin.add_actor(version);
         }
-        
+
         //uuid
         let uuid = new St.Label({text: metadata.uuid, style_class: "about-uuid"});
         topTextBox.add_actor(uuid);
-        
+
+        //last-edited timestamp
+        if ('last-edited' in metadata) {
+            let lastEditedTimestamp = metadata['last-edited'];
+            let date = new Date(lastEditedTimestamp*1000);
+            let dateUTC = date.toISOString().
+                replace(/T/, ' ').      // replace T with a space
+                replace(/\..+/, ' UTC') // delete the dot and everything after; set UTC label
+
+            let lastEdited = new St.Label({text: dateUTC + "\n", style_class: "about-uuid"});
+            topTextBox.add_actor(lastEdited);
+        }
+
         //description
         let desc = new St.Label({text: this._(metadata.description), style_class: "about-description"});
         let dText = desc.clutter_text;
@@ -549,12 +564,21 @@ SpicesAboutDialog.prototype = {
                 infoBox.add_actor(contributors);
             }
         }
-        
-        //dialog close button
-        this.setButtons([
-            {label: _("Close"), key: "", focus: true, action: Lang.bind(this, this._onOk)}
-        ]);
-        
+
+        //dialog buttons, if it's a spice, add a "More info" button
+        let spicesID = this._getSpicesID(metadata.uuid, type);
+        if (spicesID) {
+            let spicesWebsite = "http://cinnamon-spices.linuxmint.com/" + type + "/view/" + spicesID;
+            this.setButtons([
+                {label: _("More info"), key: "", focus: true, action: Lang.bind(this, this._launchSite, spicesWebsite)},
+                {label: _("Close"), key: "", focus: true, action: Lang.bind(this, this._onOk)}
+            ]);
+        } else {
+            this.setButtons([
+                {label: _("Close"), key: "", focus: true, action: Lang.bind(this, this._onOk)}
+            ]);
+        }
+
         this.open(global.get_current_time());
     },
 
@@ -570,10 +594,34 @@ SpicesAboutDialog.prototype = {
         return _(str);
     },
 
+    _getSpicesID: function(uuid, type) {
+        try {
+            let indexCacheFile = Gio.file_new_for_path(GLib.get_home_dir() + "/.cinnamon/spices.cache/" + type.slice(0, -1) + "/index.json");
+            if(this._ensureFileExists(indexCacheFile)) {
+                let indexCacheContents = Cinnamon.get_file_contents_utf8_sync(indexCacheFile.get_path());
+                let index_cache = JSON.parse(indexCacheContents);
+                if (uuid in index_cache)
+                    return index_cache[uuid]['spices-id'];
+            }
+            return null;
+        } catch (e) {
+            global.log('Failed to load/parse index.json', e);
+            return null;
+        }
+    },
+
+    _ensureFileExists: function(file) {
+        if (!file.query_exists(null)) {
+            global.log('File not found: ' + file.get_path());
+            return false;
+        }
+        return true;
+    },
+
     _onOk: function() {
         this.close(global.get_current_time());
     },
-    
+
     _launchSite: function(a, b, site) {
         Util.spawnCommandLine("xdg-open " + site);
         this.close(global.get_current_time());
@@ -701,7 +749,7 @@ InfoOSD.prototype = {
      * show:
      * @monitorIndex (int): (optional) Monitor to display OSD on. Default is
      * primary monitor
-     * 
+     *
      * Shows the OSD at the center of monitor @monitorIndex. Shows at the
      * primary monitor if not specified.
      */
@@ -731,7 +779,7 @@ InfoOSD.prototype = {
 
     /**
      * destroy:
-     * 
+     *
      * Destroys the OSD
      */
     destroy: function() {

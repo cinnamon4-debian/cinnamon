@@ -17,9 +17,7 @@ const Settings = imports.ui.settings;
 const Signals = imports.signals;
 
 const DEFAULT_ICON_SIZE = 20;
-const DEFAULT_ANIM_SIZE = 13;
 const ICON_HEIGHT_FACTOR = .8;
-const ICON_ANIM_FACTOR = .65;
 
 const PANEL_EDIT_MODE_KEY = 'panel-edit-mode';
 const PANEL_LAUNCHERS_KEY = 'panel-launchers';
@@ -53,26 +51,25 @@ PanelAppLauncherMenu.prototype = {
             this.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         }
 
-        let subMenu = new PopupMenu.PopupSubMenuMenuItem(_("Options"));
-        this.addMenuItem(subMenu);
-
         let item = new PopupMenu.PopupIconMenuItem(_("Launch"), "media-playback-start", St.IconType.SYMBOLIC);
         item.connect('activate', Lang.bind(this, this._onLaunchActivate));
-        subMenu.menu.addMenuItem(item);
+        this.addMenuItem(item);
 
         item = new PopupMenu.PopupIconMenuItem(_("Add"), "list-add", St.IconType.SYMBOLIC);
         item.connect('activate', Lang.bind(this, this._onAddActivate));
-        subMenu.menu.addMenuItem(item);
+        this.addMenuItem(item);
 
         item = new PopupMenu.PopupIconMenuItem(_("Edit"), "document-properties", St.IconType.SYMBOLIC);
         item.connect('activate', Lang.bind(this, this._onEditActivate));
-        subMenu.menu.addMenuItem(item);
+        this.addMenuItem(item);
 
         item = new PopupMenu.PopupIconMenuItem(_("Remove"), "window-close", St.IconType.SYMBOLIC);
         item.connect('activate', Lang.bind(this, this._onRemoveActivate));
-        subMenu.menu.addMenuItem(item);
+        this.addMenuItem(item);
 
-        subMenu = new PopupMenu.PopupSubMenuMenuItem(_("Preferences"));
+        this.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+
+        let subMenu = new PopupMenu.PopupSubMenuMenuItem(_("Preferences"));
         this.addMenuItem(subMenu);
 
         item = new PopupMenu.PopupIconMenuItem(_("About..."), "dialog-question", St.IconType.SYMBOLIC);
@@ -151,10 +148,8 @@ PanelAppLauncher.prototype = {
 
         if (scale) {
             this.icon_height = Math.floor((panel_height * ICON_HEIGHT_FACTOR) / global.ui_scale);
-            this.icon_anim_height = Math.floor((panel_height * ICON_ANIM_FACTOR) / global.ui_scale);
         } else {
             this.icon_height = DEFAULT_ICON_SIZE;
-            this.icon_anim_height = DEFAULT_ANIM_SIZE;
         }
         this.icon = this._getIconActor();
         this._iconBox.set_child(this.icon);
@@ -214,27 +209,28 @@ PanelAppLauncher.prototype = {
             let icon = this.appinfo.get_icon();
             if (icon == null)
                 icon = new Gio.ThemedIcon({name: "gnome-panel-launcher"});
-            return St.TextureCache.get_default().load_gicon(null, icon, this.icon_height);
+            return new St.Icon({gicon: icon, icon_size: this.icon_height, icon_type: St.IconType.FULLCOLOR});
         } else {
             return this.app.create_icon_texture(this.icon_height);
         }
     },
 
-    _animateIcon: function(step){
+    _animateIcon: function(step) {
         if (step >= 3) return;
+        this.icon.set_pivot_point(0.5, 0.5);
         Tweener.addTween(this.icon,
-                         { width: this.icon_anim_height * global.ui_scale,
-                           height: this.icon_anim_height * global.ui_scale,
+                         { scale_x: 0.7,
+                           scale_y: 0.7,
                            time: 0.2,
                            transition: 'easeOutQuad',
-                           onComplete: function(){
+                           onComplete: function() {
                                Tweener.addTween(this.icon,
-                                                { width: this.icon_height * global.ui_scale,
-                                                  height: this.icon_height * global.ui_scale,
+                                                { scale_x: 1.0,
+                                                  scale_y: 1.0,
                                                   time: 0.2,
                                                   transition: 'easeOutQuad',
-                                                  onComplete: function(){
-                                                      this._animateIcon(step+1);
+                                                  onComplete: function() {
+                                                      this._animateIcon(step + 1);
                                                   },
                                                   onCompleteScope: this
                                                 });
@@ -363,8 +359,6 @@ MyApplet.prototype = {
         this.do_gsettings_import();
 
         this.on_orientation_changed(orientation);
-
-        St.TextureCache.get_default().connect("icon-theme-changed", Lang.bind(this, this.reload));
     },
 
     _updateLauncherDrag: function() {
@@ -631,7 +625,10 @@ MyApplet.prototype = {
             if (fadeIn) this._dragPlaceholder.animateIn();
         }
 
-        return DND.DragMotionResult.MOVE_DROP;
+        if (source instanceof DND.LauncherDraggable && source.launchersBox == this)
+            return DND.DragMotionResult.MOVE_DROP;
+
+        return DND.DragMotionResult.COPY_DROP;
     },
 
     acceptDrop: function(source, actor, x, y, time) {

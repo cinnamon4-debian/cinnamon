@@ -622,8 +622,7 @@ st_box_layout_allocate (ClutterActor          *actor,
   gfloat expand_amount, shrink_amount;
   BoxChildShrink *shrinks = NULL;
                  // Home-made logical xor
-  gboolean flip = (!(st_widget_get_direction (ST_WIDGET (actor)) == ST_TEXT_DIRECTION_RTL) != !priv->is_align_end)
-                   && (!priv->is_vertical);
+  gboolean flip = (!(st_widget_get_direction (ST_WIDGET (actor)) == ST_TEXT_DIRECTION_RTL) != !priv->is_align_end);
   gboolean reverse_order = (!priv->is_align_end != !priv->is_pack_start);
   ClutterActor *child;
 
@@ -730,11 +729,27 @@ st_box_layout_allocate (ClutterActor          *actor,
      }
 
   if (priv->is_vertical)
-    position = content_box.y1;
-  else if (flip)
-    position = content_box.x2;
+    {
+      if (flip)
+        {
+          position = content_box.y2;
+        }
+      else
+        {
+          position = content_box.y1;
+        }
+    }
   else
-    position = content_box.x1;
+    {
+      if (flip)
+        {
+          position = content_box.x2;
+        }
+      else
+        {
+          position = content_box.x1;
+        }
+    }
 
   if (reverse_order)
     {
@@ -747,7 +762,6 @@ st_box_layout_allocate (ClutterActor          *actor,
       i = 0;
     }
     
-  gfloat init_padding = (avail_width/2) - (natural_width/2);
   while (child != NULL)
     {
       ClutterActorBox child_box;
@@ -799,15 +813,23 @@ st_box_layout_allocate (ClutterActor          *actor,
 
       if (priv->is_vertical)
         {
-          child_box.y1 = (int)(0.5 + position);
-          child_box.y2 = (int)(0.5 + next_position);
+          if (flip)
+            {
+              child_box.y1 = (int)(0.5 + next_position);
+              child_box.y2 = (int)(0.5 + position);
+            }
+          else
+            {
+              child_box.y1 = (int)(0.5 + position);
+              child_box.y2 = (int)(0.5 + next_position);
+            }
+
           child_box.x1 = content_box.x1;
           child_box.x2 = content_box.x2;
 
           _st_allocate_fill (ST_WIDGET (actor), child, &child_box,
                              xalign, yalign, xfill, yfill);
           clutter_actor_allocate (child, &child_box, flags);
-
         }
       else
         {
@@ -1013,6 +1035,10 @@ st_box_layout_get_paint_volume (ClutterActor       *actor,
   ClutterActorBox content_box;
   ClutterVertex origin;
 
+  /* Setting the paint volume does not make sense when we don't have any allocation */
+  if (!clutter_actor_has_allocation (actor))
+    return FALSE;
+
   /* When have an adjustment we are clipped to the content box, so base
    * our paint volume on that. */
   if (priv->hadjustment || priv->vadjustment)
@@ -1050,7 +1076,7 @@ st_box_layout_style_changed (StWidget *self)
 {
   StBoxLayoutPrivate *priv = ST_BOX_LAYOUT (self)->priv;
   StThemeNode *theme_node = st_widget_get_theme_node (self);
-  int old_spacing = priv->spacing;
+  guint old_spacing = priv->spacing;
   double spacing;
 
   spacing = st_theme_node_get_length (theme_node, "spacing");

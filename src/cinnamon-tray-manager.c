@@ -157,8 +157,7 @@ cinnamon_tray_manager_class_init (CinnamonTrayManagerClass *klass)
                   G_TYPE_FROM_CLASS (klass),
                   G_SIGNAL_RUN_LAST,
                   G_STRUCT_OFFSET (CinnamonTrayManagerClass, tray_icon_added),
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
+                  NULL, NULL, NULL,
                   G_TYPE_NONE, 1,
                   CLUTTER_TYPE_ACTOR);
   cinnamon_tray_manager_signals[TRAY_ICON_REMOVED] =
@@ -166,8 +165,7 @@ cinnamon_tray_manager_class_init (CinnamonTrayManagerClass *klass)
                   G_TYPE_FROM_CLASS (klass),
                   G_SIGNAL_RUN_LAST,
                   G_STRUCT_OFFSET (CinnamonTrayManagerClass, tray_icon_removed),
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
+                  NULL, NULL, NULL,
                   G_TYPE_NONE, 1,
                   CLUTTER_TYPE_ACTOR);
 
@@ -229,6 +227,7 @@ cinnamon_tray_manager_manage_stage (CinnamonTrayManager *manager,
   GdkWindow *stage_window;
   GdkDisplay *display;
   GdkScreen *screen;
+  gint scale;
 
   g_return_if_fail (manager->priv->stage == NULL);
 
@@ -256,7 +255,7 @@ cinnamon_tray_manager_manage_stage (CinnamonTrayManager *manager,
 
   g_object_unref (stage_window);
 
-  gint scale = 1;
+  scale = 1;
 
   g_object_get (cinnamon_global_get (),
                 "ui_scale", &scale,

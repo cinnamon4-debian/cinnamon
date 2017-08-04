@@ -392,8 +392,8 @@ _st_create_texture_material (CoglHandle src_texture)
  *****/
 
 static gdouble *
-calculate_gaussian_kernel (gdouble   sigma,
-                           guint     n_values)
+calculate_gaussian_kernel (float   sigma,
+                           gint     n_values)
 {
   gdouble *ret, sum;
   gdouble exp_divisor;
@@ -631,6 +631,7 @@ _st_create_shadow_material_from_actor (StShadow     *shadow_spec,
       cogl_color_set_from_4ub (&clear_color, 0, 0, 0, 0);
       cogl_push_framebuffer (offscreen);
       cogl_clear (&clear_color, COGL_BUFFER_BIT_COLOR);
+      cogl_translate (-box.x1, -box.y1, 0);
       cogl_ortho (0, width, height, 0, 0, 1.0);
       clutter_actor_paint (actor);
       cogl_pop_framebuffer ();

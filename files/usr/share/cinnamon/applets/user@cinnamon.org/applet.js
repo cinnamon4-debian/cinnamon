@@ -1,4 +1,3 @@
-//System Shutdown and Restart Applet by Shelley
 const Cinnamon = imports.gi.Cinnamon;
 const Applet = imports.ui.applet;
 const Lang = imports.lang;
@@ -26,24 +25,24 @@ MyApplet.prototype = {
         Applet.TextIconApplet.prototype._init.call(this, orientation, panel_height, instance_id);
 
         this.setAllowedLayout(Applet.AllowedLayout.BOTH);
-        
+
         try {
             this._session = new GnomeSession.SessionManager();
             this._screenSaverProxy = new ScreenSaver.ScreenSaverProxy();
             this.settings = new Settings.AppletSettings(this, "user@cinnamon.org", instance_id);
 
             this.set_applet_icon_symbolic_name("avatar-default");
-                    
+
             this.menuManager = new PopupMenu.PopupMenuManager(this);
             this.menu = new Applet.AppletPopupMenu(this, orientation);
-            this.menuManager.addMenu(this.menu);                                                                    
+            this.menuManager.addMenu(this.menu);
             this._contentSection = new PopupMenu.PopupMenuSection();
-            this.menu.addMenuItem(this._contentSection);      
-            
+            this.menu.addMenuItem(this._contentSection);
+
             let userBox = new St.BoxLayout({ style_class: 'user-box', reactive: true, vertical: false });
 
             this._userIcon = new St.Bin({ style_class: 'user-icon'});
-            
+
             this.settings.bind("display-name", "disp_name", this._updateLabel);
 
             userBox.connect('button-press-event', Lang.bind(this, function() {
@@ -62,7 +61,7 @@ MyApplet.prototype = {
                         { x_fill:  true,
                           y_fill:  false,
                           x_align: St.Align.END,
-                          y_align: St.Align.MIDDLE });    
+                          y_align: St.Align.MIDDLE });
 
             this.menu.addActor(userBox);
 
@@ -102,13 +101,6 @@ MyApplet.prototype = {
                     Util.spawnCommandLine("dm-tool switch-to-greeter");
                 }));
                 this.menu.addMenuItem(item);
-
-                item = new PopupMenu.PopupIconMenuItem(_("Guest Session"), "guest-session", St.IconType.SYMBOLIC);
-                item.connect('activate', Lang.bind(this, function() {
-                    Util.spawnCommandLine("cinnamon-screensaver-command --lock");
-                    Util.spawnCommandLine("dm-tool switch-to-guest");
-                }));
-                this.menu.addMenuItem(item);
             }
             else if (GLib.file_test("/usr/bin/mdmflexiserver", GLib.FileTest.EXISTS)) {
                 // MDM
@@ -146,7 +138,7 @@ MyApplet.prototype = {
             this._userLoadedId = this._user.connect('notify::is_loaded', Lang.bind(this, this._onUserChanged));
             this._userChangedId = this._user.connect('changed', Lang.bind(this, this._onUserChanged));
             this._onUserChanged();
-            this.on_orientation_changed(orientation);
+            this.set_show_label_in_vertical_panels(false);
         }
         catch (e) {
             global.logError(e);
@@ -154,9 +146,9 @@ MyApplet.prototype = {
     },
 
     on_applet_clicked: function(event) {
-        this.menu.toggle();        
-    }, 
-    
+        this.menu.toggle();
+    },
+
     _updateLabel: function() {
         if (this.disp_name) {
             this.set_applet_label(this._user.get_real_name());
@@ -167,7 +159,7 @@ MyApplet.prototype = {
 
     _onUserChanged: function() {
         if (this._user.is_loaded) {
-            this.set_applet_tooltip(this._user.get_real_name());   
+            this.set_applet_tooltip(this._user.get_real_name());
             this.userLabel.set_text (this._user.get_real_name());
             if (this._userIcon) {
                 let iconFileName = this._user.get_icon_file();
@@ -180,25 +172,18 @@ MyApplet.prototype = {
                 }
                 let img = St.TextureCache.get_default().load_gicon(null, icon, 48);
                 this._userIcon.set_child (img);
-                this._userIcon.show();               
+                this._userIcon.show();
             }
             this._updateLabel();
         }
     },
-    
+
     on_applet_removed_from_panel: function() {
         this.settings.finalize();
-    },
-
-    on_orientation_changed: function(orientation) {
-        if (orientation == St.Side.LEFT || orientation == St.Side.RIGHT)
-            this.hide_applet_label(true);
-        else
-            this.hide_applet_label(false);
-    },
+    }
 };
 
-function main(metadata, orientation, panel_height, instance_id) {  
+function main(metadata, orientation, panel_height, instance_id) {
     let myApplet = new MyApplet(orientation, panel_height, instance_id);
-    return myApplet;      
+    return myApplet;
 }

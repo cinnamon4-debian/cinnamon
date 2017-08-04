@@ -24,7 +24,6 @@
 #include "cinnamon-global.h"
 #include "cinnamon-global-private.h"
 #include "cinnamon-perf-log.h"
-#include "cinnamon-js.h"
 #include "st.h"
 
 extern GType gnome_cinnamon_plugin_get_type (void);
@@ -51,11 +50,13 @@ cinnamon_dbus_acquire_name (GDBusProxy *bus,
                                                        &error)))
     {
       g_printerr ("failed to acquire %s: %s\n", name, error->message);
+      g_clear_error (&error);
       if (!fatal)
         return;
       exit (1);
     }
   g_variant_get (request_name_variant, "(u)", request_name_result);
+  g_variant_unref (request_name_variant);
 }
 
 static void
@@ -147,6 +148,14 @@ cinnamon_dbus_init (gboolean replace)
                            DBUS_NAME_FLAG_REPLACE_EXISTING,
                            &request_name_result,
                            "org.gnome.Caribou.Keyboard", FALSE);
+  cinnamon_dbus_acquire_name (bus,
+                           DBUS_NAME_FLAG_REPLACE_EXISTING,
+                           &request_name_result,
+                           "org.gnome.Caribou.Daemon", FALSE);
+  cinnamon_dbus_acquire_name (bus,
+                           DBUS_NAME_FLAG_REPLACE_EXISTING,
+                           &request_name_result,
+                           "org.onboard.Onboard", FALSE);
   g_object_unref (bus);
   g_object_unref (session);
 }
