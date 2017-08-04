@@ -72,8 +72,7 @@ static void cinnamon_app_system_class_init(CinnamonAppSystemClass *klass)
                                              CINNAMON_TYPE_APP_SYSTEM,
                                              G_SIGNAL_RUN_LAST,
                                              0,
-                                             NULL, NULL,
-                                             g_cclosure_marshal_VOID__OBJECT,
+                                             NULL, NULL, NULL,
                                              G_TYPE_NONE, 1,
                                              CINNAMON_TYPE_APP);
   signals[INSTALLED_CHANGED] =
@@ -81,8 +80,7 @@ static void cinnamon_app_system_class_init(CinnamonAppSystemClass *klass)
 		  CINNAMON_TYPE_APP_SYSTEM,
 		  G_SIGNAL_RUN_LAST,
 		  G_STRUCT_OFFSET (CinnamonAppSystemClass, installed_changed),
-		  NULL, NULL,
-		  g_cclosure_marshal_VOID__VOID,
+		  NULL, NULL, NULL,
 		  G_TYPE_NONE, 0);
 
   g_type_class_add_private (gobject_class, sizeof (CinnamonAppSystemPrivate));
@@ -91,14 +89,16 @@ static void cinnamon_app_system_class_init(CinnamonAppSystemClass *klass)
 static void
 setup_merge_dir_symlink(void)
 {
-    gchar *user_config = g_get_user_config_dir();
+    gchar *user_config = (gchar *) g_get_user_config_dir();
     gchar *merge_path = g_build_filename (user_config, "menus", "applications-merged", NULL);
     GFile *merge_file = g_file_new_for_path (merge_path);
+    gchar *sym_path;
+    GFile *sym_file;
 
     g_file_make_directory_with_parents (merge_file, NULL, NULL);
 
-    gchar *sym_path = g_build_filename (user_config, "menus", "cinnamon-applications-merged", NULL);
-    GFile *sym_file = g_file_new_for_path (sym_path);
+    sym_path = g_build_filename (user_config, "menus", "cinnamon-applications-merged", NULL);
+    sym_file = g_file_new_for_path (sym_path);
     if (!g_file_query_exists (sym_file, NULL)) {
         g_file_make_symbolic_link (sym_file, merge_path, NULL, NULL);
     }
@@ -211,18 +211,18 @@ get_prefix_for_entry (GMenuTreeEntry *entry)
       if (!g_strstr_len (id, -1, pname))
         {
           /* handle <LegacyDir prefix="..."> */
-          char *t;
+          char *t1;
           size_t name_len = strlen (name);
           size_t id_len = strlen (id);
           char *t_id = g_strdup (id);
 
           t_id[id_len - name_len] = '\0';
-          t = g_strdup(t_id);
+          t1 = g_strdup(t_id);
           g_free (prefix);
           g_free (t_id);
           g_free (name);
           name = g_strdup (id);
-          prefix = t;
+          prefix = t1;
 
           g_object_unref (file);
           file = parent;
@@ -297,6 +297,11 @@ get_flattened_entries_recurse (GMenuTreeDirectory *dir,
             item = gmenu_tree_iter_get_directory (iter);
             get_flattened_entries_recurse ((GMenuTreeDirectory*)item, entry_set);
           }
+          break;
+        case GMENU_TREE_ITEM_INVALID:
+        case GMENU_TREE_ITEM_SEPARATOR:
+        case GMENU_TREE_ITEM_HEADER:
+        case GMENU_TREE_ITEM_ALIAS:
           break;
         default:
           break;
@@ -496,7 +501,7 @@ cinnamon_app_system_lookup_setting (CinnamonAppSystem *self,
  * Return Value: (transfer none): The global #CinnamonAppSystem singleton
  */
 CinnamonAppSystem *
-cinnamon_app_system_get_default ()
+cinnamon_app_system_get_default (void)
 {
   static CinnamonAppSystem *instance = NULL;
 
@@ -535,7 +540,7 @@ cinnamon_app_system_lookup_app (CinnamonAppSystem   *self,
 
   result = g_hash_table_lookup (self->priv->id_to_app, id);
   if (result == NULL) {
-    result = g_hash_table_find (self->priv->id_to_app, (GHRFunc) case_insensitive_search, id);
+    result = g_hash_table_find (self->priv->id_to_app, (GHRFunc) case_insensitive_search, (gpointer) id);
   }
   return result;
 }
@@ -778,6 +783,9 @@ _cinnamon_app_system_notify_app_state_changed (CinnamonAppSystem *self,
     case CINNAMON_APP_STATE_STOPPED:
       g_hash_table_remove (self->priv->running_apps, app);
       break;
+    default:
+      g_warning("cinnamon_app_system_notify_app_state_changed: default case");
+    break;
     }
   g_signal_emit (self, signals[APP_STATE_CHANGED], 0, app);
 }

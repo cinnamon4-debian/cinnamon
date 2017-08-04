@@ -344,6 +344,14 @@ StScrollBar StButton#vhandle:hover {
     margin: 0px;
 }
 
+.system-status-icon.warning {
+    color: #e5e887;
+}
+
+.system-status-icon.error {
+    color: #fb5858;
+}
+
 .panel-corner {
     -panel-corner-radius: 0px;
     -panel-corner-background-color: black;
@@ -390,7 +398,7 @@ StScrollBar StButton#vhandle:hover {
     icon-shadow: black 0px 2px 2px;
 }
 .panel-menu {
-    -boxpointer-gap: 4px
+    -boxpointer-gap: 4px;
 }
 .popup-menu-item-dot {
 }
@@ -497,7 +505,7 @@ StScrollBar StButton#vhandle:hover {
 .expo-background {
     background-gradient-start: #000;
     background-gradient-end: #AAA;
-    background-gradient-direction: vertical
+    background-gradient-direction: vertical;
 }
 
 .workspace-overview-background-shade {
@@ -625,7 +633,7 @@ StScrollBar StButton#vhandle:hover {
 .calendar-work-day {
 }
 .calendar-nonwork-day {
-    background-color: rgba(128, 128, 128, .1);
+    background-color: rgba(128, 128, 128, 0.1);
 }
 .calendar-today {
     background-image: url("calendar-today.svg");
@@ -635,7 +643,7 @@ StScrollBar StButton#vhandle:hover {
 }
 .calendar-other-month-day {
     color: #888888;
-    background-color: rgba(64, 64, 64, .5);
+    background-color: rgba(64, 64, 64, 0.5);
 }
 .calendar-day-with-events {
     font-weight: bold;
@@ -781,7 +789,7 @@ StScrollBar StButton#vhandle:hover {
     spacing: 4px;
 }
 .switcher-list .thumbnail {
-    width:  256px;
+    width: 256px;
 }
 .switcher-list .separator {
     width: 1px;
@@ -804,7 +812,7 @@ StScrollBar StButton#vhandle:hover {
     color: white;
 }
 .switcher-preview-backdrop {
-   background-color: rgba(25,25,25,0.65);
+    background-color: rgba(25,25,25,0.65);
 }
 
 /* ===================================================================
@@ -964,7 +972,7 @@ StScrollBar StButton#vhandle:hover {
  * ===================================================================*/
 
 .magnifier-zoom-region {
-    border: 2px solid rgba(128, 0, 0, 255);
+    border: 2px solid rgba(128, 0, 0, 1);
 }
 .magnifier-zoom-region.full-screen {
     border-width: 0px;
@@ -1027,7 +1035,6 @@ StScrollBar StButton#vhandle:hover {
 /* Main menu title */
 
 .menu-favorites-box {
-    margin: auto;
     padding: 10px;
     border: 1px solid #666;
     border-radius: 8px;
@@ -1051,7 +1058,6 @@ StScrollBar StButton#vhandle:hover {
     border-radius: 4px;
 }
 .menu-places-box {
-    margin: auto;
     padding: 10px;
     border: 0px solid #666;
 }
@@ -1425,7 +1431,7 @@ StScrollBar StButton#vhandle:hover {
 }
 
 .launcher .icon-box {
-     padding-top: 2px;
+    padding-top: 2px;
 }
 
 .panel-launchers.vertical .launcher .icon-box {
@@ -1496,7 +1502,7 @@ StScrollBar StButton#vhandle:hover {
     background-image: url("overview.png");
 }
 #overview-corner:hover {
-    background-image:   url("overview-hover.png");
+    background-image: url("overview-hover.png");
 }
 /* ===================================================================
  * Applets (applet.js)
@@ -1506,18 +1512,24 @@ StScrollBar StButton#vhandle:hover {
 }
 .applet-separator-line {
     width: 2px;
-    background: rgba(255,255,255,.5);
+    background: rgba(255,255,255,0.5);
 }
+
 .applet-separator-line-vertical {
     border: 0px solid rgba(255,255,255,0.5);
     border-bottom-width: 2px;
 }
+
 .applet-box {
     padding-left: 3px;
     padding-right: 3px;
     color: #ccc;
     text-shadow: black 0px 0px 2px;
     transition-duration: 300;
+}
+.panel-top .applet-box,
+.panel-bottom .applet-box {
+    spacing: 3px;
 }
 .applet-box:checked,
 .applet-box:hover {
@@ -1721,7 +1733,7 @@ StScrollBar StButton#vhandle:hover {
 }
 
 .check-box StLabel {
-   font-weight: normal;
+    font-weight: normal;
 }
 
 .radiobutton CinnamonGenericContainer {
@@ -1744,13 +1756,13 @@ StScrollBar StButton#vhandle:hover {
 }
 
 .radiobutton StLabel {
-   padding-top: 4px;
-   font-size: 0.9em;
-   box-shadow: none;
+    padding-top: 4px;
+    font-size: 0.9em;
+    box-shadow: none;
 }
 
 .flashspot {
-   background-color: white;
+    background-color: white;
 }
 
 /* Media keys OSD popup */
@@ -1767,6 +1779,11 @@ StScrollBar StButton#vhandle:hover {
     height: 0.7em;
     border-radius: 0.3em;
     background-color: rgba(190,190,190,0.2);
+}
+
+.osd-window .level-bar {
+    border-radius: 0.3em;
+    background-color: rgba(190,190,190,0.8);
 }
 
 .tile-preview,
@@ -1824,3 +1841,14 @@ StScrollBar StButton#vhandle:hover {
     border-right-width: 0px;
     border-radius: 8px 0px 0px 0px;
 }
+/* ===================================================================
+ * Systray Applet
+ *
+ * .systray is for theming to be applied to the systray as a whole
+ * .applet-box is used for indicators (not tray icons) within the systray
+ * tray icons are not themed
+ * ===================================================================*/
+.systray {
+    spacing: 5px;
+}
+

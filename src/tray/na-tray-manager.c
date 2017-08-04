@@ -34,8 +34,6 @@
 #endif
 #include <gtk/gtk.h>
 
-#include "na-marshal.h"
-
 /* Signals */
 enum
 {
@@ -144,8 +142,7 @@ na_tray_manager_class_init (NaTrayManagerClass *klass)
 		  G_OBJECT_CLASS_TYPE (klass),
 		  G_SIGNAL_RUN_LAST,
 		  G_STRUCT_OFFSET (NaTrayManagerClass, tray_icon_added),
-		  NULL, NULL,
-		  g_cclosure_marshal_VOID__OBJECT,
+		  NULL, NULL, NULL,
 		  G_TYPE_NONE, 1,
 		  GTK_TYPE_SOCKET);
 
@@ -154,8 +151,7 @@ na_tray_manager_class_init (NaTrayManagerClass *klass)
 		  G_OBJECT_CLASS_TYPE (klass),
 		  G_SIGNAL_RUN_LAST,
 		  G_STRUCT_OFFSET (NaTrayManagerClass, tray_icon_removed),
-		  NULL, NULL,
-		  g_cclosure_marshal_VOID__OBJECT,
+		  NULL, NULL, NULL,
 		  G_TYPE_NONE, 1,
 		  GTK_TYPE_SOCKET);
   manager_signals[MESSAGE_SENT] =
@@ -163,8 +159,7 @@ na_tray_manager_class_init (NaTrayManagerClass *klass)
 		  G_OBJECT_CLASS_TYPE (klass),
 		  G_SIGNAL_RUN_LAST,
 		  G_STRUCT_OFFSET (NaTrayManagerClass, message_sent),
-		  NULL, NULL,
-		  _na_marshal_VOID__OBJECT_STRING_LONG_LONG,
+		  NULL, NULL, NULL,
 		  G_TYPE_NONE, 4,
 		  GTK_TYPE_SOCKET,
 		  G_TYPE_STRING,
@@ -175,8 +170,7 @@ na_tray_manager_class_init (NaTrayManagerClass *klass)
 		  G_OBJECT_CLASS_TYPE (klass),
 		  G_SIGNAL_RUN_LAST,
 		  G_STRUCT_OFFSET (NaTrayManagerClass, message_cancelled),
-		  NULL, NULL,
-		  _na_marshal_VOID__OBJECT_LONG,
+		  NULL, NULL, NULL,
 		  G_TYPE_NONE, 2,
 		  GTK_TYPE_SOCKET,
 		  G_TYPE_LONG);
@@ -185,8 +179,7 @@ na_tray_manager_class_init (NaTrayManagerClass *klass)
 		  G_OBJECT_CLASS_TYPE (klass),
 		  G_SIGNAL_RUN_LAST,
 		  G_STRUCT_OFFSET (NaTrayManagerClass, lost_selection),
-		  NULL, NULL,
-		  g_cclosure_marshal_VOID__VOID,
+		  NULL, NULL, NULL,
 		  G_TYPE_NONE, 0);
 
 #if defined (GDK_WINDOWING_X11)
@@ -330,6 +323,7 @@ na_tray_manager_handle_dock_request (NaTrayManager       *manager,
 {
   Window icon_window = xevent->data.l[2];
   GtkWidget *child;
+  TrayAddPacket *packet;
 
   if (g_hash_table_lookup (manager->socket_table,
                            GINT_TO_POINTER (icon_window)))
@@ -345,7 +339,7 @@ na_tray_manager_handle_dock_request (NaTrayManager       *manager,
   g_signal_emit (manager, manager_signals[TRAY_ICON_ADDED], 0,
 		 child);
 
-  TrayAddPacket *packet = g_new0 (TrayAddPacket, 1);
+  packet = g_new0 (TrayAddPacket, 1);
   packet->child = g_object_ref (child);
   packet->window = icon_window;
   packet->manager = manager;

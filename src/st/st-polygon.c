@@ -186,11 +186,12 @@ st_polygon_paint (ClutterActor *self)
     StPolygon *area = ST_POLYGON (self);
     StPolygonPrivate *priv = area->priv;
     if (priv->debug) {
+        gfloat coords[8];
         cogl_set_source_color4f (.50,
                                  .50,
                                  .50,
                                  .50);
-        gfloat coords[8];
+
         coords[0] = priv->ulc_x;
         coords[1] = priv->ulc_y;
         coords[2] = priv->llc_x;
@@ -212,11 +213,11 @@ st_polygon_pick (ClutterActor       *self,
 {
     StPolygon *area = ST_POLYGON (self);
     StPolygonPrivate *priv = area->priv;
+    gfloat coords[8];
 
     if (!clutter_actor_should_pick_paint (self))
         return;
 
-    gfloat coords[8];
     coords[0] = priv->ulc_x;
     coords[1] = priv->ulc_y;
     coords[2] = priv->llc_x;
@@ -251,8 +252,7 @@ st_polygon_class_init (StPolygonClass *klass)
                   G_TYPE_FROM_CLASS (klass),
                   G_SIGNAL_RUN_LAST,
                   G_STRUCT_OFFSET (StPolygonClass, repaint),
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
+                  NULL, NULL, NULL,
                   G_TYPE_NONE, 0);
 
   obj_props[PROP_ULC_X] =

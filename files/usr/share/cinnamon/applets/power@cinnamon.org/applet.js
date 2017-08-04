@@ -14,6 +14,8 @@ const GnomeSession = imports.misc.gnomeSession;
 const BrightnessBusName = "org.cinnamon.SettingsDaemon.Power.Screen";
 const KeyboardBusName = "org.cinnamon.SettingsDaemon.Power.Keyboard";
 
+const PANEL_EDIT_MODE_KEY = "panel-edit-mode";
+
 const UPDeviceType = {
     UNKNOWN: 0,
     AC_POWER: 1,
@@ -177,7 +179,7 @@ BrightnessSlider.prototype = {
         this.addActor(this._slider, {span: -1, expand: true});
 
         this.label = label;
-        this.toolTipText = label;
+        this.tooltipText = label;
         this.tooltip = new Tooltips.Tooltip(this.actor, this.tooltipText);
 
         Interfaces.getDBusProxyAsync(busName, Lang.bind(this, function(proxy, error) {
@@ -251,7 +253,6 @@ MyApplet.prototype = {
         this.setAllowedLayout(Applet.AllowedLayout.BOTH);
 
         this.metadata = metadata;
-        this.orientation = orientation;
 
         this.settings = new Settings.AppletSettings(this, metadata.uuid, instanceId);
 
@@ -284,6 +285,8 @@ MyApplet.prototype = {
 
         this._proxy = null;
 
+        global.settings.connect('changed::' + PANEL_EDIT_MODE_KEY, Lang.bind(this, this._onPanelEditModeChanged));
+
         Interfaces.getDBusProxyAsync("org.cinnamon.SettingsDaemon.Power", Lang.bind(this, function(proxy, error) {
             this._proxy = proxy;
 
@@ -294,7 +297,19 @@ MyApplet.prototype = {
             this._devicesChanged();
         }));
 
-        this.update_label_visible();
+        this.set_show_label_in_vertical_panels(false);
+    },
+
+    _onPanelEditModeChanged: function() {
+        if (global.settings.get_boolean(PANEL_EDIT_MODE_KEY)) {
+            if (!this.actor.visible) {
+                this.set_applet_icon_symbolic_name("battery-missing");
+                this.set_applet_enabled(true);
+            }
+        }
+        else {
+            this._devicesChanged();
+        }
     },
 
     _on_device_aliases_changed: function() {
@@ -340,13 +355,13 @@ MyApplet.prototype = {
             else if (time > 60) {
                 if (minutes == 0) {
                     status = ngettext("Charging - %d hour until fully charged", "Charging - %d hours until fully charged", hours).format(hours);
-                } 
+                }
                 else {
                     /* TRANSLATORS: this is a time string, as in "%d hours %d minutes remaining" */
                     let template = _("Charging - %d %s %d %s until fully charged");
                     status = template.format (hours, ngettext("hour", "hours", hours), minutes, ngettext("minute", "minutes", minutes));
                 }
-            } 
+            }
             else {
                 status = ngettext("Charging - %d minute until fully charged", "Charging - %d minutes until fully charged", minutes).format(minutes);
             }
@@ -361,13 +376,13 @@ MyApplet.prototype = {
             else if (time > 60) {
                 if (minutes == 0) {
                     status = ngettext("Using battery power - %d hour remaining", "Using battery power - %d hours remaining", hours).format(hours);
-                } 
+                }
                 else {
                     /* TRANSLATORS: this is a time string, as in "%d hours %d minutes remaining" */
                     let template = _("Using battery power - %d %s %d %s remaining");
                     status = template.format (hours, ngettext("hour", "hours", hours), minutes, ngettext("minute", "minutes", minutes));
                 }
-            } 
+            }
             else {
                 status = ngettext("Using battery power - %d minute remaining", "Using battery power - %d minutes remaining", minutes).format(minutes);
             }
@@ -410,8 +425,8 @@ MyApplet.prototype = {
             this._applet_label.set_margin_left(1.0);
         }
 
-        if(icon){
-            if(this.panel_icon_name != icon){
+        if (icon) {
+            if(this.panel_icon_name != icon) {
                 this.panel_icon_name = icon;
                 this.set_applet_icon_symbolic_name('battery-full');
                 let gicon = Gio.icon_new_for_string(icon);
@@ -423,6 +438,18 @@ MyApplet.prototype = {
                 this.panel_icon_name = 'battery-full';
                 this.set_applet_icon_symbolic_name('battery-full');
             }
+        }
+
+        if (device_type == UPDeviceType.BATTERY) {
+            if (percentage > 20) {
+                this._applet_icon.set_style_class_name('system-status-icon');
+            } else if (percentage > 5) {
+                this._applet_icon.set_style_class_name('system-status-icon warning');
+            } else {
+                this._applet_icon.set_style_class_name('system-status-icon error');
+            }
+        } else {
+            this._applet_icon.set_style_class_name ('system-status-icon');
         }
     },
 
@@ -483,7 +510,6 @@ MyApplet.prototype = {
                     let status = this._getDeviceStatus(devices[i]);
                     let item = new DeviceItem (devices[i], status, this.aliases);
                     this.menu.addMenuItem(item, position);
-                    this.num_devices = this.num_devices + 1;
                     this._deviceItems.push(item);
                     position++;
                 }
@@ -542,24 +568,11 @@ MyApplet.prototype = {
                     }
                 }
             }
-
         }));
     },
 
     on_applet_removed_from_panel: function() {
         Main.systrayManager.unregisterId(this.metadata.uuid);
-    },
-
-    update_label_visible: function() {
-        if (this.orientation == St.Side.LEFT || this.orientation == St.Side.RIGHT)
-            this.hide_applet_label(true);
-        else
-            this.hide_applet_label(false);
-    },
-
-    on_orientation_changed: function(orientation) {
-        this.orientation = orientation;
-        this.update_label_visible();
     }
 };
 

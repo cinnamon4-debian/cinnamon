@@ -38,7 +38,7 @@ class Module:
 
             settings = page.add_section(_("Account details"))
 
-            self.face_button = PictureChooserButton(num_cols=4, button_picture_size=64, menu_pictures_size=64)
+            self.face_button = PictureChooserButton(num_cols=4, button_picture_size=64, menu_pictures_size=64, keep_square=True)
             self.face_button.set_alignment(0.0, 0.5)
             self.face_button.set_tooltip_text(_("Click to change your picture"))
 
@@ -106,15 +106,19 @@ class Module:
 
     def update_preview_cb (self, dialog, preview):
         filename = dialog.get_preview_filename()
-        dialog.set_preview_widget_active(False)
-        if filename is not None and os.path.isfile(filename):
-            try:
-                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(filename, 128, 128)
-                if pixbuf is not None:
-                    preview.set_from_pixbuf (pixbuf)
-                    dialog.set_preview_widget_active(True)
-            except:
-                pass
+        if filename is not None:
+            if os.path.isfile(filename):
+                try:
+                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(filename, 128, 128)
+                    if pixbuf is not None:
+                        preview.set_from_pixbuf(pixbuf)
+                        self.frame.show()
+                        return
+                except GLib.Error as e:
+                    print("Unable to generate preview for file '%s' - %s\n" % (filename, e.message))
+
+        preview.clear()
+        self.frame.hide()
 
     def _on_face_photo_menuitem_activated(self, menuitem):
 
@@ -146,7 +150,7 @@ class Module:
         bottom = (height + new_height) / 2
 
         image = image.crop((left, top, right, bottom))
-        image.thumbnail((96, 96), PIL.Image.ANTIALIAS)
+        image.thumbnail((255, 255), PIL.Image.ANTIALIAS)
 
         face_path = os.path.join(self.accountService.get_home_dir(), ".face")
 
@@ -163,31 +167,27 @@ class Module:
         filter.add_mime_type("image/*")
         dialog.add_filter(filter)
 
-        preview = Gtk.Image()
-        dialog.set_preview_widget(preview);
-        dialog.connect("update-preview", self.update_preview_cb, preview)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.frame = Gtk.Frame(visible=False, no_show_all=True)
+        preview = Gtk.Image(visible=True)
+
+        box.pack_start(self.frame, False, False, 0)
+        self.frame.add(preview)
+        dialog.set_preview_widget(box)
+        dialog.set_preview_widget_active(True)
         dialog.set_use_preview_label(False)
+
+        box.set_margin_end(12)
+        box.set_margin_top(12)
+        box.set_size_request(128, -1)
+
+        dialog.connect("update-preview", self.update_preview_cb, preview)
 
         response = dialog.run()
         if response == Gtk.ResponseType.OK:
             path = dialog.get_filename()
             image = PIL.Image.open(path)
-            width, height = image.size
-            if width > height:
-                new_width = height
-                new_height = height
-            elif height > width:
-                new_width = width
-                new_height = width
-            else:
-                new_width = width
-                new_height = height
-            left = (width - new_width)/2
-            top = (height - new_height)/2
-            right = (width + new_width)/2
-            bottom = (height + new_height)/2
-            image = image.crop((left, top, right, bottom))
-            image.thumbnail((96, 96), PIL.Image.ANTIALIAS)
+            image.thumbnail((255, 255), PIL.Image.ANTIALIAS)
             face_path = os.path.join(self.accountService.get_home_dir(), ".face")
             image.save(face_path, "png")
             self.accountService.set_icon_file(face_path)

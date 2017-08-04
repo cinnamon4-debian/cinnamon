@@ -4,6 +4,7 @@ import sys
 import os
 import json
 import subprocess
+import tempfile
 from optparse import OptionParser
 
 from gi.repository import GLib
@@ -126,7 +127,12 @@ class Main:
                 quit()
             print " "
             print "Running xgettext on JavaScript files..."
-            os.system("xgettext --language=C --keyword=_ --output=%s *.js" % (self.potname))
+
+            tmp = tempfile.NamedTemporaryFile(prefix="cinnamon-json-makepot-")
+            try:
+                os.system('find . -iname "*.js" > %s' % tmp.name)
+            finally:
+                os.system("xgettext --language=C --keyword=_ --output=%s --files-from=%s" % (self.potname, tmp.name))
 
         self.current_parent_dir = ""
 
@@ -227,6 +233,13 @@ class Main:
                         continue
                     comment = "%s->settings-schema.json->%s->%s" % (self.current_parent_dir, parent, key)
                     self.save_entry(option, comment)
+            elif key == "columns":
+                columns = data[key]
+                for i, col in enumerate(columns):
+                    for col_key in col:
+                        if col_key in ("title", "units"):
+                            comment = "%s->settings-schema.json->%s->columns->%s" % (self.current_parent_dir, parent, col_key)
+                            self.save_entry(col[col_key], comment)
             try:
                 self.extract_strings(data[key], key)
             except AttributeError:

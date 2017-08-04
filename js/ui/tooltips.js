@@ -76,6 +76,7 @@ TooltipBase.prototype = {
         this.visible = false;
         this.item = item;
         this.preventShow = false;
+        this.mousePosition = null;
     },
 
     _onMotionEvent: function(actor, event) {
@@ -124,7 +125,6 @@ TooltipBase.prototype = {
 
         if ((x < box.x1) || (x > box.x2) ||
             (y < box.y1) || (y > box.y2)) {
-            log("__________________________________hide complete!");
             this._hide();
         }
 
@@ -216,7 +216,7 @@ Tooltip.prototype = {
     },
 
     show: function() {
-        if (this._tooltip.get_text() == "")
+        if (this._tooltip.get_text() == "" || !this.mousePosition)
             return;
 
         let tooltipWidth = this._tooltip.get_allocation_box().x2 - this._tooltip.get_allocation_box().x1;
@@ -298,7 +298,7 @@ PanelItemTooltip.prototype = {
     },
 
     show: function() {
-        if (this._tooltip.get_text() == "" || global.menuStackLength > 0)
+        if (this._tooltip.get_text() == "" || global.menuStackLength > 0 || !this.mousePosition)
             return;
 
         let op = this._tooltip.get_opacity();

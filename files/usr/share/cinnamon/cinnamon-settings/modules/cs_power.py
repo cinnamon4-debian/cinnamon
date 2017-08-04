@@ -105,7 +105,7 @@ class Module:
                 Gio.bus_get_sync(Gio.BusType.SESSION, None),
                 Gio.DBusProxyFlags.NONE,
                 None,
-                "org.cinnamon.SettingsDaemon",
+                "org.cinnamon.SettingsDaemon.Power",
                 "/org/cinnamon/SettingsDaemon/Power",
                 "org.cinnamon.SettingsDaemon.Power",
                 None)
@@ -166,7 +166,7 @@ class Module:
         if self.has_lid:
             section.add_row(GSettingsSwitch(_("Perform lid-closed action even with external monitors attached"), CSD_SCHEMA, "lid-close-suspend-with-external-monitor"))
 
-        if self.has_battery and UPowerGlib.MAJOR_VERSION == 0 and UPowerGlib.MINOR_VERSION < 99:
+        if self.has_battery and UPowerGlib.MAJOR_VERSION == 0 and UPowerGlib.MINOR_VERSION <= 99:
             section.add_row(GSettingsComboBox(_("When the battery is critically low"), CSD_SCHEMA, "critical-battery-action", critical_options, size_group=size_group))
 
         # Batteries
@@ -208,7 +208,7 @@ class Module:
                 Gio.bus_get_sync(Gio.BusType.SESSION, None),
                 Gio.DBusProxyFlags.NONE,
                 None,
-                "org.cinnamon.SettingsDaemon",
+                "org.cinnamon.SettingsDaemon.Power",
                 "/org/cinnamon/SettingsDaemon/Power",
                 "org.cinnamon.SettingsDaemon.Power.Screen",
                 None)

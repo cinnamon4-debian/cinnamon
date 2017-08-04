@@ -38,11 +38,14 @@ LevelBar.prototype = {
         this._level = 0;
 
         this.actor = new St.Bin({ style_class: 'level',
-                                  x_fill: true,
+                                  x_align: St.Align.START,
                                   y_fill: true,
                                   important: true });
-        this._bar = new St.DrawingArea();
-        this._bar.connect('repaint', Lang.bind(this, this._repaint));
+        this._bar = new St.Widget({ style_class: 'level-bar',
+                                    important: true });
+
+        this.stored_actor_width = 0;
+        this.max_bar_width = 0;
 
         this.actor.set_child(this._bar);
     },
@@ -52,11 +55,25 @@ LevelBar.prototype = {
     },
 
     set level(value) {
-        let newValue = Math.max(0, Math.min(value, 100));
-        if (newValue == this._level)
-            return;
-        this._level = newValue;
-        this._bar.queue_repaint();
+        this._level = Math.max(0, Math.min(value, 100));
+
+        /* Track our actor's width - if it changes, we can be certain some setting
+         * or the theme changed.  Make sure we update it, as well as figure out our
+         * level bar's allocation.
+         */
+        if (this.stored_actor_width != this.actor.width) {
+            this.stored_actor_width = this.actor.width;
+
+            let box = this.actor.get_theme_node().get_content_box(this.actor.get_allocation_box());
+
+            this.max_bar_width = box.x2 - box.x1;
+        }
+
+        let newWidth = this.max_bar_width * (this._level / 100);
+
+        if (newWidth != this._bar.width) {
+            this._bar.width = newWidth;
+        }
     },
 
     setLevelBarHeight: function(sizeMultiplier) {
@@ -64,34 +81,6 @@ LevelBar.prototype = {
         let height = themeNode.get_height();
         let newHeight = Math.floor(height * sizeMultiplier);
         this.actor.set_height(newHeight);
-    },
-
-    _repaint:function() {
-        let cr = this._bar.get_context();
-
-        let node = this.actor.get_theme_node();
-        let radius = node.get_border_radius(0);
-        Clutter.cairo_set_source_color(cr, node.get_foreground_color());
-
-        let [w, h] = this._bar.get_surface_size();
-        w *= (this._level / 100.0);
-
-        if (w == 0)
-            return;
-
-        cr.moveTo(radius, 0);
-        if (w >= radius)
-            cr.arc(w - radius, radius, radius, 1.5 * Math.PI, 2.0 * Math.PI);
-        else
-            cr.lineTo(w, 0);
-        if (w >= radius)
-            cr.arc(w - radius, h - radius, radius, 0, 0.5 * Math.PI);
-        else
-            cr.lineTo(w, h);
-        cr.arc(radius, h - radius, radius, 0.5 * Math.PI, Math.PI);
-        cr.arc(radius, radius, radius, Math.PI, 1.5 * Math.PI);
-        cr.fill();
-        cr.$dispose();
     }
 };
 

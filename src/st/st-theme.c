@@ -632,6 +632,9 @@ additional_selector_matches_style (StTheme         *a_this,
           if (!pseudo_class_add_sel_matches_style (a_this, cur_add_sel, a_node))
             return FALSE;
           break;
+        default:
+          g_warning ("Unhandled selector type %d", cur_add_sel->type);
+          return FALSE;
         }
     }
 
@@ -926,6 +929,10 @@ add_matched_properties (StTheme      *a_this,
               }
           }
           break;
+        case AT_RULE_STMT:
+        case AT_PAGE_RULE_STMT:
+        case AT_CHARSET_RULE_STMT:
+        case AT_FONT_FACE_RULE_STMT:
         default:
           break;
         }
@@ -1082,17 +1089,17 @@ _st_theme_resolve_url (StTheme      *theme,
       g_str_has_prefix (url, "FILE:"))
     {
       GError *error = NULL;
-      char *filename;
+      char *fname;
 
-      filename = g_filename_from_uri (url, NULL, &error);
-      if (filename == NULL)
+      fname = g_filename_from_uri (url, NULL, &error);
+      if (fname == NULL)
         {
           g_warning ("%s", error->message);
           g_error_free (error);
         }
       else
         {
-          g_free (filename);
+          g_free (fname);
         }
 
       return NULL;

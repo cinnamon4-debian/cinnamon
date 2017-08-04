@@ -15,6 +15,7 @@ const Mainloop = imports.mainloop;
 const Flashspot = imports.ui.flashspot;
 const ModalDialog = imports.ui.modalDialog;
 const Signals = imports.signals;
+const Gettext = imports.gettext;
 
 const COLOR_ICON_HEIGHT_FACTOR = .875;  // Panel height factor for normal color icons
 const PANEL_FONT_DEFAULT_HEIGHT = 11.5; // px
@@ -34,9 +35,16 @@ const AllowedLayout = {  // the panel layout that an applet is suitable for
  * @short_description: Deprecated. Use #PopupMenu.PopupIconMenuItem instead.
  */
 function MenuItem(label, icon, callback) {
-    this.__proto__ = PopupMenu.PopupIconMenuItem.prototype;
-    PopupMenu.PopupIconMenuItem.prototype._init.call(this, label, icon, St.IconType.SYMBOLIC);
-    this.connect('activate', callback);
+    this._init(label, icon, callback);
+}
+
+MenuItem.prototype = {
+    __proto__ : PopupMenu.PopupIconMenuItem.prototype,
+
+    _init: function(label, icon, callback) {
+        PopupMenu.PopupIconMenuItem.prototype._init.call(this, label, icon, St.IconType.SYMBOLIC);
+        this.connect('activate', callback);
+    }
 }
 
 /**
@@ -200,7 +208,11 @@ Applet.prototype = {
         this._draggable.connect('drag-end', Lang.bind(this, this._onDragEnd));
 
         try {
-            this._scaleMode = AppletManager.enabledAppletDefinitions.idMap[instance_id].panel.scaleMode;
+            if (AppletManager.enabledAppletDefinitions.idMap[instance_id]) {
+                this._scaleMode = AppletManager.enabledAppletDefinitions.idMap[instance_id].panel.scaleMode;
+            } else {
+                throw new Error();
+            }
         } catch (e) {
             // Sometimes applets are naughty and don't pass us our instance_id. In that case, we just find the first non-empty panel and pretend we are on it.
             for (let i in Main.panelManager.panels) {
@@ -365,13 +377,13 @@ Applet.prototype = {
      *
      * This is meant to be overridden in individual applets.
      */
-    on_applet_removed_from_panel: function() {
+    on_applet_removed_from_panel: function(deleteConfig) {
     },
 
     // should only be called by appletManager
-    _onAppletRemovedFromPanel: function() {
+    _onAppletRemovedFromPanel: function(deleteConfig) {
         global.settings.disconnect(this._panelEditModeChangedId);
-        this.on_applet_removed_from_panel();
+        this.on_applet_removed_from_panel(deleteConfig);
 
         Main.AppletManager.callAppletInstancesChanged(this._uuid);
     },
@@ -485,7 +497,8 @@ Applet.prototype = {
         let items = this._applet_context_menu._getMenuItems();
 
         if (this.context_menu_item_remove == null) {
-            this.context_menu_item_remove = new PopupMenu.PopupIconMenuItem(_("Remove '%s'").format(_(this._meta.name)),
+            this.context_menu_item_remove = new PopupMenu.PopupIconMenuItem(_("Remove '%s'")
+                .format(this._(this._meta.name)),
                    "edit-delete",
                    St.IconType.SYMBOLIC);
             this.context_menu_item_remove.connect('activate', Lang.bind(this, function() {
@@ -527,6 +540,18 @@ Applet.prototype = {
         if (items.indexOf(this.context_menu_item_remove) == -1) {
             this._applet_context_menu.addMenuItem(this.context_menu_item_remove);
         }
+    },
+
+    // translation
+    _: function(str) {
+        // look into the text domain first
+        let translated = Gettext.dgettext(this._uuid, str);
+
+        // if it looks translated, return the translation of the domain
+        if (translated !== str)
+            return translated;
+        // else, use the default cinnamon domain
+        return _(str);
     },
 
     /**
@@ -788,23 +813,18 @@ TextIconApplet.prototype = {
         this.actor.add(this._layoutBin, { y_align: St.Align.MIDDLE,
                                           y_fill: false });
         this.actor.set_label_actor(this._applet_label);
+
+        this.show_label_in_vertical_panels = true;
     },
 
     /**
-     * update_label_margin:
+     * set_show_label_in_vertical_panels:
+     * @show (boolean): whether to show the label in vertical panels
      *
-     * Sets a margin between the icon and the label when it contains a non
-     * empty string. The margin is always set to zero in a vertical panel
+     * Sets whether to show the label in vertical panels
      */
-    update_label_margin: function () {
-        let text = this._applet_label.get_text();
-
-        if ((text && text != "") && this._applet_icon_box.child &&
-            (this._orientation == St.Side.TOP || this._orientation == St.Side.BOTTOM)) {
-            this._applet_label.set_margin_left(6.0);
-        } else {
-            this._applet_label.set_margin_left(0);
-        }
+    set_show_label_in_vertical_panels: function (show) {
+        this.show_label_in_vertical_panels = show;
     },
 
     /**
@@ -815,7 +835,20 @@ TextIconApplet.prototype = {
      */
     set_applet_label: function (text) {
         this._applet_label.set_text(text);
-        this.update_label_margin();
+
+        if ((this._orientation == St.Side.LEFT || this._orientation == St.Side.RIGHT) && (this.show_label_in_vertical_panels == false)) {
+            // Hide the label in vertical panel for applets which don't support it
+            this.hide_applet_label(true);
+        }
+        else {
+            if (text == "") {
+                // Hide empty labels
+                this.hide_applet_label(true);
+            }
+            else {
+                this.hide_applet_label(false);
+            }
+        }
     },
 
     /**
@@ -845,16 +878,29 @@ TextIconApplet.prototype = {
      */
     hide_applet_label: function (hide) {
         if (hide) {
-            this._applet_label.hide();
-            this._layoutBin.hide();
+            this.hideLabel();
         } else {
-            this._applet_label.show();
-            this._layoutBin.show();
+            this.showLabel();
         }
-
-        this.update_label_margin();
     },
-
+    /**
+     * hideLabel:
+     *
+     * Hides the applet label
+     */
+    hideLabel: function () {
+        this._applet_label.hide();
+        this._layoutBin.hide();
+    },
+    /**
+     * showLabel:
+     *
+     * Shows the applet label
+     */
+    showLabel: function () {
+        this._applet_label.show();
+        this._layoutBin.show();
+    },
     /**
      * hide_applet_icon:
      *
@@ -866,5 +912,17 @@ TextIconApplet.prototype = {
 
     on_applet_added_to_panel: function() {
 
+    },
+
+    /**
+     * Override setOrientation, to recall set_applet_label
+     */
+    setOrientation: function (orientation) {
+        this.setOrientationInternal(orientation);
+        this.on_orientation_changed(orientation);
+        this.emit("orientation-changed", orientation);
+        this.finalizeContextMenu();
+        this._orientation = orientation;
+        this.set_applet_label(this._applet_label.get_text());
     }
 };

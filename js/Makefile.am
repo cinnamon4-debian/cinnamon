@@ -6,7 +6,6 @@ nobase_dist_js_DATA = \
 	misc/docInfo.js		\
 	misc/fileDialog.js	\
 	misc/fileUtils.js	\
-	misc/format.js		\
 	misc/gnomeSession.js	\
 	misc/gridNavigator.js	\
 	misc/history.js		\
@@ -64,7 +63,6 @@ nobase_dist_js_DATA = \
 	ui/overview.js		\
 	ui/overrides.js \
 	ui/panel.js		\
-	ui/panelMenu.js		\
 	ui/placesManager.js  \
 	ui/popupMenu.js		\
 	ui/runDialog.js		\

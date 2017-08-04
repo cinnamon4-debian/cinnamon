@@ -243,6 +243,7 @@ Player.prototype = {
         this._busName = busname;
         this._applet = applet;
         this._name = this._busName.split('.')[3];
+        this._songLength = 0;
 
         Interfaces.getDBusProxyWithOwnerAsync(MEDIA_PLAYER_2_NAME,
                                               this._busName,
@@ -292,8 +293,8 @@ Player.prototype = {
         let playerBox = new St.BoxLayout();
         this.playerIcon = new St.Icon({icon_type: St.IconType.SYMBOLIC, style_class: "popup-menu-icon"});
         this.playerLabel = new St.Label({y_expand: true, y_align: Clutter.ActorAlign.CENTER});
-        playerBox.add_actor(this.playerIcon, { expand: true, x_fill: false, x_align: St.Align.START });
-        playerBox.add_actor(this.playerLabel, { expand: true, x_fill: false, x_align: St.Align.START });
+        playerBox.add_actor(this.playerIcon);
+        playerBox.add_actor(this.playerLabel);
 
         if (this._mediaServer.CanRaise) {
             let btn = new ControlButton("go-up", _("Open Player"), Lang.bind(this, function(){
@@ -306,17 +307,17 @@ Player.prototype = {
                 }
                 this._applet.menu.close();
             }), true);
-            playerBox.add_actor(btn.actor, { expand: true, x_fill: false, x_align: St.Align.END });
+            playerBox.add_actor(btn.actor);
         }
         if (this._mediaServer.CanQuit) {
             let btn = new ControlButton("window-close", _("Quit Player"), Lang.bind(this, function(){
                 this._mediaServer.QuitRemote();
                 this._applet.menu.close();
             }), true);
-            playerBox.add_actor(btn.actor, { expand: true, x_fill: false, x_align: St.Align.END });
+            playerBox.add_actor(btn.actor);
         }
 
-        this.vertBox.add_actor(playerBox, {expand: false, x_fill: false});
+        this.vertBox.add_actor(playerBox);
 
         // Cover Box (art + track info)
         this._trackCover = new St.Bin({x_align: St.Align.MIDDLE});
@@ -814,14 +815,12 @@ MediaPlayerLauncher.prototype = {
         this.addActor(this.label);
         this._icon = app.create_icon_texture(ICON_SIZE);
         this.addActor(this._icon, { expand: false });
+        this.connect("activate", Lang.bind(this, this._onActivate));
     },
 
-    activate: function (event) {
-        this._menu.actor.hide();
+    _onActivate: function(actor, event, keepMenu) {
         this._app.activate_full(-1, event.get_time());
-        return true;
     }
-
 };
 
 function MyApplet(metadata, orientation, panel_height, instanceId) {
@@ -838,7 +837,6 @@ MyApplet.prototype = {
 
         try {
             this.metadata = metadata;
-            this.orientation = orientation;
             this.settings = new Settings.AppletSettings(this, metadata.uuid, instanceId);
             this.settings.bind("showtrack", "showtrack", this.on_settings_changed);
             this.settings.bind("middleClickAction", "middleClickAction");
@@ -971,7 +969,8 @@ MyApplet.prototype = {
             this._volumeControlShown = false;
 
             this._showFixedElements();
-            this.updateLabelVisible();
+            this.set_show_label_in_vertical_panels(false);
+            this.set_applet_label(this._applet_label.get_text());
 
             let appsys = Cinnamon.AppSystem.get_default();
             appsys.connect("installed-changed", Lang.bind(this, this._updateLaunchPlayer));
@@ -1129,13 +1128,6 @@ MyApplet.prototype = {
         }
     },
 
-    updateLabelVisible: function() {
-        if (this.orientation == St.Side.LEFT || this.orientation == St.Side.RIGHT)
-            this.hide_applet_label(true);
-        else
-            this.hide_applet_label(false);
-    },
-
     setAppletText: function(player) {
         let title_text = "";
         if (this.showtrack && player && player._playerStatus == 'Playing') {
@@ -1145,7 +1137,6 @@ MyApplet.prototype = {
             }
         }
         this.set_applet_label(title_text);
-        this.updateLabelVisible();
     },
 
     setAppletTextIcon: function(player, icon) {
@@ -1508,11 +1499,6 @@ MyApplet.prototype = {
 
     unregisterSystrayIcons: function() {
         Main.systrayManager.unregisterId(this.metadata.uuid);
-    },
-
-    on_orientation_changed: function(orientation) {
-        this.orientation = orientation;
-        this.updateLabelVisible();
     }
 };
 

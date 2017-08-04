@@ -257,6 +257,8 @@ calculate_and_scroll (ClutterActor  *self,
                     "value", &vvalue,
                     NULL);
     st_adjustment_set_value (priv->vadjustment, vvalue + delta);
+
+    clutter_actor_queue_redraw (self);
 }
 
 static void
@@ -865,6 +867,9 @@ st_scroll_view_scroll_event (ClutterActor       *self,
                     "value", &value,
                     NULL);
       break;
+    default:
+      g_warn_if_reached();
+      break;
     }
 
   switch (event->direction)
@@ -885,7 +890,12 @@ st_scroll_view_scroll_event (ClutterActor       *self,
     case CLUTTER_SCROLL_RIGHT:
       st_adjustment_set_value (priv->hadjustment, value + step);
       break;
+    default:
+      g_warn_if_reached();
+      break;
     }
+
+  clutter_actor_queue_redraw (self);
 
   return TRUE;
 }

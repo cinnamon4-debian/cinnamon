@@ -52,7 +52,6 @@ ExpoWindowClone.prototype = {
         this.refreshClone();
         this._signalManager = new SignalManager.SignalManager(this);
 
-        this._signalManager.connect(this.realWindow, 'position-changed', this.onPositionChanged);
         this._signalManager.connect(this.realWindow, 'size-changed', this.onSizeChanged);
         this._signalManager.connect(this.metaWindow, 'workspace-changed', function(w, oldws) {
             this.emit('workspace-changed', oldws);
@@ -298,6 +297,9 @@ ExpoWorkspaceThumbnail.prototype = {
     _init : function(metaWorkspace, box) {
         this.box = box;
         this.metaWorkspace = metaWorkspace;
+
+        this.overviewMode = false;
+
         this.frame = new St.Widget({ clip_to_allocation: true,
                                      style_class: 'expo-workspace-thumbnail-frame' });
         this.actor = new St.Widget({ reactive: true,
@@ -1659,8 +1661,8 @@ ExpoThumbnailsBox.prototype = {
             x += thumbnailWidth + spacing;
             y += (i + 1) % nColumns > 0 ? 0 : thumbnailHeight + extraHeight + thTitleMargin;
         }
-        let x = 0;
-        let y = 0;
+        x = 0;
+        y = 0;
 
         let buttonWidth = this.button.get_theme_node().get_length('width');
         let buttonHeight = this.button.get_theme_node().get_length('height');
