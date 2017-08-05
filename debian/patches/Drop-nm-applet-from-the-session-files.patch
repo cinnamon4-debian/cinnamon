@@ -11,27 +11,23 @@ Debian-Bug: https://bugs.debian.org/818084
  files/usr/share/cinnamon-session/sessions/cinnamon2d.session | 2 +-
  2 files changed, 2 insertions(+), 2 deletions(-)
 
-Index: cinnamon/files/usr/share/cinnamon-session/sessions/cinnamon.session
-===================================================================
---- cinnamon.orig/files/usr/share/cinnamon-session/sessions/cinnamon.session	2016-11-19 13:15:06.210284188 +0100
-+++ cinnamon/files/usr/share/cinnamon-session/sessions/cinnamon.session	2016-11-19 13:15:06.206284079 +0100
+--- a/files/usr/share/cinnamon-session/sessions/cinnamon.session
++++ b/files/usr/share/cinnamon-session/sessions/cinnamon.session
 @@ -1,6 +1,6 @@
  [Cinnamon Session]
  Name=Cinnamon
--RequiredComponents=cinnamon;cinnamon-polkit-gnome-authentication-agent-1;cinnamon-settings-daemon;cinnamon-screensaver;nemo-autostart;nm-applet;cinnamon-killer-daemon;
-+RequiredComponents=cinnamon;cinnamon-polkit-gnome-authentication-agent-1;cinnamon-settings-daemon;cinnamon-screensaver;nemo-autostart;cinnamon-killer-daemon;
+-RequiredComponents=cinnamon;cinnamon-screensaver;nemo-autostart;nm-applet;cinnamon-killer-daemon;
++RequiredComponents=cinnamon;cinnamon-screensaver;nemo-autostart;cinnamon-killer-daemon;
  DesktopName=X-Cinnamon
  
  
-Index: cinnamon/files/usr/share/cinnamon-session/sessions/cinnamon2d.session
-===================================================================
---- cinnamon.orig/files/usr/share/cinnamon-session/sessions/cinnamon2d.session	2016-11-19 13:15:06.210284188 +0100
-+++ cinnamon/files/usr/share/cinnamon-session/sessions/cinnamon2d.session	2016-11-19 13:15:06.206284079 +0100
+--- a/files/usr/share/cinnamon-session/sessions/cinnamon2d.session
++++ b/files/usr/share/cinnamon-session/sessions/cinnamon2d.session
 @@ -1,6 +1,6 @@
  [Cinnamon Session]
  Name=Cinnamon (Software Rendering)
--RequiredComponents=cinnamon2d;cinnamon-polkit-gnome-authentication-agent-1;cinnamon-settings-daemon;cinnamon-screensaver;nemo-autostart;nm-applet;cinnamon-killer-daemon;
-+RequiredComponents=cinnamon2d;cinnamon-polkit-gnome-authentication-agent-1;cinnamon-settings-daemon;cinnamon-screensaver;nemo-autostart;cinnamon-killer-daemon;
+-RequiredComponents=cinnamon2d;cinnamon-screensaver;nemo-autostart;nm-applet;cinnamon-killer-daemon;
++RequiredComponents=cinnamon2d;cinnamon-screensaver;nemo-autostart;cinnamon-killer-daemon;
  DesktopName=X-Cinnamon
  
  

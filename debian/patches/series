@@ -1,6 +1,5 @@
 network-user-connections.patch
 remove-embbeded-jquery.patch
-add_policykit-1-gnome_to_session
 make_nm_optional
 background.patch
 Drop-nm-applet-from-the-session-files.patch
