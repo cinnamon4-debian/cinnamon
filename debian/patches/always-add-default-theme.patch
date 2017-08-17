@@ -4,11 +4,9 @@ Forwarded: not-yet
 Last-Update: 2017-01-29
 ---
 This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
-Index: cinnamon/files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py
-===================================================================
---- cinnamon.orig/files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py	2016-12-17 20:59:46.518954722 +0100
-+++ cinnamon/files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py	2017-01-28 16:38:27.370618396 +0100
-@@ -341,7 +341,7 @@
+--- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py
++++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py
+@@ -343,7 +343,7 @@
          dirs = ("/usr/share/themes", os.path.join(os.path.expanduser("~"), ".themes"))
          valid = walk_directories(dirs, lambda d: os.path.exists(os.path.join(d, "metacity-1")), return_directories=True)
          valid.sort(lambda a,b: cmp(a[0].lower(), b[0].lower()))

@@ -1,3 +1,12 @@
+cinnamon (3.4.6-1~) UNRELEASED; urgency=medium
+
+  * New upstream release (3.4.6).
+  * Remove unused dep: gir1.2-javascriptcoregtk-3.0 (Closes: 864937)
+    Thanks: Jeremy Bicha for the report
+  * Refresh patches
+
+ -- Fabio Fantoni <fantonifabio@tiscali.it>  Thu, 17 Aug 2017 14:14:48 +0200
+
 cinnamon (3.4.4-1) experimental; urgency=medium
 
   * New upstream release (3.4.4).
