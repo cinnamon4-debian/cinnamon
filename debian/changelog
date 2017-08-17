@@ -4,6 +4,7 @@ cinnamon (3.4.6-1~) UNRELEASED; urgency=medium
   * Remove unused dep: gir1.2-javascriptcoregtk-3.0 (Closes: 864937)
     Thanks: Jeremy Bicha for the report
   * Refresh patches
+  * debian/control: update dependencies
 
  -- Fabio Fantoni <fantonifabio@tiscali.it>  Thu, 17 Aug 2017 14:14:48 +0200
 
