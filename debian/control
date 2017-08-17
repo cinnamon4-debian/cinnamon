@@ -49,7 +49,6 @@ Package: cinnamon
 Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
 Depends:
- caribou,
  cinnamon-common (= ${source:Version}),
  cinnamon-control-center (>= 3.2),
  cinnamon-desktop-data (>= 3.2),
