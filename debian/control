@@ -143,11 +143,13 @@ Description: Innovative and comfortable desktop (Documentation)
 Package: cinnamon-common
 Architecture: all
 Depends:
+ gettext,
  gir1.2-cinnamondesktop-3.0 (>= 3.4),
  gir1.2-meta-muffin-0.0 (>= 3.4),
  gvfs-bin,
  python,
  python-pil,
+ xdg-utils,
  ${misc:Depends},
  ${python:Depends},
 Replaces: cinnamon (<= 2.2.14-1)

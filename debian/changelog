@@ -5,6 +5,7 @@ cinnamon (3.4.6-1~) UNRELEASED; urgency=medium
     Thanks: Jeremy Bicha for the report
   * Refresh patches
   * debian/control: update dependencies
+    added gettext and xdg-utils to cinnamon-common deps (Closes: 869395)
 
  -- Fabio Fantoni <fantonifabio@tiscali.it>  Thu, 17 Aug 2017 14:14:48 +0200
 
