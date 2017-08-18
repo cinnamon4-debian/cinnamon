@@ -28,7 +28,6 @@ Build-Depends:
  libgl1-mesa-dev,
  libglib2.0-dev (>= 2.25.11),
  libgnome-bluetooth-dev (>= 3.1.0) [linux-any],
- libgnome-keyring-dev,
  libgstreamer1.0-dev,
  libgtk-3-dev (>= 3.9.12),
  libjson-glib-dev (>= 0.13.2),
