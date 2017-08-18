@@ -6,6 +6,8 @@ cinnamon (3.4.6-1~) UNRELEASED; urgency=medium
   * Refresh patches
   * debian/control: update dependencies
     added gettext and xdg-utils to cinnamon-common deps (Closes: 869395)
+  * replaced obsolete python-imaging with python-pil (Closes: 866420)
+    Thanks: Matthias Klose for the report
 
  -- Fabio Fantoni <fantonifabio@tiscali.it>  Thu, 17 Aug 2017 14:14:48 +0200
 
