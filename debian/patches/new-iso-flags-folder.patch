@@ -1,6 +1,6 @@
 --- a/files/usr/share/cinnamon/applets/keyboard@cinnamon.org/applet.js
 +++ b/files/usr/share/cinnamon/applets/keyboard@cinnamon.org/applet.js
-@@ -228,7 +228,7 @@
+@@ -233,7 +233,7 @@
              if (this.show_flags) {
                  let name = this._config.get_icon_name_for_group(i);
  
@@ -9,7 +9,7 @@
  
                  if (file.query_exists(null)) {
                      actor = new EmblemedIcon(file.get_path(), this._config.get_flag_id_for_group(i), "popup-menu-icon").actor;
-@@ -277,7 +277,7 @@
+@@ -282,7 +282,7 @@
          if (this.show_flags) {
              let name = this._config.get_current_icon_name();
  
