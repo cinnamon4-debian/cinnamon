@@ -1,3 +1,10 @@
+cinnamon (3.4.6-1ubuntu1) UNRELEASED; urgency=medium
+
+  * Make cinnamon-doc Multi-Arch: foreign (closes: #874330)
+    Thanks to Hugh McMaster
+
+ -- Fabio Fantoni <fantonifabio@tiscali.it>  Tue, 05 Sep 2017 16:18:10 +0200
+
 cinnamon (3.4.6-1) unstable; urgency=medium
 
   [ Fabio Fantoni ]
