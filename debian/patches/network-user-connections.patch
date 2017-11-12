@@ -6,47 +6,49 @@ Subject: network-user-connections
  .../applets/network@cinnamon.org/applet.js         | 32 +++++++++++++++++++---
  1 file changed, 28 insertions(+), 4 deletions(-)
 
+diff --git a/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js b/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
+index daddebf..12643af 100644
 --- a/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
 +++ b/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
-@@ -100,6 +100,11 @@
-     this._init.apply(this, arguments);
- }
+@@ -84,6 +84,11 @@
  
+ function NMNetworkMenuItem() {
+     this._init.apply(this, arguments);
++}
++
 +function default_to_private_connections(client) {
 +    let perms = client.get_permission_result (NMClient.ClientPermission.SETTINGS_MODIFY_SYSTEM);
 +    return (perms != NMClient.ClientPermissionResult.YES);
-+}
-+
- NMNetworkMenuItem.prototype = {
-     __proto__: PopupMenu.PopupBaseMenuItem.prototype,
+ }
  
-@@ -926,12 +931,14 @@
-         let connection = new NetworkManager.Connection;
+ NMNetworkMenuItem.prototype = {
+@@ -743,12 +748,14 @@
+         let connection = new NetworkManager.Connection();
          connection._uuid = NetworkManager.utils_uuid_generate();
-         connection.add_setting(new NetworkManager.SettingBluetooth);
+         connection.add_setting(new NetworkManager.SettingWired());
 -        connection.add_setting(new NetworkManager.SettingConnection({
 +        let setting_conn = new NetworkManager.SettingConnection({
              uuid: connection._uuid,
              id: this._autoConnectionName,
-             type: NetworkManager.SETTING_BLUETOOTH_SETTING_NAME,
-             autoconnect: false
+             type: NetworkManager.SETTING_WIRED_SETTING_NAME,
+             autoconnect: true
 -        }));
 +        });
 +        setting_conn.add_permission('user', GLib.get_user_name(), null);
 +        connection.add_setting(setting_conn);
          return connection;
-     },
+     }
+ };
+@@ -997,6 +1004,8 @@
  
-@@ -1012,6 +1019,8 @@
          this._overflowItem = null;
          this._networks = [ ];
- 
-+        this._client = client;
 +
++        this._client = client;
+ 
          // breaking the layers with this, but cannot call
          // this.connectionValid until I have a device
-         this.device = device;
-@@ -1554,12 +1563,27 @@
+@@ -1537,12 +1546,27 @@
  
          let connection = new NetworkManager.Connection();
          connection.add_setting(new NetworkManager.SettingWireless());
@@ -75,4 +77,6 @@ Subject: network-user-connections
 +        connection.add_setting(setting_conn);
          return connection;
      },
+
+
  
