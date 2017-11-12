@@ -35,9 +35,9 @@ class Module:
             settings = page.add_section(_("Actions"))
 
             action_options = [["toggle-shade", _("Toggle Shade")], ["toggle-maximize", _("Toggle Maximize")],
-                             ["toggle-maximize-horizontally", _("Toggle Maximize Horizontally")], ["toggle-maximize-vertically", _("Toggle Maximize Vertically")],
-                             ["toggle-stuck", _("Toggle on all workspaces")], ["toggle-above", _("Toggle always on top")],
-                             ["minimize", _("Minimize")], ["menu", _("Menu")], ["lower", _("Lower")], ["none", _("None")]]
+                              ["toggle-maximize-horizontally", _("Toggle Maximize Horizontally")], ["toggle-maximize-vertically", _("Toggle Maximize Vertically")],
+                              ["toggle-stuck", _("Toggle on all workspaces")], ["toggle-above", _("Toggle always on top")],
+                              ["minimize", _("Minimize")], ["menu", _("Menu")], ["lower", _("Lower")], ["none", _("None")]]
 
             size_group = Gtk.SizeGroup.new(Gtk.SizeGroupMode.HORIZONTAL)
 
@@ -126,7 +126,13 @@ class Module:
             widget = GSettingsSwitch(_("Display the alt-tab switcher on the primary monitor instead of the active one"), "org.cinnamon", "alttab-switcher-enforce-primary-monitor")
             settings.add_row(widget)
 
+            widget = GSettingsSwitch(_("Move minimized windows to the end of the alt-tab switcher"), "org.cinnamon", "alttab-minimized-aware")
+            settings.add_row(widget)
+
             widget = GSettingsSpinButton(_("Delay before displaying the alt-tab switcher"), "org.cinnamon", "alttab-switcher-delay", units=_("milliseconds"), mini=0, maxi=1000, step=50, page=150)
+            settings.add_row(widget)
+
+            widget = GSettingsSwitch(_("Show windows from all workspaces"), "org.cinnamon", "alttab-switcher-show-all-workspaces")
             settings.add_row(widget)
 
 class TitleBarButtonsOrderSelector(SettingsBox):

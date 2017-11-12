@@ -107,8 +107,10 @@ assert_foreground_color (StThemeNode *node,
 			 guint32      expected)
 {
   ClutterColor color;
+  guint32 value;
+
   st_theme_node_get_foreground_color (node, &color);
-  guint32 value = clutter_color_to_pixel (&color);
+  value = clutter_color_to_pixel (&color);
 
   if (expected != value)
     {
@@ -124,8 +126,9 @@ assert_background_color (StThemeNode *node,
 			 guint32      expected)
 {
   ClutterColor color;
+  guint32 value;
   st_theme_node_get_background_color (node, &color);
-  guint32 value = clutter_color_to_pixel (&color);
+  value = clutter_color_to_pixel (&color);
 
   if (expected != value)
     {
@@ -148,6 +151,9 @@ side_to_string (StSide side)
       return "bottom";
     case ST_SIDE_LEFT:
       return "left";
+    default:
+      g_warn_if_reached();
+      break;
     }
 
   return "<unknown>";
@@ -160,8 +166,10 @@ assert_border_color (StThemeNode *node,
                      guint32      expected)
 {
   ClutterColor color;
+  guint32 value;
+
   st_theme_node_get_border_color (node, side, &color);
-  guint32 value = clutter_color_to_pixel (&color);
+  value = clutter_color_to_pixel (&color);
 
   if (expected != value)
     {

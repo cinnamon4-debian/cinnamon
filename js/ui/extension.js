@@ -51,7 +51,6 @@ function _createExtensionType(name, folder, manager, overrides){
 
     let path = GLib.build_filenamev([global.userdatadir, folder]);
     type.userDir = path;
-
     // create user directories if they don't exist.
     let dir = Gio.file_new_for_path(type.userDir)
     try {
@@ -68,7 +67,7 @@ function _createExtensionType(name, folder, manager, overrides){
  * const Type:
  * @EXTENSION: Cinnamon extensions
  * @APPLET: Cinnamon panel applets
- * 
+ *
  * @name: Upper case first character name for printing messages
  *        Also converted to lowercase to find the correct javascript file
  * @folder: The folder name within the system and user cinnamon folders
@@ -78,7 +77,7 @@ function _createExtensionType(name, folder, manager, overrides){
  * @roles: Roles an extension can assume. Values will be set internally, set to null.
  *         key => name of the role, value => reference to the extension object
  * @callbacks: Callbacks used to do some manual actions on load / unload
- * 
+ *
  * Extension types with some attributes helping to load these extension types.
  * Properties are nested, with lowerCamelCase properties (e.g. requiredFunctions) as sub-properties of CAPITAL one (EXTENSION). Thus they are referred to as, e.g., Type.EXTENSION.requiredFunctions
  */
@@ -121,7 +120,7 @@ Extension.prototype = {
         this.uuid = uuid;
         this.dir = dir;
         this.type = type;
-        this.lowerType = type.name.toLowerCase().replace(" ", "_");
+        this.lowerType = type.name.toLowerCase().replace(/\s/g, "_");
         this.theme = null;
         this.stylesheet = null;
         this.iconDirectory = null;
@@ -136,6 +135,11 @@ Extension.prototype = {
             this.dir = findExtensionSubdirectory(this.dir);
             this.meta.path = this.dir.get_path();
             type.maps.dirs[this.uuid] = this.dir;
+            let pathSections = this.meta.path.split('/');
+            let version = pathSections[pathSections.length - 1];
+            type.maps.importObjects[this.uuid] = imports[this.lowerType + 's'][this.uuid][version];
+        } else {
+            type.maps.importObjects[this.uuid] = imports[this.lowerType + 's'][this.uuid];
         }
 
         this.ensureFileExists(this.dir.get_child(this.lowerType + '.js'));
@@ -147,9 +151,6 @@ Extension.prototype = {
             }));
         }
         this.loadIconDirectory(this.dir);
-
-        imports.addSubImporter(this.lowerType, this.meta.path);
-        type.maps.importObjects[this.uuid] = imports[this.lowerType];
 
         try {
             this.module = type.maps.importObjects[this.uuid][this.lowerType]; // get [extension/applet/desklet].js
@@ -189,7 +190,7 @@ Extension.prototype = {
             global.logError(error);
         else
             error = new Error(errorMessage);
-        
+
         global.logError(errorMessage);
 
         // An error during initialization leads to unloading the extension again.
@@ -335,7 +336,7 @@ Extension.prototype = {
             if(this.type.roles[role] != null) {
                 return false;
             }
-        
+
             if(roleProvider != null) {
                 this.type.roles[role] = this;
                 this.roleProvider = roleProvider;
@@ -509,10 +510,18 @@ function unloadExtension(uuid, type, deleteConfig = true) {
 }
 
 function forgetExtension(uuid, type, forgetMeta) {
-    delete type.maps.importObjects[uuid];
-    delete type.maps.objects[uuid];
-    if(forgetMeta)
+    if (typeof type.maps.importObjects[uuid] !== 'undefined') {
+        delete type.maps.importObjects[uuid];
+    }
+    if (typeof type.maps.objects[uuid] !== 'undefined') {
+        if (typeof imports[type.maps.objects[uuid].lowerType + 's'][uuid] !== 'undefined') {
+            delete imports[type.maps.objects[uuid].lowerType + 's'][uuid];
+        }
+        delete type.maps.objects[uuid];
+    }
+    if (forgetMeta && typeof type.maps.meta[uuid] !== 'undefined') {
         delete type.maps.meta[uuid];
+    }
 }
 
 /**
@@ -526,8 +535,10 @@ function forgetExtension(uuid, type, forgetMeta) {
 function reloadExtension(uuid, type) {
     let extension = type.maps.objects[uuid];
 
-    if(extension)
+    if (extension) {
         unloadExtension(uuid, type, false);
+        Main._addXletDirectoriesToSearchPath();
+    }
 
     loadExtension(uuid, type);
 }
@@ -548,6 +559,17 @@ function findExtensionDirectory(uuid, type) {
             return dir;
     }
     return null;
+}
+
+function getMetadata(uuid, type) {
+    let dir = findExtensionDirectory(uuid, type);
+    let metadataFile = dir.get_child('metadata.json');
+
+    let metadataContents = Cinnamon.get_file_contents_utf8_sync(metadataFile.get_path());
+    let metadata = JSON.parse(metadataContents);
+    metadata.path = dir.get_path();
+
+    return metadata;
 }
 
 /**

@@ -114,12 +114,12 @@ struct _StScrollViewPrivate
 
   StScrollViewFade *vfade_effect;
 
-  gboolean      row_size_set : 1;
-  gboolean      column_size_set : 1;
+  guint         row_size_set : 1;
+  guint         column_size_set : 1;
   guint         mouse_scroll : 1;
   guint         hscrollbar_visible : 1;
   guint         vscrollbar_visible : 1;
-  gboolean      auto_scroll : 1;
+  guint         auto_scroll : 1;
   guint         auto_scroll_timeout_id;
 };
 
@@ -456,7 +456,7 @@ get_scrollbar_width (StScrollView *scroll,
 {
   StScrollViewPrivate *priv = scroll->priv;
 
-  if (CLUTTER_ACTOR_IS_VISIBLE (priv->vscroll))
+  if (clutter_actor_is_visible (priv->vscroll))
     {
       gfloat min_size;
 
@@ -474,7 +474,7 @@ get_scrollbar_height (StScrollView *scroll,
 {
   StScrollViewPrivate *priv = scroll->priv;
 
-  if (CLUTTER_ACTOR_IS_VISIBLE (priv->hscroll))
+  if (clutter_actor_is_visible (priv->hscroll))
     {
       gfloat min_size;
 
@@ -518,6 +518,9 @@ st_scroll_view_get_preferred_width (ClutterActor *actor,
       /* Should theoretically use the min width of the hscrollbar,
        * but that's not cleanly defined at the moment */
       min_width = 0;
+      break;
+    default:
+      g_warn_if_reached();
       break;
     }
 
@@ -574,6 +577,9 @@ st_scroll_view_get_preferred_height (ClutterActor *actor,
       /* We've requested space for the scrollbar, subtract it back out */
       for_width -= sb_width;
       break;
+    default:
+      g_warn_if_reached();
+      break;
     }
 
   switch (priv->hscrollbar_policy)
@@ -586,6 +592,9 @@ st_scroll_view_get_preferred_height (ClutterActor *actor,
       break;
     case GTK_POLICY_AUTOMATIC:
       account_for_hscrollbar = for_width < child_min_width;
+      break;
+    default:
+      g_warn_if_reached();
       break;
     }
 
@@ -604,6 +613,9 @@ st_scroll_view_get_preferred_height (ClutterActor *actor,
       /* Should theoretically use the min height of the vscrollbar,
        * but that's not cleanly defined at the moment */
       min_height = 0;
+      break;
+    default:
+      g_warn_if_reached();
       break;
     }
 
@@ -719,7 +731,7 @@ st_scroll_view_allocate (ClutterActor          *actor,
    */
 
   /* Vertical scrollbar */
-  if (CLUTTER_ACTOR_IS_VISIBLE (priv->vscroll))
+  if (clutter_actor_is_visible (priv->vscroll))
     {
       if (st_widget_get_direction (ST_WIDGET (actor)) == ST_TEXT_DIRECTION_RTL)
         {
@@ -738,7 +750,7 @@ st_scroll_view_allocate (ClutterActor          *actor,
     }
 
   /* Horizontal scrollbar */
-  if (CLUTTER_ACTOR_IS_VISIBLE (priv->hscroll))
+  if (clutter_actor_is_visible (priv->hscroll))
     {
       if (st_widget_get_direction (ST_WIDGET (actor)) == ST_TEXT_DIRECTION_RTL)
         {

@@ -1,5 +1,5 @@
 AC_PREREQ(2.63)
-AC_INIT([cinnamon],[3.4.6],[https://github.com/linuxmint/Cinnamon/issues],[cinnamon])
+AC_INIT([cinnamon],[3.6.2],[https://github.com/linuxmint/Cinnamon/issues],[cinnamon])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([src/cinnamon-global.c])
@@ -63,7 +63,7 @@ AM_CONDITIONAL(BUILD_RECORDER, $build_recorder)
 CLUTTER_MIN_VERSION=1.10.0
 GOBJECT_INTROSPECTION_MIN_VERSION=0.9.2
 GJS_MIN_VERSION=3.2.0
-MUFFIN_MIN_VERSION=3.0.0
+MUFFIN_MIN_VERSION=3.5.0
 GTK_MIN_VERSION=3.12.0
 GIO_MIN_VERSION=2.35.0
 POLKIT_MIN_VERSION=0.100
@@ -81,7 +81,7 @@ PKG_CHECK_MODULES(CINNAMON, gio-2.0 >= $GIO_MIN_VERSION
                                libstartup-notification-1.0 >= $STARTUP_NOTIFICATION_MIN_VERSION
                                gobject-introspection-1.0 >= $GOBJECT_INTROSPECTION_MIN_VERSION
                                polkit-agent-1 >= $POLKIT_MIN_VERSION xfixes
-                               libnm-glib libnm-util gnome-keyring-1 atk-bridge-2.0)
+                               libnm-glib libnm-util atk-bridge-2.0)
 
 PKG_CHECK_MODULES(CINNAMON_PERF_HELPER, gtk+-3.0 gio-2.0)
 

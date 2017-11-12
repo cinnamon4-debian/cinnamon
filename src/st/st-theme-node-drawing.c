@@ -416,16 +416,12 @@ get_background_scale (StThemeNode *node,
         *scale_w = 1.0;
         break;
       case ST_BACKGROUND_SIZE_CONTAIN:
-        if (background_image_width > background_image_height)
-          *scale_w = painting_area_width / background_image_width;
-        else
-          *scale_w = painting_area_height / background_image_height;
+        *scale_w = MIN (painting_area_width / background_image_width,
+                        painting_area_height / background_image_height);
         break;
       case ST_BACKGROUND_SIZE_COVER:
-        if (background_image_width < background_image_height)
-          *scale_w = painting_area_width / background_image_width;
-        else
-          *scale_w = painting_area_height / background_image_height;
+        *scale_w = MAX (painting_area_width / background_image_width,
+                        painting_area_height / background_image_height);
         break;
       case ST_BACKGROUND_SIZE_FIXED:
         if (node->background_size_w > -1)
@@ -733,7 +729,9 @@ paint_shadow_pattern_to_cairo_context (StShadow *shadow_spec,
       /* Then subtract out the bounds of the surface in the surface
        * pattern; we transform the context by the inverse of the
        * pattern matrix to get to surface coordinates */
-      cairo_pattern_get_surface (pattern, &surface);
+      if (cairo_pattern_get_surface (pattern, &surface) != CAIRO_STATUS_SUCCESS)
+        /* Something went wrong previously */
+        goto no_surface;
       width = cairo_image_surface_get_width  (surface);
       height = cairo_image_surface_get_height (surface);
 
@@ -748,6 +746,7 @@ paint_shadow_pattern_to_cairo_context (StShadow *shadow_spec,
     }
 
   cairo_mask (cr, pattern);
+no_surface:
   cairo_restore (cr);
 }
 
@@ -957,7 +956,7 @@ st_theme_node_prerender_background (StThemeNode *node)
   gboolean draw_background_image_shadow = FALSE;
   gboolean has_visible_outline;
   ClutterColor border_color;
-  int border_width[4];
+  guint border_width[4];
   guint rowstride;
   guchar *data;
   ClutterActorBox actor_box;
@@ -1415,6 +1414,15 @@ st_theme_node_render_resources (StThemeNode   *node,
   else
     node->border_slices_material = COGL_INVALID_HANDLE;
 
+  node->corner_material[ST_CORNER_TOPLEFT] =
+    st_theme_node_lookup_corner (node, ST_CORNER_TOPLEFT);
+  node->corner_material[ST_CORNER_TOPRIGHT] =
+    st_theme_node_lookup_corner (node, ST_CORNER_TOPRIGHT);
+  node->corner_material[ST_CORNER_BOTTOMRIGHT] =
+    st_theme_node_lookup_corner (node, ST_CORNER_BOTTOMRIGHT);
+  node->corner_material[ST_CORNER_BOTTOMLEFT] =
+    st_theme_node_lookup_corner (node, ST_CORNER_BOTTOMLEFT);
+
   /* Use cairo to prerender the node if there is a gradient, or
    * background image with borders and/or rounded corners,
    * or large corners, since we can't do those things
@@ -1492,15 +1500,6 @@ st_theme_node_render_resources (StThemeNode   *node,
                                                                          node->background_texture);
         }
     }
-
-  node->corner_material[ST_CORNER_TOPLEFT] =
-    st_theme_node_lookup_corner (node, ST_CORNER_TOPLEFT);
-  node->corner_material[ST_CORNER_TOPRIGHT] =
-    st_theme_node_lookup_corner (node, ST_CORNER_TOPRIGHT);
-  node->corner_material[ST_CORNER_BOTTOMRIGHT] =
-    st_theme_node_lookup_corner (node, ST_CORNER_BOTTOMRIGHT);
-  node->corner_material[ST_CORNER_BOTTOMLEFT] =
-    st_theme_node_lookup_corner (node, ST_CORNER_BOTTOMLEFT);
 }
 
 static void
@@ -1527,10 +1526,10 @@ st_theme_node_paint_borders (StThemeNode           *node,
                              guint8                 paint_opacity)
 {
   float width, height;
-  int border_width[4];
+  guint border_width[4];
   guint border_radius[4];
-  int max_border_radius = 0;
-  int max_width_radius[4];
+  guint max_border_radius = 0;
+  guint max_width_radius[4];
   int corner_id, side_id;
   ClutterColor border_color;
   guint8 alpha;
@@ -1567,7 +1566,7 @@ st_theme_node_paint_borders (StThemeNode           *node,
     {
       ClutterColor effective_border;
       gboolean skip_corner_1, skip_corner_2;
-      float x1, y1, x2, y2;
+      float rects[16];
 
       over (&border_color, &node->background_color, &effective_border);
       alpha = paint_opacity * effective_border.alpha / 255;
@@ -1583,46 +1582,43 @@ st_theme_node_paint_borders (StThemeNode           *node,
           skip_corner_1 = border_radius[ST_CORNER_TOPLEFT] > 0;
           skip_corner_2 = border_radius[ST_CORNER_TOPRIGHT] > 0;
 
-          x1 = skip_corner_1 ? max_width_radius[ST_CORNER_TOPLEFT] : 0;
-          y1 = 0;
-          x2 = skip_corner_2 ? width - max_width_radius[ST_CORNER_TOPRIGHT] : width;
-          y2 = border_width[ST_SIDE_TOP];
-          cogl_rectangle (x1, y1, x2, y2);
+          rects[0] = skip_corner_1 ? max_width_radius[ST_CORNER_TOPLEFT] : 0;
+          rects[1] = 0;
+          rects[2] = skip_corner_2 ? width - max_width_radius[ST_CORNER_TOPRIGHT] : width;
+          rects[3] = border_width[ST_SIDE_TOP];
 
           /* EAST */
           skip_corner_1 = border_radius[ST_CORNER_TOPRIGHT] > 0;
           skip_corner_2 = border_radius[ST_CORNER_BOTTOMRIGHT] > 0;
 
-          x1 = width - border_width[ST_SIDE_RIGHT];
-          y1 = skip_corner_1 ? max_width_radius[ST_CORNER_TOPRIGHT]
+          rects[4] = width - border_width[ST_SIDE_RIGHT];
+          rects[5] = skip_corner_1 ? max_width_radius[ST_CORNER_TOPRIGHT]
                              : border_width[ST_SIDE_TOP];
-          x2 = width;
-          y2 = skip_corner_2 ? height - max_width_radius[ST_CORNER_BOTTOMRIGHT]
+          rects[6] = width;
+          rects[7] = skip_corner_2 ? height - max_width_radius[ST_CORNER_BOTTOMRIGHT]
                              : height - border_width[ST_SIDE_BOTTOM];
-          cogl_rectangle (x1, y1, x2, y2);
 
           /* SOUTH */
           skip_corner_1 = border_radius[ST_CORNER_BOTTOMLEFT] > 0;
           skip_corner_2 = border_radius[ST_CORNER_BOTTOMRIGHT] > 0;
 
-          x1 = skip_corner_1 ? max_width_radius[ST_CORNER_BOTTOMLEFT] : 0;
-          y1 = height - border_width[ST_SIDE_BOTTOM];
-          x2 = skip_corner_2 ? width - max_width_radius[ST_CORNER_BOTTOMRIGHT]
+          rects[8] = skip_corner_1 ? max_width_radius[ST_CORNER_BOTTOMLEFT] : 0;
+          rects[9] = height - border_width[ST_SIDE_BOTTOM];
+          rects[10] = skip_corner_2 ? width - max_width_radius[ST_CORNER_BOTTOMRIGHT]
                              : width;
-          y2 = height;
-          cogl_rectangle (x1, y1, x2, y2);
+          rects[11] = height;
 
           /* WEST */
           skip_corner_1 = border_radius[ST_CORNER_TOPLEFT] > 0;
           skip_corner_2 = border_radius[ST_CORNER_BOTTOMLEFT] > 0;
 
-          x1 = 0;
-          y1 = skip_corner_1 ? max_width_radius[ST_CORNER_TOPLEFT]
+          rects[12] = 0;
+          rects[13] = skip_corner_1 ? max_width_radius[ST_CORNER_TOPLEFT]
                              : border_width[ST_SIDE_TOP];
-          x2 = border_width[ST_SIDE_LEFT];
-          y2 = skip_corner_2 ? height - max_width_radius[ST_CORNER_BOTTOMLEFT]
+          rects[14] = border_width[ST_SIDE_LEFT];
+          rects[15] = skip_corner_2 ? height - max_width_radius[ST_CORNER_BOTTOMLEFT]
                              : height - border_width[ST_SIDE_BOTTOM];
-          cogl_rectangle (x1, y1, x2, y2);
+          cogl_rectangles (rects, 4);
         }
     }
 
@@ -1660,6 +1656,9 @@ st_theme_node_paint_borders (StThemeNode           *node,
                 cogl_rectangle_with_texture_coords (0, height - max_width_radius[ST_CORNER_BOTTOMLEFT],
                                                     max_width_radius[ST_CORNER_BOTTOMLEFT], height,
                                                     0, 0.5, 0.5, 1);
+                break;
+              default:
+                g_warn_if_reached();
                 break;
             }
         }
@@ -1754,6 +1753,9 @@ st_theme_node_paint_borders (StThemeNode           *node,
                     verts[6] = max_border_radius;
                     verts[7] = height - border_width[ST_SIDE_BOTTOM];
                   }
+                break;
+              default:
+                g_warn_if_reached();
                 break;
             }
           cogl_rectangles (verts, n_rects);
@@ -1889,6 +1891,7 @@ st_theme_node_paint_outline (StThemeNode           *node,
 {
   float width, height;
   int outline_width;
+  float rects[16];
   ClutterColor outline_color, effective_outline;
 
   width = box->x2 - box->x1;
@@ -1913,20 +1916,30 @@ st_theme_node_paint_outline (StThemeNode           *node,
    */
 
   /* NORTH */
-  cogl_rectangle (-outline_width, -outline_width,
-                  width + outline_width, 0);
+  rects[0] = -outline_width;
+  rects[1] = -outline_width;
+  rects[2] = width + outline_width;
+  rects[3] = 0;
 
   /* EAST */
-  cogl_rectangle (width, 0,
-                  width + outline_width, height);
+  rects[4] = width;
+  rects[5] = 0;
+  rects[6] = width + outline_width;
+  rects[7] = height;
 
   /* SOUTH */
-  cogl_rectangle (-outline_width, height,
-                  width + outline_width, height + outline_width);
+  rects[8] = -outline_width;
+  rects[9] = height;
+  rects[10] = width + outline_width;
+  rects[11] = height + outline_width;
 
   /* WEST */
-  cogl_rectangle (-outline_width, 0,
-                  0, height);
+  rects[12] = -outline_width;
+  rects[13] = 0;
+  rects[14] = 0;
+  rects[15] = height;
+
+  cogl_rectangles (rects, 4);
 }
 
 void

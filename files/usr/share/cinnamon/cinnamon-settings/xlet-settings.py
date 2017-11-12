@@ -2,12 +2,15 @@
 
 import gi
 gi.require_version('Gtk', '3.0')
+gi.require_version('XApp', '1.0')
 import sys
-sys.path.append('/usr/share/cinnamon/cinnamon-settings/bin')
+
+import config
+sys.path.append(config.currentPath + "/bin")
 import gettext
 import json
 from JsonSettingsWidgets import *
-from gi.repository import Gtk, Gio
+from gi.repository import Gtk, Gio, XApp
 
 # i18n
 gettext.install("cinnamon", "/usr/share/locale")
@@ -122,7 +125,7 @@ class MainWindow(object):
             quit()
 
     def build_window(self):
-        self.window = Gtk.Window()
+        self.window = XApp.GtkWindow()
         self.window.set_default_size(800, 600)
         main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.window.add(main_box)
@@ -259,6 +262,10 @@ class MainWindow(object):
                                     continue
                                 new_opt_data[translate(self.uuid, option)] = opt_data[option]
                             settings_map[setting][key] = new_opt_data
+                        elif key in "columns":
+                            columns_data = settings_map[setting][key]
+                            for column in columns_data:
+                                column["title"] = translate(self.uuid, column["title"])
             finally:
                 # if a layout is not explicitly defined, generate the settings
                 # widgets based on the order they occur
@@ -367,8 +374,8 @@ class MainWindow(object):
         dialog = Gtk.FileChooserDialog(_("Select or enter file to export to"),
                                        None,
                                        Gtk.FileChooserAction.SAVE,
-                                      (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-                                       Gtk.STOCK_SAVE, Gtk.ResponseType.ACCEPT))
+                                       (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                                        Gtk.STOCK_SAVE, Gtk.ResponseType.ACCEPT))
         dialog.set_do_overwrite_confirmation(True)
         filter_text = Gtk.FileFilter()
         filter_text.add_pattern("*.json")
@@ -389,8 +396,8 @@ class MainWindow(object):
         dialog = Gtk.FileChooserDialog(_("Select a JSON file to import"),
                                        None,
                                        Gtk.FileChooserAction.OPEN,
-                                      (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-                                       Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+                                       (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                                        Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
         filter_text = Gtk.FileFilter()
         filter_text.add_pattern("*.json")
         filter_text.set_name(_("JSON files"))

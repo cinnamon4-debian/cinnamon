@@ -60,14 +60,13 @@ struct _StWidgetPrivate
 
   StThemeNodeTransition *transition_animation;
 
-  gboolean      is_stylable : 1;
-  gboolean      is_style_dirty : 1;
-  gboolean      draw_bg_color : 1;
-  gboolean      draw_border_internal : 1;
-  gboolean      track_hover : 1;
-  gboolean      hover : 1;
-  gboolean      can_focus : 1;
-  gboolean      important : 1;
+  guint      is_style_dirty : 1;
+  guint      draw_bg_color : 1;
+  guint      draw_border_internal : 1;
+  guint      track_hover : 1;
+  guint      hover : 1;
+  guint      can_focus : 1;
+  guint      important : 1;
 
   StTextDirection   direction;
 
@@ -104,7 +103,6 @@ enum
   PROP_PSEUDO_CLASS,
   PROP_STYLE_CLASS,
   PROP_STYLE,
-  PROP_STYLABLE,
   PROP_TRACK_HOVER,
   PROP_HOVER,
   PROP_CAN_FOCUS,
@@ -162,14 +160,6 @@ st_widget_set_property (GObject      *gobject,
 
     case PROP_STYLE:
       st_widget_set_style (actor, g_value_get_string (value));
-      break;
-
-    case PROP_STYLABLE:
-      if (actor->priv->is_stylable != g_value_get_boolean (value))
-        {
-          actor->priv->is_stylable = g_value_get_boolean (value);
-          clutter_actor_queue_relayout ((ClutterActor *) gobject);
-        }
       break;
 
     case PROP_TRACK_HOVER:
@@ -231,10 +221,6 @@ st_widget_get_property (GObject    *gobject,
 
     case PROP_STYLE:
       g_value_set_string (value, priv->inline_style);
-      break;
-
-    case PROP_STYLABLE:
-      g_value_set_boolean (value, priv->is_stylable);
       break;
 
     case PROP_TRACK_HOVER:
@@ -484,12 +470,6 @@ notify_children_of_style_change (ClutterActor *self)
 static void
 st_widget_real_style_changed (StWidget *self)
 {
-  StWidgetPrivate *priv = ST_WIDGET (self)->priv;
-
-  /* application has request this widget is not stylable */
-  if (!priv->is_stylable)
-    return;
-
   clutter_actor_queue_redraw ((ClutterActor *) self);
 
   notify_children_of_style_change ((ClutterActor *) self);
@@ -508,7 +488,7 @@ st_widget_style_changed (StWidget *widget)
     }
 
   /* update the style only if we are mapped */
-  if (CLUTTER_ACTOR_IS_MAPPED (CLUTTER_ACTOR (widget)))
+  if (clutter_actor_is_mapped (CLUTTER_ACTOR (widget)))
     st_widget_recompute_style (widget, old_theme_node);
 
   if (old_theme_node)
@@ -715,7 +695,7 @@ st_widget_key_press_event (ClutterActor    *actor,
       (event->keyval == CLUTTER_KEY_F10 &&
        (event->modifier_state & CLUTTER_SHIFT_MASK)))
     {
-      g_signal_emit (actor, signals[POPUP_MENU], 0);
+      st_widget_popup_menu (ST_WIDGET (actor));
       return TRUE;
     }
 
@@ -765,6 +745,9 @@ st_widget_get_paint_volume (ClutterActor *self, ClutterPaintVolume *volume)
         {
           const ClutterPaintVolume *child_volume;
 
+          if (!clutter_actor_is_visible (child))
+            continue;
+
           child_volume = clutter_actor_get_transformed_paint_volume (child, self);
           if (!child_volume)
             return FALSE;
@@ -786,7 +769,7 @@ st_widget_real_get_focus_chain (StWidget *widget)
        child != NULL;
        child = clutter_actor_get_next_sibling (child))
     {
-      if (CLUTTER_ACTOR_IS_VISIBLE (child))
+      if (clutter_actor_is_visible (child))
         focus_chain = g_list_prepend (focus_chain, child);
     }
 
@@ -882,20 +865,6 @@ st_widget_class_init (StWidgetClass *klass)
                                                         "Theme override",
                                                         ST_TYPE_THEME,
                                                         ST_PARAM_READWRITE));
-
-  /**
-   * StWidget:stylable:
-   *
-   * Enable or disable styling of the widget
-   */
-  pspec = g_param_spec_boolean ("stylable",
-                                "Stylable",
-                                "Whether the table should be styled",
-                                TRUE,
-                                ST_PARAM_READWRITE);
-  g_object_class_install_property (gobject_class,
-                                   PROP_STYLABLE,
-                                   pspec);
 
   /**
    * StWidget:track-hover:
@@ -1558,7 +1527,6 @@ st_widget_init (StWidget *actor)
   StWidgetPrivate *priv;
 
   actor->priv = priv = ST_WIDGET_GET_PRIVATE (actor);
-  priv->is_stylable = TRUE;
   priv->transition_animation = NULL;
   priv->local_state_set = atk_state_set_new ();
 
@@ -1732,6 +1700,8 @@ st_widget_set_track_hover (StWidget *widget,
 
       if (priv->track_hover)
         st_widget_sync_hover (widget);
+      else
+        st_widget_set_hover (widget, FALSE);
     }
 }
 
@@ -1871,6 +1841,18 @@ st_widget_get_can_focus (StWidget *widget)
 
   return widget->priv->can_focus;
 }
+/**
+ * st_widget_popup_menu:
+ * @self: A #StWidget
+ *
+ * Asks the widget to pop-up a context menu.
+ */
+void
+st_widget_popup_menu (StWidget *self)
+{
+  g_signal_emit (self, signals[POPUP_MENU], 0);
+}
+
 
 /* filter @children to contain only only actors that overlap @rbox
  * when moving in @direction. (Assuming no transformations.)
@@ -2953,7 +2935,7 @@ check_labels (StWidgetAccessible *widget_accessible,
  *
  * Gets a list of the focusable children of @widget, in "Tab"
  * order. By default, this returns all visible
- * (as in CLUTTER_ACTOR_IS_VISIBLE()) children of @widget.
+ * (as in clutter_actor_is_visible()) children of @widget.
  *
  * Returns: (element-type Clutter.Actor) (transfer container):
  *   @widget's focusable children

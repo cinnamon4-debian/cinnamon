@@ -125,7 +125,7 @@ const LAYOUT_CLASSIC = "classic";
 
 const CIN_LOG_FOLDER = GLib.get_home_dir() + '/.cinnamon/';
 
-let DEFAULT_BACKGROUND_COLOR = Clutter.Color.from_pixel(0x2266bbff);
+let DEFAULT_BACKGROUND_COLOR = Clutter.Color.from_pixel(0x000000ff);
 
 let panel = null;
 let soundManager = null;
@@ -180,11 +180,28 @@ let popup_rendering_actor = null;
 
 let xlet_startup_error = false;
 
+const RunState = {
+    INIT : 0,
+    STARTUP : 1,
+    RUNNING : 2
+}
+
+let runState = RunState.INIT;
+
 // Override Gettext localization
 const Gettext = imports.gettext;
 Gettext.bindtextdomain('cinnamon', '/usr/share/locale');
 Gettext.textdomain('cinnamon');
 const _ = Gettext.gettext;
+
+function setRunState(state) {
+    let oldState = runState;
+
+    if (state != oldState) {
+        runState = state;
+        cinnamonDBusService.EmitRunStateChanged();
+    }
+}
 
 function _initRecorder() {
     let recorderSettings = new Gio.Settings({ schema_id: 'org.cinnamon.recorder' });
@@ -212,6 +229,26 @@ function _initRecorder() {
             recorder.record();
         }
     });
+}
+
+function _addXletDirectoriesToSearchPath() {
+    imports.searchPath.unshift(global.datadir);
+    imports.searchPath.unshift(global.userdatadir);
+    // Including the system data directory also includes unnecessary system utilities,
+    // so we are making sure they are removed.
+    let types = ['applets', 'desklets', 'extensions', 'search_providers'];
+    let importsCache = {};
+    for (let i = 0; i < types.length; i++) {
+        // Cache our existing xlet GJS importer objects
+        importsCache[types[i]] = imports[types[i]];
+    }
+    // Remove the two paths we added to the beginning of the array.
+    imports.searchPath.splice(0, 2);
+    for (let i = 0; i < types.length; i++) {
+        // Re-add cached xlet objects
+        imports[types[i]] = importsCache[types[i]];
+        importsCache[types[i]] = undefined;
+    }
 }
 
 function _initUserSession() {
@@ -294,6 +331,7 @@ function start() {
     Gio.DesktopAppInfo.set_desktop_env('X-Cinnamon');
 
     cinnamonDBusService = new CinnamonDBus.CinnamonDBus();
+    setRunState(RunState.STARTUP);
 
     // Ensure CinnamonWindowTracker and CinnamonAppUsage are initialized; this will
     // also initialize CinnamonAppSystem first.  CinnamonAppSystem
@@ -419,6 +457,7 @@ function start() {
     overview.init();
     expo.init();
 
+    _addXletDirectoriesToSearchPath();
     _initUserSession();
 
     // Provide the bus object for gnome-session to
@@ -486,6 +525,8 @@ function start() {
         }));
     } else {
         global.background_actor.show();
+        setRunState(RunState.RUNNING);
+
         if (do_login_sound)
             soundManager.play_once_per_session('login');
     }
@@ -916,6 +957,79 @@ function notifyError(msg, details) {
 }
 
 /**
+ * formatLogArgument:
+ * @arg (any): A single argument.
+ * @recursion (int): Keeps track of the number of recursions.
+ * @depth (int): Controls how deeply to inspect object structures.
+ *
+ * Used by _log to handle each argument type and its formatting.
+ */
+function formatLogArgument(arg = '', recursion = 0, depth = 6) {
+    // Make sure falsey values are clearly indicated.
+    if (arg === null) {
+        arg = 'null';
+    } else if (arg === undefined) {
+        arg = 'undefined';
+    // Ensure strings are distinguishable.
+    } else if (typeof arg === 'string' && recursion > 0) {
+        arg = '\'' + arg + '\'';
+    }
+    // Check if we reached the depth threshold
+    if (recursion + 1 > depth) {
+        try {
+            arg = JSON.stringify(arg);
+        } catch (e) {
+            arg = arg.toString();
+        }
+        return arg;
+    }
+    let isGObject;
+    let space = '';
+    for (let i = 0; i < recursion + 1; i++) {
+        space += '    ';
+    }
+    // Need to work around CJS being unable to stringify some native objects
+    // https://github.com/linuxmint/cjs/blob/f7638496ea1bec4c6774e6065cb3b2c38b30a7bf/cjs/context.cpp#L138
+    try {
+        isGObject = arg.toString().indexOf('[0x') > -1;
+    } catch (e) {
+        arg = '<unreadable>';
+    }
+    if (typeof arg === 'object') {
+        let isArray = Array.isArray(arg);
+        let brackets = isArray ? ['[', ']'] : ['{', '}'];
+        let array = isArray ? arg : Object.keys(arg);
+        // Add beginning bracket with indentation
+        let string = brackets[0] + (recursion + 1 > depth ? '' : '\n');
+        // GObjects are referenced in context and likely have circular references.
+        if (recursion === 0) {
+            depth = isGObject ? 2 : 6;
+        }
+        for (let j = 0, len = array.length; j < len; j++) {
+            if (isArray) {
+                string += space + formatLogArgument(arg[j], recursion + 1, depth) + ',\n';
+            } else {
+                string += space + array[j] + ': ' + formatLogArgument(arg[array[j]], recursion + 1, depth) + ',\n';
+            }
+        }
+        // Remove one level of indentation and add the closing bracket.
+        space = space.substr(4, space.length);
+        arg = string + space + brackets[1];
+    // Functions, numbers, etc.
+    } else if (typeof arg === 'function') {
+        let array = arg.toString().split('\n');
+        for (let i = 0; i < array.length; i++) {
+            if (i === 0) continue;
+            array[i] = space + array[i];
+        }
+        arg = array.join('\n');
+    } else if (typeof arg !== 'string' || isGObject) {
+        arg = arg.toString();
+    }
+    return arg;
+}
+
+/**
  * _log:
  * @category (string): string message type ('info', 'error')
  * @msg (string): A message string
@@ -926,34 +1040,28 @@ function notifyError(msg, details) {
  * stream.  This is primarily intended for use by the
  * extension system as well as debugging.
  */
-function _log(category, msg) {
-    if (msg == undefined) {
-        _log('error', _('logging failed: message was null or undefined'));
-        return;
+function _log(category = 'info', msg = '') {
+    // Convert arguments into an array so it can be iterated.
+    let args = Array.prototype.slice.call(arguments);
+    // Remove category from the list of loggable arguments, renderLogLine will
+    // format it into the final string separately.
+    args.shift();
+    let text = '';
+
+    for (let i = 0, len = args.length; i < len; i++) {
+        args[i] = formatLogArgument(args[i]);
     }
 
-    let cat, text;
-    if (typeof category !== 'string')
-        cat = 'info';
-    else
-        cat = category;
-
-    if (typeof msg !== 'string')
-        text = msg.toString();
-    else
-        text = msg;
-
-    if (arguments.length > 2) {
-        text += ': ';
-        for (let i = 2; i < arguments.length; i++) {
-            text += JSON.stringify(arguments[i]);
-            if (i < arguments.length - 1)
-                text += ' ';
-        }
+    if (args.length === 2) {
+        text = args[0] + ': ' + args[1];
+    } else {
+        text = args.join(' ');
     }
-    let out = {timestamp: new Date().getTime().toString(),
-                         category: cat,
-                         message: text };
+    let out = {
+        timestamp: new Date().getTime().toString(),
+        category: category,
+        message: text
+    };
     _errorLogStack.push(out);
     if (lookingGlass)
         lookingGlass.emitLogUpdate();
@@ -1085,11 +1193,14 @@ function _logError(msg, error) {
  */
 
 function _logInfo(msg) {
-    if(isError(msg)) {
+    if (isError(msg)) {
         _log('info', msg.message);
         _LogTraceFormatted(msg.stack);
     } else {
-        _log('info', msg);
+        // Convert arguments to an array, add 'info' to the beginning of it. Invoke _log with apply so
+        // unlimited arguments can be passed to it.
+        let args = Array.prototype.slice.call(arguments);
+        _log.apply(this, ['info'].concat(args));
     }
 }
 

@@ -188,12 +188,6 @@ st_label_dispose (GObject   *object)
 {
   StLabelPrivate *priv = ST_LABEL (object)->priv;
 
-  if (priv->label)
-    {
-      clutter_actor_destroy (priv->label);
-      priv->label = NULL;
-    }
-
   if (priv->text_shadow_material != COGL_INVALID_HANDLE)
     {
       cogl_handle_unref (priv->text_shadow_material);
@@ -410,7 +404,7 @@ st_label_set_text (StLabel     *label,
 ClutterActor*
 st_label_get_clutter_text (StLabel *label)
 {
-  g_return_val_if_fail (ST_LABEL (label), NULL);
+  g_return_val_if_fail (ST_IS_LABEL (label), NULL);
 
   return label->priv->label;
 }
