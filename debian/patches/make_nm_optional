@@ -14,8 +14,8 @@ Subject: make_nm_optional
                                 libstartup-notification-1.0 >= $STARTUP_NOTIFICATION_MIN_VERSION
                                 gobject-introspection-1.0 >= $GOBJECT_INTROSPECTION_MIN_VERSION
                                 polkit-agent-1 >= $POLKIT_MIN_VERSION xfixes
--                               libnm-glib libnm-util gnome-keyring-1 atk-bridge-2.0)
-+                               gnome-keyring-1 atk-bridge-2.0)
+-                               libnm-glib libnm-util atk-bridge-2.0)
++                               atk-bridge-2.0)
 +
 +PKG_CHECK_MODULES(CINNAMON_NM, libnm-glib libnm-util,
 +                  [have_nm=true], [have_nm=false])

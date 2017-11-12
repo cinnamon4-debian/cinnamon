@@ -9,7 +9,7 @@ Last-Update: 2016-09-25
 This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
 --- a/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py
-@@ -85,6 +85,7 @@
+@@ -87,6 +87,7 @@
      [_("Software Sources"),              "mintsources",                  "cs-sources",         "admin",          _("ppa, repository, package, source, download")],
      [_("Users and Groups"),              "cinnamon-settings-users",      "cs-user-accounts",   "admin",          _("user, users, account, accounts, group, groups, password")],
      [_("Bluetooth"),                     "blueberry",                    "cs-bluetooth",       "hardware",       _("bluetooth, dongle, transfer, mobile")],
