@@ -13,13 +13,15 @@ import locale
 import urllib2
 from functools import cmp_to_key
 import unicodedata
+import config
 
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gio, Gtk, Pango, Gdk
+gi.require_version('XApp', '1.0')
+from gi.repository import Gio, Gtk, Pango, Gdk, XApp
 
-sys.path.append('/usr/share/cinnamon/cinnamon-settings/modules')
-sys.path.append('/usr/share/cinnamon/cinnamon-settings/bin')
+sys.path.append(config.currentPath + "/modules")
+sys.path.append(config.currentPath + "/bin")
 import capi
 import proxygsettings
 import SettingsWidgets
@@ -28,13 +30,13 @@ import SettingsWidgets
 gettext.install("cinnamon", "/usr/share/locale")
 
 # Standard setting pages... this can be expanded to include applet dirs maybe?
-mod_files = glob.glob('/usr/share/cinnamon/cinnamon-settings/modules/*.py')
+mod_files = glob.glob(config.currentPath + "/modules/*.py")
 mod_files.sort()
 if len(mod_files) is 0:
     print "No settings modules found!!"
     sys.exit(1)
 
-mod_files = [x.split('/')[6].split('.')[0] for x in mod_files]
+mod_files = [x.split('/')[-1].split('.')[0] for x in mod_files]
 
 for mod_file in mod_files:
     if mod_file[0:3] != "cs_":
@@ -58,7 +60,7 @@ MAX_PIX_WIDTH = 160
 MOUSE_BACK_BUTTON = 8
 
 CATEGORIES = [
-#        Display name                         ID              Show it? Always False to start              Icon
+    #        Display name                         ID              Show it? Always False to start              Icon
     {"label": _("Appearance"),            "id": "appear",      "show": False,                       "icon": "cs-cat-appearance"},
     {"label": _("Preferences"),           "id": "prefs",       "show": False,                       "icon": "cs-cat-prefs"},
     {"label": _("Hardware"),              "id": "hardware",    "show": False,                       "icon": "cs-cat-hardware"},
@@ -66,7 +68,7 @@ CATEGORIES = [
 ]
 
 CONTROL_CENTER_MODULES = [
-#         Label                              Module ID                Icon                         Category      Keywords for filter
+    #         Label                              Module ID                Icon                         Category      Keywords for filter
     [_("Network"),                          "network",            "cs-network",                 "hardware",      _("network, wireless, wifi, ethernet, broadband, internet")],
     [_("Display"),                          "display",            "cs-display",                 "hardware",      _("display, screen, monitor, layout, resolution, dual, lcd")],
     [_("Color"),                            "color",              "cs-color",                   "hardware",      _("color, profile, display, printer, output")],
@@ -74,7 +76,7 @@ CONTROL_CENTER_MODULES = [
 ]
 
 STANDALONE_MODULES = [
-#         Label                          Executable                          Icon                Category        Keywords for filter
+    #         Label                          Executable                          Icon                Category        Keywords for filter
     [_("Printers"),                      "system-config-printer",        "cs-printer",         "hardware",       _("printers, laser, inkjet")],
     [_("Firewall"),                      "gufw",                         "cs-firewall",        "admin",          _("firewall, block, filter, programs")],
     [_("Languages"),                     "mintlocale",                   "cs-language",        "prefs",          _("language, install, foreign")],
@@ -124,6 +126,7 @@ class MainWindow:
         sidePage = self.store[cat].get_value(iterator,2)
         if not sidePage.is_standalone:
             self.window.set_title(sidePage.name)
+            self.window.set_icon_name(sidePage.icon)
             sidePage.build()
             if sidePage.stack:
                 current_page = sidePage.stack.get_visible_child_name()
@@ -157,11 +160,6 @@ class MainWindow:
     def maybe_resize(self, sidePage):
         m, n = self.content_box.get_preferred_size()
 
-        # Resize horizontally if the module is wider than the window
-        use_width = WIN_WIDTH
-        if n.width > WIN_WIDTH:
-            use_width = n.width
-
         # Resize vertically depending on the height requested by the module
         use_height = WIN_HEIGHT
         total_height = n.height + self.bar_heights + WIN_H_PADDING
@@ -169,7 +167,6 @@ class MainWindow:
             # No height requested, resize vertically if the module is taller than the window
             if total_height > WIN_HEIGHT:
                 use_height = total_height
-            #self.window.resize(use_width, n.height + self.bar_heights + WIN_H_PADDING)
         elif sidePage.size > 0:
             # Height hardcoded by the module
             use_height = sidePage.size + self.bar_heights + WIN_H_PADDING
@@ -177,7 +174,7 @@ class MainWindow:
             # Module requested the window to fit it (i.e. shrink the window if necessary)
             use_height = total_height
 
-        self.window.resize(use_width, use_height)
+        self.window.resize(WIN_WIDTH, use_height)
 
     def deselect(self, cat):
         for key in self.side_view.keys():
@@ -187,8 +184,11 @@ class MainWindow:
     ''' Create the UI '''
     def __init__(self):
         self.builder = Gtk.Builder()
-        self.builder.add_from_file("/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.ui")
-        self.window = self.builder.get_object("main_window")
+        self.builder.add_from_file(config.currentPath + "/cinnamon-settings.ui")
+        self.window = XApp.GtkWindow(visible=True, window_position=Gtk.WindowPosition.CENTER,
+                                     default_width=800, default_height=600)
+        main_box = self.builder.get_object("main_box")
+        self.window.add(main_box)
         self.top_bar = self.builder.get_object("top_bar")
         self.side_view = {}
         self.main_stack = self.builder.get_object("main_stack")
@@ -217,6 +217,7 @@ class MainWindow:
         self.stack_switcher.set_margin_right(n)
 
         self.search_entry = self.builder.get_object("search_box")
+        self.search_entry.set_placeholder_text(_("Search"))
         self.search_entry.connect("changed", self.onSearchTextChanged)
         self.search_entry.connect("icon-press", self.onClearSearchBox)
 
@@ -330,7 +331,7 @@ class MainWindow:
         if device.get_source() == Gdk.InputSource.KEYBOARD:
             grab = Gdk.Display.get_default().device_is_grabbed(device)
         if not grab and event.keyval == Gdk.KEY_BackSpace and (type(self.window.get_focus()) not in
-                    (Gtk.TreeView, Gtk.Entry, Gtk.SpinButton, Gtk.TextView)):
+                                                               (Gtk.TreeView, Gtk.Entry, Gtk.SpinButton, Gtk.TextView)):
             self.back_to_icon_view(None)
             return True
         return False
@@ -578,6 +579,7 @@ class MainWindow:
 
     def back_to_icon_view(self, widget):
         self.window.set_title(_("System Settings"))
+        self.window.set_icon_name("preferences-system")
         self.window.resize(WIN_WIDTH, WIN_HEIGHT)
         children = self.content_box.get_children()
         for child in children:

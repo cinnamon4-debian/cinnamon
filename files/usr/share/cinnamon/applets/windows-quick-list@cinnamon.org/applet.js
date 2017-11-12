@@ -1,15 +1,13 @@
 const Applet = imports.ui.applet;
 const Cinnamon = imports.gi.Cinnamon;
-const GLib = imports.gi.GLib;
 const Lang = imports.lang;
-const Mainloop = imports.mainloop;
 const PopupMenu = imports.ui.popupMenu;
 const St = imports.gi.St;
 const Main = imports.ui.main;
 
 function MyApplet(metadata, orientation, panel_height, instance_id) {
     this._init(metadata, orientation, panel_height, instance_id);
-};
+}
 
 MyApplet.prototype = {
     __proto__: Applet.IconApplet.prototype,
@@ -20,9 +18,14 @@ MyApplet.prototype = {
         try {
             this.set_applet_icon_symbolic_name("windows-quick-list");
             this.set_applet_tooltip(_("All windows"));
-            this.menu = new Applet.AppletPopupMenu(this, orientation);
+            this._menu = new Applet.AppletPopupMenu(this, orientation);
             this.menuManager = new PopupMenu.PopupMenuManager(this);
-            this.menuManager.addMenu(this.menu);
+            this.menuManager.addMenu(this._menu);
+            this.subMenuItemWrapper = new PopupMenu.PopupSubMenuMenuItem(null);
+            this.subMenuItemWrapper.actor.set_style_class_name('');
+            this.subMenuItemWrapper.menu.actor.set_style_class_name('');
+            this.menu = this.subMenuItemWrapper.menu;
+            this._menu.addMenuItem(this.subMenuItemWrapper);
         }
         catch (e) {
             global.logError(e);
@@ -39,7 +42,7 @@ MyApplet.prototype = {
                 // construct a list with all windows
                 let workspace_name = Main.getWorkspaceName(wks);
                 let metaWorkspace = global.screen.get_workspace_by_index(wks);
-                let windows = metaWorkspace.list_windows();             
+                let windows = metaWorkspace.list_windows();
                 let sticky_windows = windows.filter(
                         function(w) {
                             return !w.is_skip_taskbar() && w.is_on_all_workspaces();
@@ -103,7 +106,7 @@ MyApplet.prototype = {
             global.logError(e);
         }
         if (empty_menu) {
-            let item = new PopupMenu.PopupMenuItem(_("No open windows"))
+            let item = new PopupMenu.PopupMenuItem(_("No open windows"));
             item.actor.reactive = false;
             item.actor.can_focus = false;
             item.label.add_style_class_name('popup-subtitle-menu-item');
@@ -112,6 +115,9 @@ MyApplet.prototype = {
     },
 
     activateWindow: function(metaWorkspace, metaWindow) {
+        if (this._menu.isOpen) {
+            this._menu.toggle();
+        }
         this.menu.toggle();
         if(!metaWindow.is_on_all_workspaces()) { metaWorkspace.activate(global.get_current_time()); }
         metaWindow.unminimize();
@@ -120,6 +126,9 @@ MyApplet.prototype = {
 
     on_applet_clicked: function(event) {
         this.updateMenu();
+        if (!this._menu.isOpen) {
+            this._menu.toggle();
+        }
         this.menu.toggle();
     }
 };

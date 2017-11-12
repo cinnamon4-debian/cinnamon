@@ -294,9 +294,6 @@ typedef struct {
   StTextureCache *cache;
   StTextureCachePolicy policy;
   char *key;
-
-  gboolean enforced_square;
-
   guint width;
   guint height;
   GSList *textures;
@@ -442,67 +439,6 @@ out:
   return rotated_pixbuf;
 }
 
-static GdkPixbuf*
-decode_image (const char *val)
-{
-  int i;
-  GError *error = NULL;
-  GdkPixbuf *res = NULL;
-  struct {
-    const char *prefix;
-    const char *mime_type;
-  } formats[] = {
-    { "data:image/x-icon;base64,", "image/x-icon" },
-    { "data:image/png;base64,", "image/png" }
-  };
-
-  g_return_val_if_fail (val, NULL);
-
-  for (i = 0; i < G_N_ELEMENTS (formats); i++)
-    {
-      if (g_str_has_prefix (val, formats[i].prefix))
-        {
-          gsize len;
-          guchar *data = NULL;
-          char *unescaped;
-
-          unescaped = g_uri_unescape_string (val + strlen (formats[i].prefix), NULL);
-          if (unescaped)
-            {
-              data = g_base64_decode (unescaped, &len);
-              g_free (unescaped);
-            }
-
-          if (data)
-            {
-              GdkPixbufLoader *loader;
-
-              loader = gdk_pixbuf_loader_new_with_mime_type (formats[i].mime_type, &error);
-              if (loader &&
-                  gdk_pixbuf_loader_write (loader, data, len, &error) &&
-                  gdk_pixbuf_loader_close (loader, &error))
-                {
-                  res = gdk_pixbuf_loader_get_pixbuf (loader);
-                  g_object_ref (res);
-                }
-              g_object_unref (loader);
-              g_free (data);
-            }
-        }
-    }
-  if (!res)
-    {
-      if (error)
-        {
-          g_warning ("%s\n", error->message);
-          g_error_free (error);
-        }
-      else
-        g_warning ("incorrect data uri");
-    }
-  return res;
-}
-
 static GdkPixbuf *
 impl_load_pixbuf_file (const char     *uri,
                        int             available_width,
@@ -513,9 +449,6 @@ impl_load_pixbuf_file (const char     *uri,
   GFile *file;
   char *contents = NULL;
   gsize size;
-
-  if (g_str_has_prefix (uri, "data:"))
-    return decode_image (uri);
 
   file = g_file_new_for_uri (uri);
   if (g_file_load_contents (file, NULL, &contents, &size, NULL, error))
@@ -532,38 +465,32 @@ impl_load_pixbuf_file (const char     *uri,
 }
 
 static void
-load_pixbuf_thread (GSimpleAsyncResult *result,
-                    GObject *object,
+load_pixbuf_thread (GTask        *result,
+                    gpointer      source,
+                    gpointer      task_data,
                     GCancellable *cancellable)
 {
   GdkPixbuf *pixbuf;
-  AsyncTextureLoadData *data;
+  AsyncTextureLoadData *data = task_data;
   GError *error = NULL;
 
-  data = g_async_result_get_user_data (G_ASYNC_RESULT (result));
   g_assert (data != NULL);
   g_assert (data->uri != NULL);
 
   pixbuf = impl_load_pixbuf_file (data->uri, data->width, data->height, &error);
 
   if (error != NULL)
-    {
-      g_simple_async_result_set_from_error (result, error);
-      return;
-    }
+    g_task_return_error (result, error);
+  else if (pixbuf)
+    g_task_return_pointer (result, g_object_ref (pixbuf), g_object_unref);
 
-  if (pixbuf)
-    g_simple_async_result_set_op_res_gpointer (result, g_object_ref (pixbuf),
-                                               g_object_unref);
+  g_clear_object (&pixbuf);
 }
 
 static GdkPixbuf *
 load_pixbuf_async_finish (StTextureCache *cache, GAsyncResult *result, GError **error)
 {
-  GSimpleAsyncResult *simple = G_SIMPLE_ASYNC_RESULT (result);
-  if (g_simple_async_result_propagate_error (simple, error))
-    return NULL;
-  return g_simple_async_result_get_op_res_gpointer (simple);
+return g_task_propagate_pointer (G_TASK (result), error);
 }
 
 static CoglTexture *
@@ -571,82 +498,23 @@ data_to_cogl_texture (const guchar *data,
                       gboolean      has_alpha,
                       int           width,
                       int           height,
-                      int           rowstride,
-                      gboolean      add_padding)
+                      int           rowstride)
 {
-  CoglHandle texture, offscreen = NULL;
-  CoglColor clear_color;
-  guint size;
-  GError *error;
-
-  size = MAX (width, height);
-
-  if (!add_padding || width == height)
     return st_cogl_texture_new_from_data_wrapper (width, height,
                                                   COGL_TEXTURE_NONE,
                                                   has_alpha ? COGL_PIXEL_FORMAT_RGBA_8888 : COGL_PIXEL_FORMAT_RGB_888,
                                                   COGL_PIXEL_FORMAT_ANY,
                                                   rowstride, data);
-
-  texture = st_cogl_texture_new_with_size_wrapper (size, size,
-                                                   COGL_TEXTURE_NO_SLICING,
-                                                   COGL_PIXEL_FORMAT_ANY);
-  if (texture)
-    offscreen = cogl_offscreen_new_to_texture (texture);
-
-  error = NULL;
-  if (!texture || !offscreen || !cogl_framebuffer_allocate (offscreen, &error))
-    {
-      if (!texture)
-        g_warning("Failed to allocate texture (sized %d)", size);
-      else if (!offscreen)
-        {
-          g_warning("Failed to allocate offscreen for texture (sized %d)", size);
-          cogl_object_unref (texture);
-        }
-      else
-        {
-          g_warning ("Failed to allocate FBO (sized %d): %s", size, error->message);
-          cogl_object_unref (texture);
-          cogl_object_unref (offscreen);
-          g_clear_error (&error);
-        }
-
-      return st_cogl_texture_new_from_data_wrapper (width, height,
-                                                    COGL_TEXTURE_NONE,
-                                                    has_alpha ? COGL_PIXEL_FORMAT_RGBA_8888 : COGL_PIXEL_FORMAT_RGB_888,
-                                                    COGL_PIXEL_FORMAT_ANY,
-                                                    rowstride,
-                                                    data);
-  }
-
-  cogl_color_set_from_4ub (&clear_color, 0, 0, 0, 0);
-  cogl_push_framebuffer (offscreen);
-  cogl_clear (&clear_color, COGL_BUFFER_BIT_COLOR);
-  cogl_pop_framebuffer ();
-  cogl_handle_unref (offscreen);
-
-  cogl_texture_set_region (texture,
-                           0, 0,
-                           (size - width) / 2, (size - height) / 2,
-                           width, height,
-                           width, height,
-                           has_alpha ? COGL_PIXEL_FORMAT_RGBA_8888 : COGL_PIXEL_FORMAT_RGB_888,
-                           rowstride,
-                           data);
-  return texture;
 }
 
 static CoglTexture *
-pixbuf_to_cogl_texture (GdkPixbuf *pixbuf,
-                        gboolean   add_padding)
+pixbuf_to_cogl_texture (GdkPixbuf *pixbuf)
 {
   return data_to_cogl_texture (gdk_pixbuf_get_pixels (pixbuf),
                                gdk_pixbuf_get_has_alpha (pixbuf),
                                gdk_pixbuf_get_width (pixbuf),
                                gdk_pixbuf_get_height (pixbuf),
-                               gdk_pixbuf_get_rowstride (pixbuf),
-                               add_padding);
+                               gdk_pixbuf_get_rowstride (pixbuf));
 }
 
 static cairo_surface_t *
@@ -685,7 +553,7 @@ finish_texture_load (AsyncTextureLoadData *data,
   if (pixbuf == NULL)
     goto out;
 
-  texdata = pixbuf_to_cogl_texture (pixbuf, data->enforced_square);
+  texdata = pixbuf_to_cogl_texture (pixbuf);
 
   if (data->policy != ST_TEXTURE_CACHE_POLICY_NONE)
     {
@@ -752,10 +620,10 @@ load_texture_async (StTextureCache       *cache,
 {
   if (data->uri)
     {
-      GSimpleAsyncResult *result;
-      result = g_simple_async_result_new (G_OBJECT (cache), on_pixbuf_loaded, data, load_texture_async);
-      g_simple_async_result_run_in_thread (result, load_pixbuf_thread, G_PRIORITY_DEFAULT, NULL);
-      g_object_unref (result);
+      GTask *task = g_task_new (cache, NULL, on_pixbuf_loaded, data);
+      g_task_set_task_data (task, data, NULL);
+      g_task_run_in_thread (task, load_pixbuf_thread);
+      g_object_unref (task);
     }
   else if (data->icon_info)
     {
@@ -807,7 +675,7 @@ st_texture_cache_reset_texture (StTextureCachePropertyBind *bind,
 
   if (pixbuf != NULL)
     {
-      texdata = pixbuf_to_cogl_texture (pixbuf, FALSE);
+      texdata = pixbuf_to_cogl_texture (pixbuf);
       g_object_unref (pixbuf);
 
       clutter_texture_set_cogl_texture (bind->texture, texdata);
@@ -1052,7 +920,6 @@ load_gicon_with_colors (StTextureCache    *cache,
       request->colors = colors ? st_icon_colors_ref (colors) : NULL;
       request->icon_info = info;
       request->width = request->height = size * scale;
-      request->enforced_square = TRUE;
 
       load_texture_async (cache, request);
     }
@@ -1096,7 +963,7 @@ load_from_pixbuf (GdkPixbuf *pixbuf)
 
   clutter_actor_set_size (CLUTTER_ACTOR (texture), width, height);
 
-  texdata = pixbuf_to_cogl_texture (pixbuf, FALSE);
+  texdata = pixbuf_to_cogl_texture (pixbuf);
 
   set_texture_cogl_texture (texture, texdata);
 
@@ -1178,20 +1045,23 @@ on_sliced_image_loaded (GObject *source_object,
                         GAsyncResult *res,
                         gpointer user_data)
 {
+  GList *list, *pixbufs;
   GObject *cache = source_object;
   AsyncImageData *data = (AsyncImageData *)user_data;
-  GSimpleAsyncResult *simple = G_SIMPLE_ASYNC_RESULT (res);
-  GList *list;
+  GTask *task = G_TASK (res);
 
-  if (g_simple_async_result_propagate_error (simple, NULL))
+  if (g_task_had_error (task))
     return;
 
-  for (list = g_simple_async_result_get_op_res_gpointer (simple); list; list = g_list_next (list))
+  pixbufs = g_task_propagate_pointer (task, NULL);
+  for (list = pixbufs; list; list = list->next)
     {
       ClutterActor *actor = load_from_pixbuf (GDK_PIXBUF (list->data));
       clutter_actor_hide (actor);
       clutter_actor_add_child (data->actor, actor);
     }
+
+  g_list_free_full (pixbufs, g_object_unref);
 
   if (data->load_callback != NULL)
     data->load_callback (cache, data->load_callback_data);
@@ -1204,8 +1074,9 @@ free_glist_unref_gobjects (gpointer p)
 }
 
 static void
-load_sliced_image (GSimpleAsyncResult *result,
-                   GObject *object,
+load_sliced_image (GTask        *result,
+                   gpointer      object,
+                   gpointer      task_data,
                    GCancellable *cancellable)
 {
   AsyncImageData *data;
@@ -1215,7 +1086,7 @@ load_sliced_image (GSimpleAsyncResult *result,
 
   g_assert (!cancellable);
 
-  data = g_object_get_data (G_OBJECT (result), "load_sliced_image");
+  data = task_data;
   g_assert (data);
 
   if (!(pix = gdk_pixbuf_new_from_file (data->path, NULL)))
@@ -1235,7 +1106,7 @@ load_sliced_image (GSimpleAsyncResult *result,
   /* We don't need the original pixbuf anymore, though the subpixbufs
      will hold a reference. */
   g_object_unref (pix);
-  g_simple_async_result_set_op_res_gpointer (result, res, free_glist_unref_gobjects);
+  g_task_return_pointer (result, res, free_glist_unref_gobjects);
 }
 
 /**
@@ -1249,7 +1120,7 @@ load_sliced_image (GSimpleAsyncResult *result,
  *
  * This function reads a single image file which contains multiple images internally.
  * The image file will be divided using @grid_width and @grid_height;
- * note that the dimensions of the image loaded from @path 
+ * note that the dimensions of the image loaded from @path
  * should be a multiple of the specified grid dimensions.
  *
  * Returns: (transfer none): A new #ClutterActor
@@ -1263,7 +1134,7 @@ st_texture_cache_load_sliced_image (StTextureCache *cache,
                                     gpointer        user_data)
 {
   AsyncImageData *data;
-  GSimpleAsyncResult *result;
+  GTask *result;
   ClutterActor *actor = clutter_actor_new ();
 
   data = g_new0 (AsyncImageData, 1);
@@ -1275,10 +1146,9 @@ st_texture_cache_load_sliced_image (StTextureCache *cache,
   data->load_callback_data = user_data;
   g_object_ref (G_OBJECT (actor));
 
-  result = g_simple_async_result_new (G_OBJECT (cache), on_sliced_image_loaded, data, st_texture_cache_load_sliced_image);
-
-  g_object_set_data_full (G_OBJECT (result), "load_sliced_image", data, on_data_destroy);
-  g_simple_async_result_run_in_thread (result, load_sliced_image, G_PRIORITY_DEFAULT, NULL);
+  result = g_task_new (cache, NULL, on_sliced_image_loaded, data);
+  g_task_set_task_data (result, data, on_data_destroy);
+  g_task_run_in_thread (result, load_sliced_image);
 
   g_object_unref (result);
 
@@ -1364,7 +1234,7 @@ create_faded_icon_cpu (StTextureCache *cache,
   GdkPixbuf *pixbuf;
   int size;
   CoglTexture *texture;
-  gint width, height, rowstride;
+  guint width, height, rowstride;
   guint8 n_channels;
   gboolean have_alpha;
   gint fade_start;
@@ -1655,7 +1525,7 @@ st_texture_cache_load_uri_sync_to_cogl_texture (StTextureCache *cache,
       if (!pixbuf)
         goto out;
 
-      texdata = pixbuf_to_cogl_texture (pixbuf, FALSE);
+      texdata = pixbuf_to_cogl_texture (pixbuf);
       g_object_unref (pixbuf);
 
       if (policy == ST_TEXTURE_CACHE_POLICY_FOREVER)
@@ -1866,7 +1736,7 @@ st_texture_cache_load_from_raw (StTextureCache    *cache,
   texture = create_default_texture ();
   clutter_actor_set_size (CLUTTER_ACTOR (texture), size, size);
 
-  texdata = data_to_cogl_texture (data, has_alpha, width, height, rowstride, TRUE);
+  texdata = data_to_cogl_texture (data, has_alpha, width, height, rowstride);
 
   set_texture_cogl_texture (texture, texdata);
   return CLUTTER_ACTOR (texture);
@@ -1898,10 +1768,17 @@ st_texture_cache_load_file_simple (StTextureCache *cache,
 
   texture = st_texture_cache_load_uri_sync (cache, ST_TEXTURE_CACHE_POLICY_FOREVER,
                                             uri, -1, -1, &error);
+  g_object_unref (file);
+  g_free (uri);
   if (texture == NULL)
     {
-      g_warning ("Failed to load %s: %s", file_path, error->message);
-      g_clear_error (&error);
+      if (error)
+        {
+          g_warning ("Failed to load %s: %s", file_path, error->message);
+          g_clear_error (&error);
+        }
+      else
+        g_warning ("Failed to load %s", file_path);
       texture = clutter_texture_new ();
     }
   return texture;

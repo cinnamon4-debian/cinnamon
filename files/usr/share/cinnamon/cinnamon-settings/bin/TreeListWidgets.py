@@ -157,6 +157,8 @@ class List(SettingsWidget):
         button_toolbar.insert(self.move_down_button, 4)
 
         self.content_widget.get_selection().connect("changed", self.update_button_sensitivity)
+        self.content_widget.set_activate_on_single_click(False)
+        self.content_widget.connect("row-activated", self.on_row_activated)
 
         self.set_tooltip_text(tooltip)
 
@@ -178,6 +180,9 @@ class List(SettingsWidget):
             self.move_down_button.set_sensitive(False)
         else:
             self.move_down_button.set_sensitive(True)
+
+    def on_row_activated(self, *args):
+        self.edit_item()
 
     def add_item(self, *args):
         data = self.open_add_edit_dialog()
@@ -298,4 +303,3 @@ class List(SettingsWidget):
 
     def connect_widget_handlers(self, *args):
         pass
-
