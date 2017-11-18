@@ -10,27 +10,27 @@ diff --git a/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js b/f
 index daddebf..12643af 100644
 --- a/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
 +++ b/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
-@@ -84,6 +84,11 @@
- 
- function NMNetworkMenuItem() {
+@@ -73,6 +73,11 @@ function NMNetworkMenuItem() {
      this._init.apply(this, arguments);
-+}
-+
-+function default_to_private_connections(client) {
-+    let perms = client.get_permission_result (NMClient.ClientPermission.SETTINGS_MODIFY_SYSTEM);
-+    return (perms != NMClient.ClientPermissionResult.YES);
  }
  
++function default_to_private_connections(client) {
++    let perms = client.get_permission_result (NM.Client.ClientPermission.SETTINGS_MODIFY_SYSTEM);
++    return (perms != NM.Client.ClientPermissionResult.YES);
++}
++
  NMNetworkMenuItem.prototype = {
-@@ -743,12 +748,14 @@
-         let connection = new NetworkManager.Connection();
-         connection._uuid = NetworkManager.utils_uuid_generate();
-         connection.add_setting(new NetworkManager.SettingWired());
--        connection.add_setting(new NetworkManager.SettingConnection({
-+        let setting_conn = new NetworkManager.SettingConnection({
+     __proto__: PopupMenu.PopupBaseMenuItem.prototype,
+ 
+@@ -732,12 +737,14 @@ NMDeviceWired.prototype = {
+         let connection = new NM.SimpleConnection();
+         connection._uuid = NM.utils_uuid_generate();
+         connection.add_setting(new NM.SettingWired());
+-        connection.add_setting(new NM.SettingConnection({
++        let setting_conn = new NM.SettingConnection({
              uuid: connection._uuid,
              id: this._autoConnectionName,
-             type: NetworkManager.SETTING_WIRED_SETTING_NAME,
+             type: NM.SETTING_WIRED_SETTING_NAME,
              autoconnect: true
 -        }));
 +        });
@@ -39,44 +39,42 @@ index daddebf..12643af 100644
          return connection;
      }
  };
-@@ -997,6 +1004,8 @@
- 
+@@ -987,6 +994,8 @@ NMDeviceWireless.prototype = {
          this._overflowItem = null;
          this._networks = [ ];
-+
-+        this._client = client;
  
++        this._client = client;
++
          // breaking the layers with this, but cannot call
          // this.connectionValid until I have a device
-@@ -1537,12 +1546,27 @@
+         this.device = device;
+@@ -1525,12 +1534,27 @@ NMDeviceWireless.prototype = {
  
-         let connection = new NetworkManager.Connection();
-         connection.add_setting(new NetworkManager.SettingWireless());
--        connection.add_setting(new NetworkManager.SettingConnection({
-+        let setting_conn = new NetworkManager.SettingConnection({
+         let connection = new NM.SimpleConnection();
+         connection.add_setting(new NM.SettingWireless());
+-        connection.add_setting(new NM.SettingConnection({
++        let setting_conn = new NM.SettingConnection({
              id: name,
              autoconnect: true, // NetworkManager will know to ignore this if appropriate
-             uuid: NetworkManager.utils_uuid_generate(),
-             type: NetworkManager.SETTING_WIRELESS_SETTING_NAME
+             uuid: NM.utils_uuid_generate(),
+             type: NM.SETTING_WIRELESS_SETTING_NAME
 -        }));
 +        });
 +        if (default_to_private_connections(this._client)) {
 +            setting_conn.add_permission('user', GLib.get_user_name(), null);
 +            if (apObj.security == NMAccessPointSecurity.WPA2_PSK ||
 +                apObj.security == NMAccessPointSecurity.WPA_PSK) {
-+                connection.add_setting(new NetworkManager.SettingWirelessSecurity({
-+                    psk_flags: NetworkManager.SettingSecretFlags.AGENT_OWNED
++                connection.add_setting(new NM.SettingWirelessSecurity({
++                    psk_flags: NM.SettingSecretFlags.AGENT_OWNED
 +                }));
 +            }
 +            if (apObj.security == NMAccessPointSecurity.WEP) {
-+                connection.add_setting(new NetworkManager.SettingWirelessSecurity({
-+                    wep_key_flags: NetworkManager.SettingSecretFlags.AGENT_OWNED
++                connection.add_setting(new NM.SettingWirelessSecurity({
++                    wep_key_flags: NM.SettingSecretFlags.AGENT_OWNED
 +                }));
 +            }
 +        }
 +        connection.add_setting(setting_conn);
          return connection;
      },
-
-
  
