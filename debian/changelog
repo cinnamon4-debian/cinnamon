@@ -6,6 +6,7 @@ cinnamon (3.6.5-1~) UNRELEASED; urgency=medium
   * Refresh patches
   * Remove jquery dep as file that use it is now removed
   * debian/control: update dependencies
+    network-manager components from recommends to deps (closes: #872767)
   * debian/patches: Network applet: Port to libnm (closes: #857231)
 
  -- Fabio Fantoni <fantonifabio@tiscali.it>  Sun, 12 Nov 2017 12:26:47 +0100
