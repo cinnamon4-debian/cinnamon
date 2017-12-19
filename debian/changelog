@@ -1,8 +1,8 @@
-cinnamon (3.6.6-1~) UNRELEASED; urgency=medium
+cinnamon (3.6.7-1~) UNRELEASED; urgency=medium
 
   * Make cinnamon-doc Multi-Arch: foreign (closes: #874330)
     Thanks to Hugh McMaster
-  * New upstream release (3.6.6). (closes: #882394)
+  * New upstream release (3.6.7). (closes: #882394)
   * Refresh patches
   * Remove jquery dep as file that use it is now removed
   * debian/control: update dependencies
