@@ -42,8 +42,8 @@ Build-Depends:
  python,
 Standards-Version: 3.9.8
 Homepage: http://cinnamon.linuxmint.com
-Vcs-Browser: https://anonscm.debian.org/git/pkg-cinnamon/cinnamon.git
-Vcs-Git: https://anonscm.debian.org/git/pkg-cinnamon/cinnamon.git
+Vcs-Browser: https://salsa.debian.org/cinnamon-team/cinnamon
+Vcs-Git: https://salsa.debian.org/cinnamon-team/cinnamon.git
 
 Package: cinnamon
 Architecture: any
@@ -125,21 +125,6 @@ Description: Innovative and comfortable desktop
  forked from gnome-shell.  The emphasis is put on making users feel at home
  and providing them with an easy to use and comfortable desktop experience.
 
-Package: cinnamon-doc
-Section: doc
-Architecture: all
-Multi-Arch: foreign
-Depends: ${misc:Depends}
-Description: Innovative and comfortable desktop (Documentation)
- Cinnamon is a desktop environment which provides advanced innovative
- features and a traditional user experience.
- .
- The desktop layout is similar to GNOME 2.  The underlying technology is
- forked from gnome-shell.  The emphasis is put on making users feel at home
- and providing them with an easy to use and comfortable desktop experience.
- .
- This package contains the documentation files distributed with Cinnamon.
-
 Package: cinnamon-common
 Architecture: all
 Depends:
@@ -163,3 +148,18 @@ Description: Innovative and comfortable desktop (Common data files)
  and providing them with an easy to use and comfortable desktop experience.
  .
  This package contains the data files needed by Cinnamon
+
+Package: cinnamon-doc
+Section: doc
+Architecture: all
+Multi-Arch: foreign
+Depends: ${misc:Depends}
+Description: Innovative and comfortable desktop (Documentation)
+ Cinnamon is a desktop environment which provides advanced innovative
+ features and a traditional user experience.
+ .
+ The desktop layout is similar to GNOME 2.  The underlying technology is
+ forked from gnome-shell.  The emphasis is put on making users feel at home
+ and providing them with an easy to use and comfortable desktop experience.
+ .
+ This package contains the documentation files distributed with Cinnamon.

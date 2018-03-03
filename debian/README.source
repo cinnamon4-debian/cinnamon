@@ -1,0 +1,77 @@
+Git workflow
+------------
+
+The cinnamon packages use the default git-buildpackage workflow, that is, the
+debian branch is merged with upstream.
+
+Importing upstream code
+-----------------------
+
+Some of the upstream code is a fork of GNOME packages. Cinnamon is released as
+source packages for the Linux Mint distribution, with quilt patches applied.
+This means that they have a debian/ directory in their releases and a .pc/
+(which are related to the original Gnome codebase), so we need to drop those
+before merging the upstream releases.
+
+Additionally, we use pristine-tar to make the tarball generation reproducible
+from the git repository.
+
+ gbp import-orig --pristine-tar --merge --filter='debian/*' --filter='.pc/*' \
+  $upstream_tarball
+
+Since gbp 0.7.1, the debian directory no longer needs to filtered out, by
+using --merge-mode=replace, which also avoids merging conflicts (this is the
+default for 0.8.14 and up)
+
+ gbp import-orig --pristine-tar --merge --merge-mode=replace \
+  --filter='.pc/*' $upstream_tarball
+
+We are considering merging the upstream tag (upstream-vcs-tag option in
+gpb's import-orig) into the upstream branch. This has the benefit that the
+whole upstream history is then available in the Debian branch.
+
+To import a new version using this upstream needs to be added as a remote:
+
+ git remote add upstream https://github.com/linuxmint/cinnamon
+ git fetch --all
+
+The upstream git repository is usually listed in the Source: field of the
+debian/copyright file.
+
+ gbp import-orig --pristine-tar --merge --merge-mode=replace \
+  --upstream-vcs-tag='v%(version)s' --filter='.pc/*' $upstream_tarball
+
+On push, please, take into account that we only want the upstream/* and \
+debian/* tags.
+
+ git push origin 'refs/tags/debian/*' 'refs/tags/upstream/*' :
+
+Here the ":" takes care of pushing the branches that are present in the remote
+(origin) only if a fast-forward is possible. New versions of gbp, have a gbp
+push that takes care of this.
+
+wrap-and-sort -st
+-----------------
+
+
+
+Using DEP14
+--------------
+
+Using gbp dch vs dch
+--------------------
+
+We are currently testing gbp dch to generate the debian/changelog with the
+commit messages, it's fine if you want to test it too, but make sure that you
+generate an updated and valid debian/changelog before pushing your changes.
+
+Version nomenclature
+--------------------
+
+When preparing a new version we add a ~ at the end, and bump this adding ~1
+for the next "pre-release".
+
+
+
+
+
