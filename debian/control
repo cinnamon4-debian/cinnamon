@@ -80,7 +80,7 @@ Depends:
  gir1.2-xapp-1.0,
  gkbd-capplet,
  gnome-backgrounds,
- gnome-themes-extra,
+ gnome-themes-extra | gnome-themes-standard,
  gsettings-desktop-schemas (>= 0.1.7),
  iso-flags-png-320x240,
  libglib2.0-bin,
