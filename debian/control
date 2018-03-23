@@ -137,8 +137,8 @@ Depends:
  xdg-utils,
  ${misc:Depends},
  ${python:Depends},
-Replaces: cinnamon (<= 2.2.14-1)
-Breaks: cinnamon (<= 2.2.14-1)
+Replaces: cinnamon (<< 3.6.7-1~)
+Breaks: cinnamon (<< 3.6.7-1~)
 Description: Innovative and comfortable desktop (Common data files)
  Cinnamon is a desktop environment which provides advanced innovative
  features and a traditional user experience.
