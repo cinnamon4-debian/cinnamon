@@ -14,12 +14,8 @@ DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 # To avoid running configure twice (because gnome-autogen.sh)
 export NOCONFIGURE=yes
 
-ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
-  DH_PARALLEL_OPTION=--parallel
-endif
-
 %:
-	dh  $@ --with python2,gir $(DH_PARALLEL_OPTION)
+	dh  $@ --with python2,gir
 
 override_dh_autoreconf:
 	dh_autoreconf --as-needed ./autogen.sh
