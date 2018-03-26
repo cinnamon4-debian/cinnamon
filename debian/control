@@ -137,6 +137,7 @@ Depends:
  xdg-utils,
  ${misc:Depends},
  ${python:Depends},
+ ${python3:Depends},
 Replaces: cinnamon (<< 3.6.7-1~)
 Breaks: cinnamon (<< 3.6.7-1~)
 Description: Innovative and comfortable desktop (Common data files)
