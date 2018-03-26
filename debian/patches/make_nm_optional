@@ -8,9 +8,11 @@ Subject: make_nm_optional
  src/Makefile.am | 5 ++++-
  2 files changed, 10 insertions(+), 2 deletions(-)
 
+diff --git a/configure.ac b/configure.ac
+index 46eaebf..209a1e4 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -81,7 +81,12 @@
+@@ -81,7 +81,12 @@ PKG_CHECK_MODULES(CINNAMON, gio-2.0 >= $GIO_MIN_VERSION
                                 libstartup-notification-1.0 >= $STARTUP_NOTIFICATION_MIN_VERSION
                                 gobject-introspection-1.0 >= $GOBJECT_INTROSPECTION_MIN_VERSION
                                 polkit-agent-1 >= $POLKIT_MIN_VERSION xfixes
@@ -24,9 +26,11 @@ Subject: make_nm_optional
  
  PKG_CHECK_MODULES(CINNAMON_PERF_HELPER, gtk+-3.0 gio-2.0)
  
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 603911d..1a78494 100644
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
-@@ -242,7 +242,10 @@
+@@ -242,7 +242,10 @@ libcinnamon_la_LIBADD =		\
  libcinnamon_la_CPPFLAGS = $(cinnamon_cflags)
  
  Cinnamon-0.1.gir: libcinnamon.la St-1.0.gir

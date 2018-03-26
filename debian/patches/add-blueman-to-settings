@@ -1,15 +1,19 @@
-Subject: Add Blueman manager to the possible settings for bluetooth
-From: marga@debian.org
+From: "marga@debian.org" <marga@debian.org>
 Date: Sun, 25 Sep 2016 13:59:21 +0200
+Subject: Add Blueman manager to the possible settings for bluetooth
 
 Forwarded: no
 Reviewed-by: maxy@debian.org
 Last-Update: 2016-09-25
 ---
-This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+ files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py b/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py
+index 5367579..bc8d6b0 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py
-@@ -87,6 +87,7 @@
+@@ -87,6 +87,7 @@ STANDALONE_MODULES = [
      [_("Software Sources"),              "mintsources",                  "cs-sources",         "admin",          _("ppa, repository, package, source, download")],
      [_("Users and Groups"),              "cinnamon-settings-users",      "cs-user-accounts",   "admin",          _("user, users, account, accounts, group, groups, password")],
      [_("Bluetooth"),                     "blueberry",                    "cs-bluetooth",       "hardware",       _("bluetooth, dongle, transfer, mobile")],
