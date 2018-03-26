@@ -1,3 +1,10 @@
+cinnamon (3.6.7-3~) UNRELEASED; urgency=medium
+
+  * New revision
+  * Compile the python files in postinst
+
+ -- Maximiliano Curia <maxy@debian.org>  Mon, 26 Mar 2018 20:39:18 +0200
+
 cinnamon (3.6.7-2) unstable; urgency=medium
 
   * New revision
