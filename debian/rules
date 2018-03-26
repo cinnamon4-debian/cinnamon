@@ -19,7 +19,7 @@ ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
 endif
 
 %:
-	dh  $@ --with autoreconf,python2,gir $(DH_PARALLEL_OPTION)
+	dh  $@ --with python2,gir $(DH_PARALLEL_OPTION)
 
 override_dh_autoreconf:
 	dh_autoreconf --as-needed ./autogen.sh
