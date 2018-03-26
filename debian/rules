@@ -15,7 +15,7 @@ DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 export NOCONFIGURE=yes
 
 %:
-	dh  $@ --with python2,gir
+	dh $@ --with python2,python3,gir
 
 override_dh_autoreconf:
 	dh_autoreconf --as-needed ./autogen.sh
