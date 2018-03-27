@@ -1,3 +1,10 @@
+cinnamon (3.6.7-4~) UNRELEASED; urgency=medium
+
+  * New revision
+  * Make /usr/share/cinnamon py2 and py3 compatible
+
+ -- Maximiliano Curia <maxy@debian.org>  Tue, 27 Mar 2018 16:45:20 +0200
+
 cinnamon (3.6.7-3) unstable; urgency=medium
 
   * New revision
