@@ -6,3 +6,4 @@ new-iso-flags-folder.patch
 always-add-default-theme.patch
 port-libnm.patch
 network-user-connections.patch
+Make-usr-share-cinnamon-py2-and-py3-compatible.patch
