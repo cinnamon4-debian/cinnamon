@@ -77,7 +77,7 @@ Depends:
  gir1.2-polkit-1.0,
  gir1.2-soup-2.4,
  gir1.2-upowerglib-1.0,
- gir1.2-xapp-1.0,
+ gir1.2-xapp-1.0 (>= 1.0.4~),
  gkbd-capplet,
  gnome-backgrounds,
  gnome-themes-extra | gnome-themes-standard,
