@@ -32,7 +32,7 @@ Subject: Make /usr/share/cinnamon py2 and py3 compatible
  .../cinnamon/cinnamon-settings/bin/imtools.py      | 171 +++++----------------
  .../cinnamon-settings/bin/proxygsettings.py        |  11 +-
  .../cinnamon-settings/bin/tweenEquations.py        |  19 +--
- .../cinnamon-settings/cinnamon-settings.py         |  59 +++----
+ .../cinnamon-settings/cinnamon-settings.py         |  60 ++++----
  .../cinnamon-settings/modules/cs_accessibility.py  |  54 ++++---
  .../cinnamon-settings/modules/cs_applets.py        |  11 +-
  .../cinnamon-settings/modules/cs_backgrounds.py    | 111 +++++++------
@@ -63,7 +63,7 @@ Subject: Make /usr/share/cinnamon py2 and py3 compatible
  .../cinnamon-settings/modules/cs_workspaces.py     |  10 +-
  .../cinnamon/cinnamon-settings/xlet-settings.py    |  75 ++++-----
  .../cinnamon-slideshow/cinnamon-slideshow.py       |  38 +++--
- 60 files changed, 1547 insertions(+), 1100 deletions(-)
+ 60 files changed, 1548 insertions(+), 1100 deletions(-)
 
 diff --git a/files/usr/share/cinnamon/cinnamon-desktop-editor/cinnamon-desktop-editor.py b/files/usr/share/cinnamon/cinnamon-desktop-editor/cinnamon-desktop-editor.py
 index a5fab34..c616078 100755
@@ -4705,10 +4705,10 @@ index ce3ad43..8175070 100644
 +        return easeOutBounce(t * 2, b, c / 2, d)
      return easeInBounce((t * 2) - d, b + c / 2, c / 2, d)
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py b/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py
-index bc8d6b0..a5a09e8 100755
+index bc8d6b0..9c98df3 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py
-@@ -1,8 +1,9 @@
+@@ -1,8 +1,10 @@
  #!/usr/bin/python2
  
 +from __future__ import print_function
@@ -4716,11 +4716,12 @@ index bc8d6b0..a5a09e8 100755
  import sys
 -reload(sys)
 -sys.setdefaultencoding('utf-8')
++reload(sys)  # noqa
 +sys.setdefaultencoding('utf-8')  # noqa
  
  import os
  import glob
-@@ -16,24 +17,25 @@ import unicodedata
+@@ -16,24 +18,25 @@ import unicodedata
  import config
  
  import gi
@@ -4751,7 +4752,7 @@ index bc8d6b0..a5a09e8 100755
      sys.exit(1)
  
  mod_files = [x.split('/')[-1].split('.')[0] for x in mod_files]
-@@ -91,20 +93,23 @@ STANDALONE_MODULES = [
+@@ -91,20 +94,23 @@ STANDALONE_MODULES = [
      [_("Manage Services and Units"),     "systemd-manager-pkexec",       "cs-sources",         "admin",          _("systemd, units, services, systemctl, init")]
  ]
  
@@ -4776,7 +4777,7 @@ index bc8d6b0..a5a09e8 100755
  class MainWindow:
  
      # Change pages
-@@ -124,17 +129,17 @@ class MainWindow:
+@@ -124,17 +130,17 @@ class MainWindow:
  
      def go_to_sidepage(self, cat, path):
          iterator = self.store[cat].get_iter(path)
@@ -4799,7 +4800,7 @@ index bc8d6b0..a5a09e8 100755
                      if sidePage.stack.get_visible():
                          self.stack_switcher.set_opacity(1)
                      else:
-@@ -182,8 +187,8 @@ class MainWindow:
+@@ -182,8 +188,8 @@ class MainWindow:
              if key is not cat:
                  self.side_view[key].unselect_all()
  
@@ -4809,7 +4810,7 @@ index bc8d6b0..a5a09e8 100755
          self.builder = Gtk.Builder()
          self.builder.add_from_file(config.currentPath + "/cinnamon-settings.ui")
          self.window = XApp.GtkWindow(visible=True, window_position=Gtk.WindowPosition.CENTER,
-@@ -244,8 +249,8 @@ class MainWindow:
+@@ -244,8 +250,8 @@ class MainWindow:
                  mod = module.Module(self.content_box)
                  if self.loadCheck(mod) and self.setParentRefs(mod):
                      self.unsortedSidePages.append((mod.sidePage, mod.name, mod.category))
@@ -4820,7 +4821,7 @@ index bc8d6b0..a5a09e8 100755
                  traceback.print_exc()
  
          for item in CONTROL_CENTER_MODULES:
-@@ -267,8 +272,7 @@ class MainWindow:
+@@ -267,8 +273,7 @@ class MainWindow:
                  if(trySidePage[0].name == sidePageName):
                      nextSidePage = trySidePage
  
@@ -4830,7 +4831,7 @@ index bc8d6b0..a5a09e8 100755
  
          # create the backing stores for the side nav-view.
          sidePagesIters = {}
-@@ -276,14 +280,14 @@ class MainWindow:
+@@ -276,14 +281,14 @@ class MainWindow:
          self.storeFilter = {}
          for sidepage in self.sidePages:
              sp, sp_id, sp_cat = sidepage
@@ -4848,7 +4849,7 @@ index bc8d6b0..a5a09e8 100755
              if len(name) > 30:
                  name = "%s..." % name[:30]
              sidePagesIters[sp_id] = (self.store[sp_cat].append([name, sp.icon, sp, sp_cat]), sp_cat)
-@@ -367,7 +371,7 @@ class MainWindow:
+@@ -367,7 +372,7 @@ class MainWindow:
          text = text.decode("utf-8")
          return str(text)
  
@@ -4857,7 +4858,7 @@ index bc8d6b0..a5a09e8 100755
          sidePage = model.get_value(iter, 2)
          text = self.strip_accents(self.search_entry.get_text().lower())
          if self.strip_accents(sidePage.name.lower()).find(text) > -1 or \
-@@ -380,7 +384,7 @@ class MainWindow:
+@@ -380,7 +385,7 @@ class MainWindow:
          widgets = self.side_view_container.get_children()
          for widget in widgets:
              widget.destroy()
@@ -4866,7 +4867,7 @@ index bc8d6b0..a5a09e8 100755
          for category in CATEGORIES:
              if category["show"] is True:
                  self.prepCategory(category)
-@@ -391,7 +395,7 @@ class MainWindow:
+@@ -391,7 +396,7 @@ class MainWindow:
          min_width_pixels = 0
          icon_view = Gtk.IconView()
          iter = model.get_iter_first()
@@ -4875,7 +4876,7 @@ index bc8d6b0..a5a09e8 100755
              string = model.get_value(iter, 0)
              split_by_word = string.split(" ")
              for word in split_by_word:
-@@ -565,17 +569,17 @@ class MainWindow:
+@@ -565,17 +570,17 @@ class MainWindow:
              iter = self.storeFilter[id].iter_next(iter)
          return visible
  
@@ -4896,7 +4897,7 @@ index bc8d6b0..a5a09e8 100755
              return True
  
      def back_to_icon_view(self, widget):
-@@ -598,6 +602,7 @@ class MainWindow:
+@@ -598,6 +603,7 @@ class MainWindow:
          self.window.destroy()
          Gtk.main_quit()
  
