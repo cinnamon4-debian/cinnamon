@@ -1,3 +1,11 @@
+cinnamon (3.6.7-5~) UNRELEASED; urgency=medium
+
+  * New revision
+  * Rediff patches
+  * Bump xapp gir dependency
+
+ -- Maximiliano Curia <maxy@debian.org>  Wed, 28 Mar 2018 09:57:21 +0200
+
 cinnamon (3.6.7-4) unstable; urgency=medium
 
   * New revision
