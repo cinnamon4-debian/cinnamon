@@ -2876,7 +2876,7 @@ index 406ade8..22e1fc7 100644
 -    globals()["GSettings"+widget] = g_settings_factory(widget)
 +    globals()["GSettings" + widget] = g_settings_factory(widget)
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/bin/JsonSettingsWidgets.py b/files/usr/share/cinnamon/cinnamon-settings/bin/JsonSettingsWidgets.py
-index abc4528..46ff7ca 100644
+index abc4528..688342b 100644
 --- a/files/usr/share/cinnamon/cinnamon-settings/bin/JsonSettingsWidgets.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/bin/JsonSettingsWidgets.py
 @@ -1,28 +1,30 @@
@@ -3009,7 +3009,7 @@ index abc4528..46ff7ca 100644
  
          def set_dep_key(self, dep_key):
 -            if self.settings.has_key(dep_key):
-+            if dep_key in self.settings:
++            if self.settings.has_key(dep_key):  # noqa
                  self.settings.bind(dep_key, self, "sensitive", Gio.SettingsBindFlags.GET)
              else:
                  print("Ignoring dependency on key '%s': no such key in the schema" % dep_key)
