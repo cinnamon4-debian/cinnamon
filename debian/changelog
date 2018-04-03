@@ -1,3 +1,10 @@
+cinnamon (3.6.7-6~) UNRELEASED; urgency=medium
+
+  * New revision
+  * Rediff patches
+
+ -- Maximiliano Curia <maxy@debian.org>  Tue, 03 Apr 2018 15:32:06 +0200
+
 cinnamon (3.6.7-5) unstable; urgency=medium
 
   * New revision
