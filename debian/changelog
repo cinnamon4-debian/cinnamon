@@ -1,7 +1,7 @@
 cinnamon (3.6.7-6~) UNRELEASED; urgency=medium
 
   * New revision
-  * Rediff patches
+  * Rediff patches (Closes: #894625) Thanks to Frank McCormick for the report
 
  -- Maximiliano Curia <maxy@debian.org>  Tue, 03 Apr 2018 15:32:06 +0200
 
