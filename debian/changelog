@@ -1,3 +1,10 @@
+cinnamon (3.6.7-8~) UNRELEASED; urgency=medium
+
+  * Remove gettext tweaking from py2 py3 patch
+    Thanks to Peter for the report (Closes: 894894)
+
+ -- Maximiliano Curia <maxy@debian.org>  Thu, 05 Apr 2018 23:19:22 +0200
+
 cinnamon (3.6.7-7) unstable; urgency=medium
 
   * New revision
