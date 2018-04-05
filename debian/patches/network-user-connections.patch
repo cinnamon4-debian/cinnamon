@@ -7,7 +7,7 @@ Subject: network-user-connections
  1 file changed, 28 insertions(+), 4 deletions(-)
 
 diff --git a/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js b/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
-index 512714e..80942b3 100644
+index 512714e..970e1af 100644
 --- a/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
 +++ b/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
 @@ -73,6 +73,11 @@ function NMNetworkMenuItem() {
@@ -15,7 +15,7 @@ index 512714e..80942b3 100644
  }
  
 +function default_to_private_connections(client) {
-+    let perms = client.get_permission_result (NM.Client.Permission.SETTINGS_MODIFY_SYSTEM);
++    let perms = client.get_permission_result (NM.ClientPermission.SETTINGS_MODIFY_SYSTEM);
 +    return (perms != NM.ClientPermissionResult.YES);
 +}
 +
