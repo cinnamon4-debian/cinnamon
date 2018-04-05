@@ -17,53 +17,53 @@ Subject: Make /usr/share/cinnamon py2 and py3 compatible
  .../cinnamon-menu-editor/cme/MainWindow.py         |  65 ++++----
  .../cinnamon-menu-editor/cme/MenuEditor.py         |  52 ++++---
  .../cinnamon/cinnamon-menu-editor/cme/util.py      |  24 ++-
- .../cinnamon-settings-users.py                     | 134 ++++++++--------
- .../cinnamon-settings/bin/ChooserButtonWidgets.py  |  75 ++++++---
+ .../cinnamon-settings-users.py                     | 133 ++++++++--------
+ .../cinnamon-settings/bin/ChooserButtonWidgets.py  |  74 ++++++---
  .../cinnamon-settings/bin/CinnamonGtkSettings.py   |  22 ++-
- .../cinnamon-settings/bin/ExtensionCore.py         |  77 ++++++----
+ .../cinnamon-settings/bin/ExtensionCore.py         |  75 +++++----
  .../cinnamon-settings/bin/GSettingsWidgets.py      |  36 +++--
  .../cinnamon-settings/bin/JsonSettingsWidgets.py   |  55 ++++---
- .../cinnamon-settings/bin/KeybindingWidgets.py     |  49 +++---
+ .../cinnamon-settings/bin/KeybindingWidgets.py     |  45 +++---
  .../cinnamon-settings/bin/SettingsWidgets.py       | 105 +++++++++----
- .../share/cinnamon/cinnamon-settings/bin/Spices.py | 116 +++++++-------
+ .../share/cinnamon/cinnamon-settings/bin/Spices.py | 114 +++++++-------
  .../cinnamon-settings/bin/TreeListWidgets.py       |  55 +++----
  .../share/cinnamon/cinnamon-settings/bin/capi.py   |   9 +-
- .../cinnamon/cinnamon-settings/bin/eyedropper.py   |  22 ++-
+ .../cinnamon/cinnamon-settings/bin/eyedropper.py   |  18 ++-
  .../cinnamon/cinnamon-settings/bin/imtools.py      | 171 +++++----------------
  .../cinnamon-settings/bin/proxygsettings.py        |  11 +-
  .../cinnamon-settings/bin/tweenEquations.py        |  19 +--
- .../cinnamon-settings/cinnamon-settings.py         |  60 ++++----
- .../cinnamon-settings/modules/cs_accessibility.py  |  54 ++++---
- .../cinnamon-settings/modules/cs_applets.py        |  11 +-
- .../cinnamon-settings/modules/cs_backgrounds.py    | 111 +++++++------
- .../cinnamon-settings/modules/cs_calendar.py       |  14 +-
+ .../cinnamon-settings/cinnamon-settings.py         |  59 +++----
+ .../cinnamon-settings/modules/cs_accessibility.py  |  50 +++---
+ .../cinnamon-settings/modules/cs_applets.py        |   8 +-
+ .../cinnamon-settings/modules/cs_backgrounds.py    | 110 +++++++------
+ .../cinnamon-settings/modules/cs_calendar.py       |  11 +-
  .../cinnamon-settings/modules/cs_default.py        | 158 ++++++++++---------
- .../cinnamon-settings/modules/cs_desklets.py       |  13 +-
- .../cinnamon-settings/modules/cs_desktop.py        |  10 +-
- .../cinnamon-settings/modules/cs_effects.py        |  23 ++-
- .../cinnamon-settings/modules/cs_extensions.py     |  11 +-
- .../cinnamon/cinnamon-settings/modules/cs_fonts.py |  12 +-
- .../cinnamon-settings/modules/cs_general.py        |  10 +-
- .../cinnamon-settings/modules/cs_hotcorner.py      |  64 ++++----
- .../cinnamon/cinnamon-settings/modules/cs_info.py  |  15 +-
- .../cinnamon-settings/modules/cs_keyboard.py       |  64 ++++----
- .../cinnamon/cinnamon-settings/modules/cs_mouse.py |  12 +-
- .../cinnamon-settings/modules/cs_notifications.py  |  14 +-
- .../modules/cs_online_accounts.py                  |  15 +-
- .../cinnamon/cinnamon-settings/modules/cs_panel.py |  49 ++++--
- .../cinnamon/cinnamon-settings/modules/cs_power.py |  55 ++++---
- .../cinnamon-settings/modules/cs_privacy.py        |  12 +-
- .../cinnamon-settings/modules/cs_screensaver.py    |  37 +++--
- .../cinnamon/cinnamon-settings/modules/cs_sound.py | 115 ++++++++------
- .../cinnamon-settings/modules/cs_startup.py        |  65 +++++---
- .../cinnamon-settings/modules/cs_themes.py         |  48 +++---
- .../cinnamon-settings/modules/cs_tiling.py         |  12 +-
- .../cinnamon/cinnamon-settings/modules/cs_user.py  |  44 +++---
- .../cinnamon-settings/modules/cs_windows.py        |  21 ++-
- .../cinnamon-settings/modules/cs_workspaces.py     |  10 +-
+ .../cinnamon-settings/modules/cs_desklets.py       |   9 +-
+ .../cinnamon-settings/modules/cs_desktop.py        |   6 +-
+ .../cinnamon-settings/modules/cs_effects.py        |  19 ++-
+ .../cinnamon-settings/modules/cs_extensions.py     |   7 +-
+ .../cinnamon/cinnamon-settings/modules/cs_fonts.py |   8 +-
+ .../cinnamon-settings/modules/cs_general.py        |   6 +-
+ .../cinnamon-settings/modules/cs_hotcorner.py      |  61 ++++----
+ .../cinnamon/cinnamon-settings/modules/cs_info.py  |  12 +-
+ .../cinnamon-settings/modules/cs_keyboard.py       |  63 ++++----
+ .../cinnamon/cinnamon-settings/modules/cs_mouse.py |   8 +-
+ .../cinnamon-settings/modules/cs_notifications.py  |  10 +-
+ .../modules/cs_online_accounts.py                  |  11 +-
+ .../cinnamon/cinnamon-settings/modules/cs_panel.py |  45 ++++--
+ .../cinnamon/cinnamon-settings/modules/cs_power.py |  51 +++---
+ .../cinnamon-settings/modules/cs_privacy.py        |   8 +-
+ .../cinnamon-settings/modules/cs_screensaver.py    |  35 +++--
+ .../cinnamon/cinnamon-settings/modules/cs_sound.py | 112 ++++++++------
+ .../cinnamon-settings/modules/cs_startup.py        |  62 +++++---
+ .../cinnamon-settings/modules/cs_themes.py         |  44 +++---
+ .../cinnamon-settings/modules/cs_tiling.py         |   8 +-
+ .../cinnamon/cinnamon-settings/modules/cs_user.py  |  41 ++---
+ .../cinnamon-settings/modules/cs_windows.py        |  18 ++-
+ .../cinnamon-settings/modules/cs_workspaces.py     |   6 +-
  .../cinnamon/cinnamon-settings/xlet-settings.py    |  75 ++++-----
  .../cinnamon-slideshow/cinnamon-slideshow.py       |  38 +++--
- 60 files changed, 1548 insertions(+), 1100 deletions(-)
+ 60 files changed, 1441 insertions(+), 1100 deletions(-)
 
 diff --git a/files/usr/share/cinnamon/cinnamon-desktop-editor/cinnamon-desktop-editor.py b/files/usr/share/cinnamon/cinnamon-desktop-editor/cinnamon-desktop-editor.py
 index a5fab34..c616078 100755
@@ -1630,7 +1630,7 @@ index 4f084fb..4d68f2a 100644
 +        name = "zzzz" + name  # Hack for prefCats to be sorted at the end
      return name
 diff --git a/files/usr/share/cinnamon/cinnamon-settings-users/cinnamon-settings-users.py b/files/usr/share/cinnamon/cinnamon-settings-users/cinnamon-settings-users.py
-index aad5207..a6ecfab 100755
+index aad5207..16f8bec 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings-users/cinnamon-settings-users.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings-users/cinnamon-settings-users.py
 @@ -1,7 +1,8 @@
@@ -1643,7 +1643,7 @@ index aad5207..a6ecfab 100755
  import pwd
  import grp
  import gettext
-@@ -13,17 +14,20 @@ from random import randint
+@@ -13,8 +14,8 @@ from random import randint
  import PIL
  from PIL import Image
  import gi
@@ -1654,8 +1654,7 @@ index aad5207..a6ecfab 100755
  from gi.repository import Gtk, GObject, Gio, GdkPixbuf, AccountsService, GLib
  
  gettext.install("cinnamon", "/usr/share/locale")
-+_ = gettext.gettext
- 
+@@ -22,8 +23,10 @@ gettext.install("cinnamon", "/usr/share/locale")
  (INDEX_USER_OBJECT, INDEX_USER_PICTURE, INDEX_USER_DESCRIPTION) = range(3)
  (INDEX_GID, INDEX_GROUPNAME) = range(2)
  
@@ -1667,7 +1666,7 @@ index aad5207..a6ecfab 100755
          super(GroupDialog, self).__init__(None, parent)
  
          try:
-@@ -49,8 +53,8 @@ class GroupDialog (Gtk.Dialog):
+@@ -49,8 +52,8 @@ class GroupDialog (Gtk.Dialog):
              self.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK, )
              self.set_response_sensitive(Gtk.ResponseType.OK, False)
  
@@ -1678,7 +1677,7 @@ index aad5207..a6ecfab 100755
  
      def _on_entry_changed(self, entry):
          name = entry.get_text()
-@@ -65,8 +69,10 @@ class GroupDialog (Gtk.Dialog):
+@@ -65,8 +68,10 @@ class GroupDialog (Gtk.Dialog):
          if entry.get_text() == "":
              self.set_response_sensitive(Gtk.ResponseType.OK, False)
  
@@ -1691,7 +1690,7 @@ index aad5207..a6ecfab 100755
          super(DimmedTable, self).__init__()
          self.set_border_width(6)
          self.set_row_spacings(8)
-@@ -75,17 +81,17 @@ class DimmedTable (Gtk.Table):
+@@ -75,17 +80,17 @@ class DimmedTable (Gtk.Table):
      def add_labels(self, texts):
          row = 0
          for text in texts:
@@ -1712,7 +1711,7 @@ index aad5207..a6ecfab 100755
              row = row + 1
  
  
-@@ -99,7 +105,7 @@ class EditableEntry (Gtk.Notebook):
+@@ -99,7 +104,7 @@ class EditableEntry (Gtk.Notebook):
      PAGE_BUTTON = 0
      PAGE_ENTRY = 1
  
@@ -1721,7 +1720,7 @@ index aad5207..a6ecfab 100755
          super(EditableEntry, self).__init__()
  
          self.label = Gtk.Label()
-@@ -108,8 +114,8 @@ class EditableEntry (Gtk.Notebook):
+@@ -108,8 +113,8 @@ class EditableEntry (Gtk.Notebook):
  
          self.button.set_alignment(0.0, 0.5)
          self.button.set_relief(Gtk.ReliefStyle.NONE)
@@ -1732,7 +1731,7 @@ index aad5207..a6ecfab 100755
          self.set_current_page(0)
          self.set_show_tabs(False)
          self.set_show_border(False)
-@@ -151,9 +157,10 @@ class EditableEntry (Gtk.Notebook):
+@@ -151,9 +156,10 @@ class EditableEntry (Gtk.Notebook):
      def get_text(self):
          return self.entry.get_text()
  
@@ -1744,7 +1743,7 @@ index aad5207..a6ecfab 100755
          super(PasswordDialog, self).__init__(None, parent)
  
          self.user = user
-@@ -178,7 +185,7 @@ class PasswordDialog(Gtk.Dialog):
+@@ -178,7 +184,7 @@ class PasswordDialog(Gtk.Dialog):
          self.strengh_indicator = Gtk.ProgressBar()
          self.strengh_indicator.set_tooltip_text(_("Your new password needs to be at least 8 characters long"))
          self.strengh_indicator.set_fraction(0.0)
@@ -1753,7 +1752,7 @@ index aad5207..a6ecfab 100755
          self.strengh_indicator.set_size_request(-1, 1)
  
          self.strengh_label = Gtk.Label()
-@@ -244,8 +251,8 @@ class PasswordDialog(Gtk.Dialog):
+@@ -244,8 +250,8 @@ class PasswordDialog(Gtk.Dialog):
          self.show_password.set_active(True)
          characters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-"
          newpass = ""
@@ -1764,7 +1763,7 @@ index aad5207..a6ecfab 100755
              newpass = newpass + characters[index]
  
          self.new_password.set_text(newpass)
-@@ -270,10 +277,10 @@ class PasswordDialog(Gtk.Dialog):
+@@ -270,10 +276,10 @@ class PasswordDialog(Gtk.Dialog):
                  symbol += 1
          length = len(password)
  
@@ -1779,7 +1778,7 @@ index aad5207..a6ecfab 100755
          strength = (
              ((length * 0.1) - 0.2) +
              (digit * 0.1) +
-@@ -321,9 +328,10 @@ class PasswordDialog(Gtk.Dialog):
+@@ -321,9 +327,10 @@ class PasswordDialog(Gtk.Dialog):
          else:
              self.set_response_sensitive(Gtk.ResponseType.OK, False)
  
@@ -1791,7 +1790,7 @@ index aad5207..a6ecfab 100755
          super(NewUserDialog, self).__init__(None, parent)
  
          try:
-@@ -360,8 +368,8 @@ class NewUserDialog(Gtk.Dialog):
+@@ -360,8 +367,8 @@ class NewUserDialog(Gtk.Dialog):
              self.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_ADD, Gtk.ResponseType.OK, )
              self.set_response_sensitive(Gtk.ResponseType.OK, False)
  
@@ -1802,7 +1801,7 @@ index aad5207..a6ecfab 100755
  
      def _on_info_changed(self, widget):
          fullname = self.realname_entry.get_text()
-@@ -378,9 +386,10 @@ class NewUserDialog(Gtk.Dialog):
+@@ -378,9 +385,10 @@ class NewUserDialog(Gtk.Dialog):
  
          self.set_response_sensitive(Gtk.ResponseType.OK, valid)
  
@@ -1814,7 +1813,7 @@ index aad5207..a6ecfab 100755
          super(GroupsDialog, self).__init__(None, parent)
  
          try:
-@@ -412,8 +421,8 @@ class GroupsDialog(Gtk.Dialog):
+@@ -412,8 +420,8 @@ class GroupsDialog(Gtk.Dialog):
  
              self.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK, )
  
@@ -1825,7 +1824,7 @@ index aad5207..a6ecfab 100755
  
      def get_selected_groups(self):
          groups = []
-@@ -422,7 +431,9 @@ class GroupsDialog(Gtk.Dialog):
+@@ -422,7 +430,9 @@ class GroupsDialog(Gtk.Dialog):
                  groups.append(checkbox.get_label())
          return groups
  
@@ -1835,7 +1834,7 @@ index aad5207..a6ecfab 100755
      def __init__(self):
          try:
              self.builder = Gtk.Builder()
-@@ -504,19 +515,19 @@ class Module:
+@@ -504,19 +514,19 @@ class Module:
                          path = os.path.join(face_dir, picture)
                          file = Gio.File.new_for_path(path)
                          file_icon = Gio.FileIcon.new(file)
@@ -1860,7 +1859,7 @@ index aad5207..a6ecfab 100755
  
              self.account_type_combo = Gtk.ComboBoxText()
              self.account_type_combo.append_text(_("Standard"))
-@@ -563,19 +574,19 @@ class Module:
+@@ -563,19 +573,19 @@ class Module:
  
              self.builder.get_object("box_users").hide()
  
@@ -1885,7 +1884,7 @@ index aad5207..a6ecfab 100755
              user = model[treeiter][INDEX_USER_OBJECT]
              dialog = GroupsDialog(user.get_user_name(), self.window)
              response = dialog.run()
-@@ -588,7 +599,7 @@ class Module:
+@@ -588,7 +598,7 @@ class Module:
  
      def _on_accounttype_changed(self, combobox):
          model, treeiter = self.users_treeview.get_selection().get_selected()
@@ -1894,7 +1893,7 @@ index aad5207..a6ecfab 100755
              user = model[treeiter][INDEX_USER_OBJECT]
              if self.account_type_combo.get_active() == 1:
                  user.set_account_type(AccountsService.UserAccountType.ADMINISTRATOR)
-@@ -604,7 +615,7 @@ class Module:
+@@ -604,7 +614,7 @@ class Module:
  
      def _on_realname_changed(self, widget, text):
          model, treeiter = self.users_treeview.get_selection().get_selected()
@@ -1903,7 +1902,7 @@ index aad5207..a6ecfab 100755
              user = model[treeiter][INDEX_USER_OBJECT]
              user.set_real_name(text)
              description = "<b>%s</b>\n%s" % (text, user.get_user_name())
-@@ -612,7 +623,7 @@ class Module:
+@@ -612,7 +622,7 @@ class Module:
  
      def _on_face_browse_menuitem_activated(self, menuitem):
          model, treeiter = self.users_treeview.get_selection().get_selected()
@@ -1912,7 +1911,7 @@ index aad5207..a6ecfab 100755
              user = model[treeiter][INDEX_USER_OBJECT]
              dialog = Gtk.FileChooserDialog(None, None, Gtk.FileChooserAction.OPEN, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
              filter = Gtk.FileFilter()
-@@ -650,7 +661,7 @@ class Module:
+@@ -650,7 +660,7 @@ class Module:
  
              dialog.destroy()
  
@@ -1921,7 +1920,7 @@ index aad5207..a6ecfab 100755
          # Different widths make the dialog look really crappy as it resizes -
          # constrain the width and adjust the height to keep perspective.
          filename = dialog.get_preview_filename()
-@@ -671,7 +682,7 @@ class Module:
+@@ -671,7 +681,7 @@ class Module:
      def _on_face_menuitem_activated(self, menuitem, path):
          if os.path.exists(path):
              model, treeiter = self.users_treeview.get_selection().get_selected()
@@ -1930,7 +1929,7 @@ index aad5207..a6ecfab 100755
                  user = model[treeiter][INDEX_USER_OBJECT]
                  user.set_icon_file(path)
                  self.face_image.set_from_file(path)
-@@ -679,16 +690,15 @@ class Module:
+@@ -679,16 +689,15 @@ class Module:
                  model.set_value(treeiter, INDEX_USER_PICTURE, GdkPixbuf.Pixbuf.new_from_file_at_size(path, 48, 48))
                  model.row_changed(model.get_path(treeiter), treeiter)
  
@@ -1949,7 +1948,7 @@ index aad5207..a6ecfab 100755
          widget = args[-1]
  
          # here I get the coordinates of the button relative to
-@@ -703,7 +713,7 @@ class Module:
+@@ -703,7 +712,7 @@ class Module:
          # now move the menu below the button
          y += widget.get_allocation().height
  
@@ -1958,7 +1957,7 @@ index aad5207..a6ecfab 100755
          return (x, y, push_in)
  
      def on_accounts_service_loaded(self, user, param):
-@@ -718,7 +728,7 @@ class Module:
+@@ -718,7 +727,7 @@ class Module:
              else:
                  pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/share/cinnamon/faces/user-generic.png", 48, 48)
              description = "<b>%s</b>\n%s" % (user.get_real_name(), user.get_user_name())
@@ -1967,7 +1966,7 @@ index aad5207..a6ecfab 100755
          self.users_treeview.set_model(self.users)
  
      def load_groups(self):
-@@ -726,17 +736,17 @@ class Module:
+@@ -726,17 +735,17 @@ class Module:
          groups = sorted(grp.getgrall(), key=lambda x: x[0], reverse=False)
          for group in groups:
              (gr_name, gr_passwd, gr_gid, gr_mem) = group
@@ -1988,7 +1987,7 @@ index aad5207..a6ecfab 100755
              user = model[treeiter][INDEX_USER_OBJECT]
              self.builder.get_object("button_delete_user").set_sensitive(True)
              self.realname_entry.set_text(user.get_real_name())
-@@ -762,21 +772,21 @@ class Module:
+@@ -762,21 +771,21 @@ class Module:
                      pixbuf = GdkPixbuf.Pixbuf.new_from_file(path)
                  except GLib.Error as e:
                      message = "Could not load pixbuf from '%s': %s" % (path, e.message)
@@ -2014,7 +2013,7 @@ index aad5207..a6ecfab 100755
                  self.face_image.set_from_file("/usr/share/cinnamon/faces/user-generic.png")
  
              groups = []
-@@ -806,7 +816,7 @@ class Module:
+@@ -806,7 +815,7 @@ class Module:
  
      def on_user_deletion(self, event):
          model, treeiter = self.users_treeview.get_selection().get_selected()
@@ -2023,7 +2022,7 @@ index aad5207..a6ecfab 100755
              user = model[treeiter][INDEX_USER_OBJECT]
              message = _("Are you sure you want to permanently delete %s and all the files associated with this user?") % user.get_user_name()
              d = Gtk.MessageDialog(self.window,
-@@ -838,7 +848,7 @@ class Module:
+@@ -838,7 +847,7 @@ class Module:
              new_user.set_password_mode(AccountsService.UserPasswordMode.NONE)
              pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size("/usr/share/cinnamon/faces/user-generic.png", 48, 48)
              description = "<b>%s</b>\n%s" % (fullname, username)
@@ -2032,7 +2031,7 @@ index aad5207..a6ecfab 100755
              # Add the user to his/her own group and sudo if Administrator was selected
              if dialog.account_type_combo.get_active() == 1:
                  subprocess.call(["usermod", username, "-G", "%s,sudo,nopasswdlogin" % username])
-@@ -849,14 +859,14 @@ class Module:
+@@ -849,14 +858,14 @@ class Module:
  
      def on_user_edition(self, event):
          model, treeiter = self.users_treeview.get_selection().get_selected()
@@ -2050,7 +2049,7 @@ index aad5207..a6ecfab 100755
              self.builder.get_object("button_edit_group").set_sensitive(True)
              self.builder.get_object("button_delete_group").set_sensitive(True)
              self.builder.get_object("button_delete_group").set_tooltip_text("")
-@@ -876,7 +886,7 @@ class Module:
+@@ -876,7 +885,7 @@ class Module:
  
      def on_group_deletion(self, event):
          model, treeiter = self.groups_treeview.get_selection().get_selected()
@@ -2059,7 +2058,7 @@ index aad5207..a6ecfab 100755
              group = model[treeiter][INDEX_GROUPNAME]
              message = _("Are you sure you want to permanently delete %s?") % group
              d = Gtk.MessageDialog(self.window,
-@@ -902,7 +912,7 @@ class Module:
+@@ -902,7 +911,7 @@ class Module:
  
      def on_group_edition(self, event):
          model, treeiter = self.groups_treeview.get_selection().get_selected()
@@ -2069,18 +2068,10 @@ index aad5207..a6ecfab 100755
              dialog = GroupDialog(_("Group Name"), group, self.window)
              response = dialog.run()
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/bin/ChooserButtonWidgets.py b/files/usr/share/cinnamon/cinnamon-settings/bin/ChooserButtonWidgets.py
-index 4fa0b2d..a8a4368 100644
+index 4fa0b2d..dc1b1ac 100644
 --- a/files/usr/share/cinnamon/cinnamon-settings/bin/ChooserButtonWidgets.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/bin/ChooserButtonWidgets.py
-@@ -6,6 +6,7 @@ import os
- import math
- import gettext
- gettext.install("cinnamon", "/usr/share/locale")
-+_ = gettext.gettext
- 
- TWEEN_SHAPES = ["Quad", "Cubic", "Quart", "Quint", "Sine", "Expo", "Circ", "Elastic", "Back", "Bounce"]
- TWEEN_DIRECTIONS = ["In", "Out", "InOut", "OutIn"]
-@@ -25,8 +26,10 @@ PREVIEW_WIDTH = 96
+@@ -25,8 +25,10 @@ PREVIEW_WIDTH = 96
  ANIMATION_DURATION = 800
  ANIMATION_FRAME_RATE = 20
  
@@ -2092,7 +2083,7 @@ index 4fa0b2d..a8a4368 100644
          super(BaseChooserButton, self).__init__()
          self.set_valign(Gtk.Align.CENTER)
          self.menu = Gtk.Menu()
-@@ -39,7 +42,7 @@ class BaseChooserButton(Gtk.Button):
+@@ -39,7 +41,7 @@ class BaseChooserButton(Gtk.Button):
          self.add(self.button_box)
          self.connect("button-release-event", self._on_button_clicked)
  
@@ -2101,7 +2092,7 @@ index 4fa0b2d..a8a4368 100644
          # the introspection for GtkMenuPositionFunc seems to change with each Gtk version,
          # this is a workaround to make sure we get the menu and the widget
          menu = args[0]
-@@ -67,7 +70,7 @@ class BaseChooserButton(Gtk.Button):
+@@ -67,7 +69,7 @@ class BaseChooserButton(Gtk.Button):
          elif (y + mrect.height) < (window_y + wrect.y + wrect.height):
              y = y + ((window_y + wrect.y + wrect.height) - (y + mrect.height))
  
@@ -2110,7 +2101,7 @@ index 4fa0b2d..a8a4368 100644
          return (x, y, push_in)
  
      def _on_button_clicked(self, widget, event):
-@@ -75,8 +78,10 @@ class BaseChooserButton(Gtk.Button):
+@@ -75,8 +77,10 @@ class BaseChooserButton(Gtk.Button):
              self.menu.show_all()
              self.menu.popup(None, None, self.popup_menu_below_button, self, event.button, event.time)
  
@@ -2122,7 +2113,7 @@ index 4fa0b2d..a8a4368 100644
          super(PictureChooserButton, self).__init__(has_button_label)
          self.num_cols = num_cols
          self.button_picture_size = button_picture_size
-@@ -130,7 +135,7 @@ class PictureChooserButton(BaseChooserButton):
+@@ -130,7 +134,7 @@ class PictureChooserButton(BaseChooserButton):
          self.progress = 0.0
          self.queue_draw()
  
@@ -2131,7 +2122,7 @@ index 4fa0b2d..a8a4368 100644
          pixbuf = None
          message = ""
  
-@@ -139,9 +144,9 @@ class PictureChooserButton(BaseChooserButton):
+@@ -139,9 +143,9 @@ class PictureChooserButton(BaseChooserButton):
                  pixbuf = GdkPixbuf.Pixbuf.new_from_file(path)
              except GLib.Error as e:
                  message = "Could not load pixbuf from '%s': %s" % (path, e.message)
@@ -2143,7 +2134,7 @@ index 4fa0b2d..a8a4368 100644
                  h = pixbuf.get_height()
                  w = pixbuf.get_width()
  
-@@ -150,13 +155,13 @@ class PictureChooserButton(BaseChooserButton):
+@@ -150,13 +154,13 @@ class PictureChooserButton(BaseChooserButton):
                          pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(path, self.button_picture_size, self.button_picture_size)
                      except GLib.Error as e:
                          message = "Could not scale pixbuf from '%s': %s" % (path, e.message)
@@ -2159,7 +2150,7 @@ index 4fa0b2d..a8a4368 100644
  
          if pixbuf:
              self.button_image.set_from_pixbuf(pixbuf)
-@@ -189,7 +194,7 @@ class PictureChooserButton(BaseChooserButton):
+@@ -189,7 +193,7 @@ class PictureChooserButton(BaseChooserButton):
                  pixbuf = GdkPixbuf.Pixbuf.new_from_file(path)
              else:
                  pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(path, -1, self.menu_pictures_size, True)
@@ -2168,7 +2159,7 @@ index 4fa0b2d..a8a4368 100644
              menuitem = Gtk.MenuItem()
              if title is not None:
                  vbox = Gtk.VBox()
-@@ -204,22 +209,23 @@ class PictureChooserButton(BaseChooserButton):
+@@ -204,22 +208,23 @@ class PictureChooserButton(BaseChooserButton):
                  menuitem.connect('activate', self._on_picture_selected, path, callback, id)
              else:
                  menuitem.connect('activate', self._on_picture_selected, path, callback)
@@ -2197,7 +2188,7 @@ index 4fa0b2d..a8a4368 100644
      }
  
      def __init__(self):
-@@ -240,12 +246,12 @@ class DateChooserButton(Gtk.Button):
+@@ -240,12 +245,12 @@ class DateChooserButton(Gtk.Button):
  
          calendar = Gtk.Calendar()
          content.pack_start(calendar, True, True, 0)
@@ -2212,7 +2203,7 @@ index 4fa0b2d..a8a4368 100644
              calendar.select_day(date[2])
  
          today = Gtk.Button(label=_("Today"))
-@@ -258,7 +264,7 @@ class DateChooserButton(Gtk.Button):
+@@ -258,7 +263,7 @@ class DateChooserButton(Gtk.Button):
  
          if response == Gtk.ResponseType.OK:
              date = calendar.get_date()
@@ -2221,7 +2212,7 @@ index 4fa0b2d..a8a4368 100644
              self.emit("date-changed", self.year, self.month, self.day)
  
          self.dialog.destroy()
-@@ -275,7 +281,8 @@ class DateChooserButton(Gtk.Button):
+@@ -275,7 +280,8 @@ class DateChooserButton(Gtk.Button):
          date_string = date.format(_("%B %e, %Y"))
          self.set_label(date_string)
  
@@ -2231,7 +2222,7 @@ index 4fa0b2d..a8a4368 100644
      if scale <= 0:
          return
      alpha = min(max(alpha, 0), 1)
-@@ -289,15 +296,19 @@ def draw_window(context, x, y, color, alpha = 1, scale = 1):
+@@ -289,15 +295,19 @@ def draw_window(context, x, y, color, alpha = 1, scale = 1):
      context.fill()
      context.restore()
  
@@ -2251,7 +2242,7 @@ index 4fa0b2d..a8a4368 100644
      def draw_preview(self, context, x, y, color):
          steps = 3
          for i in range(steps):
-@@ -307,7 +318,9 @@ class scale(object):
+@@ -307,7 +317,9 @@ class scale(object):
          scale = 1 - percent_complete
          draw_window(context, x, y, color, scale=scale)
  
@@ -2261,7 +2252,7 @@ index 4fa0b2d..a8a4368 100644
      def draw_preview(self, context, x, y, color):
          draw_window(context, x, y, color, .5)
  
-@@ -315,7 +328,9 @@ class fade(object):
+@@ -315,7 +327,9 @@ class fade(object):
          alpha = 1 - percent_complete
          draw_window(context, x, y, color, alpha=alpha)
  
@@ -2271,7 +2262,7 @@ index 4fa0b2d..a8a4368 100644
      def draw_preview(self, context, x, y, color):
          steps = 3
          for i in range(steps):
-@@ -326,7 +341,9 @@ class blend(object):
+@@ -326,7 +340,9 @@ class blend(object):
          alpha = 1 - percent_complete
          draw_window(context, x, y, color, alpha=alpha, scale=scale)
  
@@ -2281,7 +2272,7 @@ index 4fa0b2d..a8a4368 100644
      def draw_preview(self, context, x, y, color):
          gradient = cairo.LinearGradient(x, y * 2, x, y)
          gradient.add_color_stop_rgba(0, color.red, color.green, color.blue, 0)
-@@ -345,7 +362,9 @@ class traditional(object):
+@@ -345,7 +361,9 @@ class traditional(object):
          alpha = 1 - percent_complete
          draw_window(context, x, y, color, alpha=alpha, scale=scale)
  
@@ -2291,7 +2282,7 @@ index 4fa0b2d..a8a4368 100644
      def draw_preview(self, context, x, y, color):
          gradient = cairo.LinearGradient(0, 0, x, y)
          gradient.add_color_stop_rgba(0, color.red, color.green, color.blue, 0)
-@@ -359,9 +378,11 @@ class move(object):
+@@ -359,9 +377,11 @@ class move(object):
  
      def animate(self, context, x, y, percent_complete, color):
          remain = 1 - percent_complete
@@ -2304,7 +2295,7 @@ index 4fa0b2d..a8a4368 100644
      def draw_preview(self, context, x, y, color):
          gradient = cairo.LinearGradient(0, y * 2, 0, y * 1.5)
          gradient.add_color_stop_rgba(0, color.red, color.green, color.blue, 0)
-@@ -374,7 +395,9 @@ class flyUp(object):
+@@ -374,7 +394,9 @@ class flyUp(object):
          y *= 1 - percent_complete * 1.5
          draw_window(context, x, y, color)
  
@@ -2314,7 +2305,7 @@ index 4fa0b2d..a8a4368 100644
      def draw_preview(self, context, x, y, color):
          gradient = cairo.LinearGradient(0, 0, 0, y / 2)
          gradient.add_color_stop_rgba(0, color.red, color.green, color.blue, 0)
-@@ -387,6 +410,7 @@ class flyDown(object):
+@@ -387,6 +409,7 @@ class flyDown(object):
          y *= 1 + percent_complete * 1.5
          draw_window(context, x, y, color)
  
@@ -2322,7 +2313,7 @@ index 4fa0b2d..a8a4368 100644
  # a button to select tweens
  class TweenChooserButton(BaseChooserButton):
      __gproperties__ = {
-@@ -436,8 +460,10 @@ class TweenChooserButton(BaseChooserButton):
+@@ -436,8 +459,10 @@ class TweenChooserButton(BaseChooserButton):
          else:
              raise AttributeError('unknown property %s' % prop.name)
  
@@ -2333,7 +2324,7 @@ index 4fa0b2d..a8a4368 100644
      def __init__(self, tween_type):
          super(TweenMenuItem, self).__init__()
  
-@@ -496,7 +522,7 @@ class TweenMenuItem(Gtk.MenuItem):
+@@ -496,7 +521,7 @@ class TweenMenuItem(Gtk.MenuItem):
          color = style.get_color(Gtk.StateFlags.NORMAL)
          context.set_source_rgb(color.red, color.green, color.blue)
  
@@ -2342,7 +2333,7 @@ index 4fa0b2d..a8a4368 100644
          context.arc(5, value, 5, math.pi / 2, math.pi * 1.5)
          context.fill()
  
-@@ -527,6 +553,7 @@ class TweenMenuItem(Gtk.MenuItem):
+@@ -527,6 +552,7 @@ class TweenMenuItem(Gtk.MenuItem):
  
          return True
  
@@ -2350,7 +2341,7 @@ index 4fa0b2d..a8a4368 100644
  # a button to select effect types
  class EffectChooserButton(BaseChooserButton):
      __gproperties__ = {
-@@ -541,7 +568,7 @@ class EffectChooserButton(BaseChooserButton):
+@@ -541,7 +567,7 @@ class EffectChooserButton(BaseChooserButton):
          super(EffectChooserButton, self).__init__()
  
          self.effect = ""
@@ -2359,7 +2350,7 @@ index 4fa0b2d..a8a4368 100644
  
          self.set_size_request(128, -1)
  
-@@ -556,7 +583,7 @@ class EffectChooserButton(BaseChooserButton):
+@@ -556,7 +582,7 @@ class EffectChooserButton(BaseChooserButton):
  
      def build_menuitem(self, effect_type, col, row):
          # apply the specific effect type methods onto the base effect type menu item
@@ -2368,7 +2359,7 @@ index 4fa0b2d..a8a4368 100644
                                    (globals()[effect_type], EffectMenuItem),
                                    {"effect_type": effect_type})
          menuitem = EffectTypeMenuItem()
-@@ -580,8 +607,10 @@ class EffectChooserButton(BaseChooserButton):
+@@ -580,8 +606,10 @@ class EffectChooserButton(BaseChooserButton):
          else:
              raise AttributeError('unknown property %s' % prop.name)
  
@@ -2460,10 +2451,10 @@ index 24ac0c3..1c54b67 100755
          self.setting_name = setting_name
          super(GtkSettingsSwitch, self).__init__(dep_key=None)
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/bin/ExtensionCore.py b/files/usr/share/cinnamon/cinnamon-settings/bin/ExtensionCore.py
-index 59f631b..076328a 100644
+index 59f631b..5cf921c 100644
 --- a/files/usr/share/cinnamon/cinnamon-settings/bin/ExtensionCore.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/bin/ExtensionCore.py
-@@ -1,22 +1,23 @@
+@@ -1,22 +1,21 @@
  #!/usr/bin/python2
  
 -import sys
@@ -2484,17 +2475,15 @@ index 59f631b..076328a 100644
 -from gi.repository import Gio, Gtk, GObject, Gdk, GdkPixbuf, Pango, GLib
 +gi.require_version('Gtk', '3.0')  # noqa
 +from gi.repository import Gtk, GdkPixbuf, GLib
-+
-+from SettingsWidgets import SettingsPage, SettingsWidget, SettingsLabel
-+from Spices import ThreadedTaskManager
  
 -from SettingsWidgets import SidePage, SettingsStack, SettingsPage, SettingsWidget, SettingsLabel
 -from Spices import Spice_Harvester, ThreadedTaskManager
-+_ = gettext.gettext
++from SettingsWidgets import SettingsPage, SettingsWidget, SettingsLabel
++from Spices import ThreadedTaskManager
  
  home = os.path.expanduser('~')
  
-@@ -34,6 +35,7 @@ UNSAFE_ITEMS = ['spawn_sync', 'spawn_command_line_sync', 'GTop', 'get_file_conte
+@@ -34,6 +33,7 @@ UNSAFE_ITEMS = ['spawn_sync', 'spawn_command_line_sync', 'GTop', 'get_file_conte
  
  curr_ver = subprocess.check_output(['cinnamon', '--version']).splitlines()[0].split(' ')[1]
  
@@ -2502,7 +2491,7 @@ index 59f631b..076328a 100644
  def find_extension_subdir(directory):
      largest = [0]
      curr_a = curr_ver.split('.')
-@@ -55,10 +57,12 @@ def find_extension_subdir(directory):
+@@ -55,10 +55,12 @@ def find_extension_subdir(directory):
      else:
          return os.path.join(directory, ".".join(largest))
  
@@ -2516,7 +2505,7 @@ index 59f631b..076328a 100644
      if uuid not in translations:
          try:
              translations[uuid] = gettext.translation(uuid, home + '/.local/share/locale').ugettext
-@@ -68,7 +72,7 @@ def translate(uuid, string):
+@@ -68,7 +70,7 @@ def translate(uuid, string):
              except IOError:
                  translations[uuid] = None
  
@@ -2525,7 +2514,7 @@ index 59f631b..076328a 100644
      if not string.strip():
          return string
  
-@@ -78,10 +82,12 @@ def translate(uuid, string):
+@@ -78,10 +80,12 @@ def translate(uuid, string):
              return result
      return _(string)
  
@@ -2538,7 +2527,7 @@ index 59f631b..076328a 100644
  def filter_row(row, entry):
      search_string = entry.get_text().lower()
      if search_string in row.name.lower() or search_string in row.description.lower() or search_string.lower() in row.uuid.lower():
-@@ -89,11 +95,12 @@ def filter_row(row, entry):
+@@ -89,11 +93,12 @@ def filter_row(row, entry):
      else:
          return False
  
@@ -2555,7 +2544,7 @@ index 59f631b..076328a 100644
      dialog.set_default_size(400, 200)
      esc = cgi.escape(msg)
      dialog.set_markup(esc)
-@@ -102,10 +109,12 @@ def show_prompt(msg, window=None):
+@@ -102,10 +107,12 @@ def show_prompt(msg, window=None):
      dialog.destroy()
      return response == Gtk.ResponseType.YES
  
@@ -2568,7 +2557,7 @@ index 59f631b..076328a 100644
      def __init__(self):
          HTMLParser.__init__(self)
          self.strings = []
-@@ -124,6 +133,7 @@ class MyHTMLParser(HTMLParser):
+@@ -124,6 +131,7 @@ class MyHTMLParser(HTMLParser):
      def get_text(self):
          return u''.join(self.strings)
  
@@ -2576,7 +2565,7 @@ index 59f631b..076328a 100644
  def sanitize_html(string):
      parser = MyHTMLParser()
      parser.feed(string)
-@@ -132,6 +142,7 @@ def sanitize_html(string):
+@@ -132,6 +140,7 @@ def sanitize_html(string):
  
  
  class ManageSpicesRow(Gtk.ListBoxRow):
@@ -2584,7 +2573,7 @@ index 59f631b..076328a 100644
      def __init__(self, extension_type, metadata, size_group):
          super(ManageSpicesRow, self).__init__()
          self.extension_type = extension_type
-@@ -157,10 +168,10 @@ class ManageSpicesRow(Gtk.ListBoxRow):
+@@ -157,10 +166,10 @@ class ManageSpicesRow(Gtk.ListBoxRow):
          except (KeyError, ValueError):
              self.role = None
  
@@ -2599,7 +2588,7 @@ index 59f631b..076328a 100644
  
          if 'multiversion' in self.metadata and self.metadata['multiversion']:
              self.metadata['path'] = find_extension_subdir(self.metadata['path'])
-@@ -169,7 +180,7 @@ class ManageSpicesRow(Gtk.ListBoxRow):
+@@ -169,7 +178,7 @@ class ManageSpicesRow(Gtk.ListBoxRow):
          # otherwise we check for "external-configuration-app" in metadata and settings-schema.json in settings
          self.has_config = False
          self.ext_config_app = None
@@ -2608,7 +2597,7 @@ index 59f631b..076328a 100644
              if 'external-configuration-app' in self.metadata:
                  self.ext_config_app = os.path.join(self.metadata['path'], self.metadata['external-configuration-app'])
  
-@@ -199,7 +210,7 @@ class ManageSpicesRow(Gtk.ListBoxRow):
+@@ -199,7 +208,7 @@ class ManageSpicesRow(Gtk.ListBoxRow):
              try:
                  pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale('%s/icon.png' % self.metadata['path'], 24, 24, True)
                  icon = Gtk.Image.new_from_pixbuf(pixbuf)
@@ -2617,7 +2606,7 @@ index 59f631b..076328a 100644
                  icon = None
  
          if icon is None:
-@@ -248,10 +259,10 @@ class ManageSpicesRow(Gtk.ListBoxRow):
+@@ -248,10 +257,10 @@ class ManageSpicesRow(Gtk.ListBoxRow):
              elif self.extension_type == "extension":
                  self.add_status('locked', 'changes-prevent-symbolic', _("This is a system extension. It cannot be removed."))
  
@@ -2632,7 +2621,7 @@ index 59f631b..076328a 100644
  
          if self.writable:
              self.scan_extension_for_danger(self.metadata['path'])
-@@ -260,7 +271,7 @@ class ManageSpicesRow(Gtk.ListBoxRow):
+@@ -260,7 +269,7 @@ class ManageSpicesRow(Gtk.ListBoxRow):
          try:
              self.version_supported = curr_ver in self.metadata['cinnamon-version'] or curr_ver.rsplit('.', 1)[0] in self.metadata['cinnamon-version']
          except (KeyError, ValueError):
@@ -2641,7 +2630,7 @@ index 59f631b..076328a 100644
  
      def set_can_config(self, *args):
          if not self.has_config:
-@@ -332,7 +343,7 @@ class ManageSpicesRow(Gtk.ListBoxRow):
+@@ -332,7 +341,7 @@ class ManageSpicesRow(Gtk.ListBoxRow):
  
          try:
              scan_dir(directory)
@@ -2650,7 +2639,7 @@ index 59f631b..076328a 100644
              dangerous = True
  
          return dangerous
-@@ -346,7 +357,9 @@ class ManageSpicesRow(Gtk.ListBoxRow):
+@@ -346,7 +355,9 @@ class ManageSpicesRow(Gtk.ListBoxRow):
              elif self.extension_type == "extension":
                  self.add_status('dangerous', 'dialog-warning-symbolic', _("This extension contains function calls that could potentially cause Cinnamon to crash or freeze. If you are experiencing crashes or freezing, please try removing it."))
  
@@ -2660,7 +2649,7 @@ index 59f631b..076328a 100644
      def __init__(self, parent, collection_type, spices, window):
          super(ManageSpicesPage, self).__init__()
          self.expand = True
-@@ -534,7 +547,7 @@ class ManageSpicesPage(SettingsPage):
+@@ -534,7 +545,7 @@ class ManageSpicesPage(SettingsPage):
          extension_row = self.list_box.get_selected_row()
          self.enable_extension(extension_row.uuid, extension_row.name, extension_row.version_supported)
  
@@ -2669,7 +2658,7 @@ index 59f631b..076328a 100644
          if not version_check:
              if not show_prompt(_("Extension %s is not compatible with current version of cinnamon. Using it may break your system. Load anyway?") % uuid, self.window):
                  return
-@@ -593,8 +606,8 @@ class ManageSpicesPage(SettingsPage):
+@@ -593,8 +604,8 @@ class ManageSpicesPage(SettingsPage):
                  self.list_box.add(extension_row)
                  self.extension_rows.append(extension_row)
                  extension_row.set_enabled(self.spices.get_enabled(uuid))
@@ -2680,7 +2669,7 @@ index 59f631b..076328a 100644
  
          self.list_box.show_all()
  
-@@ -614,6 +627,7 @@ class ManageSpicesPage(SettingsPage):
+@@ -614,6 +625,7 @@ class ManageSpicesPage(SettingsPage):
  
  
  class DownloadSpicesRow(Gtk.ListBoxRow):
@@ -2688,7 +2677,7 @@ index 59f631b..076328a 100644
      def __init__(self, uuid, data, spices, size_groups):
          super(DownloadSpicesRow, self).__init__()
  
-@@ -710,6 +724,7 @@ class DownloadSpicesRow(Gtk.ListBoxRow):
+@@ -710,6 +722,7 @@ class DownloadSpicesRow(Gtk.ListBoxRow):
  
  
  class DownloadSpicesPage(SettingsPage):
@@ -2696,7 +2685,7 @@ index 59f631b..076328a 100644
      def __init__(self, parent, collection_type, spices, window):
          super(DownloadSpicesPage, self).__init__()
          self.expand = True
-@@ -732,7 +747,7 @@ class DownloadSpicesPage(SettingsPage):
+@@ -732,7 +745,7 @@ class DownloadSpicesPage(SettingsPage):
          self.top_box.pack_start(sort_label, False, False, 4)
  
          self.sort_combo = Gtk.ComboBox()
@@ -2705,7 +2694,7 @@ index 59f631b..076328a 100644
          self.sort_combo.set_model(sort_types)
          renderer_text = Gtk.CellRendererText()
          self.sort_combo.pack_start(renderer_text, True)
-@@ -742,7 +757,7 @@ class DownloadSpicesPage(SettingsPage):
+@@ -742,7 +755,7 @@ class DownloadSpicesPage(SettingsPage):
          sort_types.append(['score', _("Popularity")])
          sort_types.append(['date', _("Date")])
          sort_types.append(['installed', _("Installed")])
@@ -2714,7 +2703,7 @@ index 59f631b..076328a 100644
          self.sort_combo.connect('changed', self.sort_changed)
          self.top_box.pack_start(self.sort_combo, False, False, 4)
  
-@@ -931,7 +946,7 @@ class DownloadSpicesPage(SettingsPage):
+@@ -931,7 +944,7 @@ class DownloadSpicesPage(SettingsPage):
  
      def build_list(self, *args):
          spices_data = self.spices.get_cache()
@@ -3021,22 +3010,10 @@ index abc4528..688342b 100644
 -    globals()["JSONSettings"+widget] = json_settings_factory(widget)
 +    globals()["JSONSettings" + widget] = json_settings_factory(widget)
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/bin/KeybindingWidgets.py b/files/usr/share/cinnamon/cinnamon-settings/bin/KeybindingWidgets.py
-index a01bd27..b69448a 100755
+index a01bd27..81d0e8f 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/bin/KeybindingWidgets.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/bin/KeybindingWidgets.py
-@@ -1,7 +1,11 @@
- #!/usr/bin/python2
- 
-+import gettext
-+
- from gi.repository import Gtk, Gdk, GObject
- 
-+_ = gettext.gettext
-+
- FORBIDDEN_KEYVALS = [
-     Gdk.KEY_Home,
-     Gdk.KEY_Left,
-@@ -18,6 +22,7 @@ FORBIDDEN_KEYVALS = [
+@@ -18,6 +18,7 @@ FORBIDDEN_KEYVALS = [
      Gdk.KEY_Mode_switch
  ]
  
@@ -3044,7 +3021,7 @@ index a01bd27..b69448a 100755
  class ButtonKeybinding(Gtk.TreeView):
      __gsignals__ = {
          'accel-edited': (GObject.SignalFlags.RUN_LAST, None, (str, str)),
-@@ -42,7 +47,7 @@ class ButtonKeybinding(Gtk.TreeView):
+@@ -42,7 +43,7 @@ class ButtonKeybinding(Gtk.TreeView):
          self.entry_store = None
          self.accel_string = ""
          self.keybinding_cell = CellRendererKeybinding(a_widget=self)
@@ -3053,7 +3030,7 @@ index a01bd27..b69448a 100755
          self.keybinding_cell.connect('accel-edited', self.on_cell_edited)
          self.keybinding_cell.connect('accel-cleared', self.on_cell_cleared)
  
-@@ -74,7 +79,7 @@ class ButtonKeybinding(Gtk.TreeView):
+@@ -74,7 +75,7 @@ class ButtonKeybinding(Gtk.TreeView):
          if self.entry_store:
              self.entry_store.clear()
  
@@ -3062,7 +3039,7 @@ index a01bd27..b69448a 100755
          self.entry_store.append((self.accel_string,))
  
          self.set_model(self.entry_store)
-@@ -172,9 +177,9 @@ class CellRendererKeybinding(Gtk.CellRendererText):
+@@ -172,9 +173,9 @@ class CellRendererKeybinding(Gtk.CellRendererText):
              editable.set_text(_("Pick an accelerator"))
              self.accel_editable = editable
  
@@ -3075,7 +3052,7 @@ index a01bd27..b69448a 100755
              self.teaching = True
          else:
              self.ungrab()
-@@ -211,7 +216,7 @@ class CellRendererKeybinding(Gtk.CellRendererText):
+@@ -211,7 +212,7 @@ class CellRendererKeybinding(Gtk.CellRendererText):
              consumed_modifiers = 0
          else:
              keymap = Gdk.Keymap.get_for_display(display)
@@ -3084,7 +3061,7 @@ index a01bd27..b69448a 100755
              shift_group_mask = 0
  
              shift_group_mask = keymap.get_modifier_mask(Gdk.ModifierIntent.SHIFT_GROUP)
-@@ -219,8 +224,8 @@ class CellRendererKeybinding(Gtk.CellRendererText):
+@@ -219,8 +220,8 @@ class CellRendererKeybinding(Gtk.CellRendererText):
              retval, keyval, effective_group, level, consumed_modifiers = \
                  keymap.translate_keyboard_state(event.hardware_keycode, accel_mods, group)
  
@@ -3095,7 +3072,7 @@ index a01bd27..b69448a 100755
  
              if consumed_modifiers:
                  consumed_modifiers &= ~shift_group_mask
-@@ -252,18 +257,18 @@ class CellRendererKeybinding(Gtk.CellRendererText):
+@@ -252,18 +253,18 @@ class CellRendererKeybinding(Gtk.CellRendererText):
          # print("Storing %s as %s" % (accel_label, accel_string))
  
          if (accel_mods == 0 or accel_mods == Gdk.ModifierType.SHIFT_MASK) and event.hardware_keycode != 0:
@@ -3126,7 +3103,7 @@ index a01bd27..b69448a 100755
                  dialog = Gtk.MessageDialog(None,
                                             Gtk.DialogFlags.DESTROY_WITH_PARENT,
                                             Gtk.MessageType.ERROR,
-@@ -274,7 +279,7 @@ class CellRendererKeybinding(Gtk.CellRendererText):
+@@ -274,7 +275,7 @@ class CellRendererKeybinding(Gtk.CellRendererText):
                  msg += _("Please try again with a modifier key such as Control, Alt or Super (Windows key) at the same time.\n")
                  dialog.set_markup(msg % (accel_label))
                  dialog.show_all()
@@ -3135,7 +3112,7 @@ index a01bd27..b69448a 100755
                  dialog.destroy()
                  return True
  
-@@ -299,5 +304,5 @@ class CellRendererKeybinding(Gtk.CellRendererText):
+@@ -299,5 +300,5 @@ class CellRendererKeybinding(Gtk.CellRendererText):
          try:
              self.accel_editable.editing_done()
              self.accel_editable.remove_widget()
@@ -3627,7 +3604,7 @@ index 99251ad..7f687c5 100755
          super(Text, self).__init__()
          self.label = label
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/bin/Spices.py b/files/usr/share/cinnamon/cinnamon-settings/bin/Spices.py
-index 1ae8f11..ecec756 100644
+index 1ae8f11..25eca08 100644
 --- a/files/usr/share/cinnamon/cinnamon-settings/bin/Spices.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/bin/Spices.py
 @@ -1,6 +1,9 @@
@@ -3651,16 +3628,7 @@ index 1ae8f11..ecec756 100644
      sys.exit(1)
  
  try:
-@@ -23,6 +26,8 @@ try:
- except ImportError:
-     import simplejson as json
- 
-+_ = gettext.gettext
-+
- home = os.path.expanduser("~")
- locale_inst = '%s/.local/share/locale' % home
- settings_dir = '%s/.cinnamon/configs/' % home
-@@ -39,8 +44,10 @@ ABORT_NONE = 0
+@@ -39,8 +42,10 @@ ABORT_NONE = 0
  ABORT_ERROR = 1
  ABORT_USER = 2
  
@@ -3672,7 +3640,7 @@ index 1ae8f11..ecec756 100644
  
  def removeEmptyFolders(path):
      if not os.path.isdir(path):
-@@ -57,10 +64,12 @@ def removeEmptyFolders(path):
+@@ -57,10 +62,12 @@ def removeEmptyFolders(path):
      # if folder empty, delete it
      files = os.listdir(path)
      if len(files) == 0:
@@ -3686,7 +3654,7 @@ index 1ae8f11..ecec756 100644
      def __init__(self, max_threads):
          super(ThreadedTaskManager, self).__init__()
          self.max_threads = max_threads
-@@ -100,7 +109,7 @@ class ThreadedTaskManager(GObject.GObject):
+@@ -100,7 +107,7 @@ class ThreadedTaskManager(GObject.GObject):
          self.lock.acquire()
          try:
              self.threads.remove(threading.current_thread())
@@ -3695,7 +3663,7 @@ index 1ae8f11..ecec756 100644
              pass
  
          self.check_start_job()
-@@ -110,6 +119,7 @@ class ThreadedTaskManager(GObject.GObject):
+@@ -110,6 +117,7 @@ class ThreadedTaskManager(GObject.GObject):
  
          self.lock.release()
  
@@ -3703,7 +3671,7 @@ index 1ae8f11..ecec756 100644
  class Spice_Harvester(GObject.Object):
      __gsignals__ = {
          'installed-changed': (GObject.SignalFlags.RUN_FIRST, None, ()),
-@@ -176,7 +186,7 @@ class Spice_Harvester(GObject.Object):
+@@ -176,7 +184,7 @@ class Spice_Harvester(GObject.Object):
          except dbus.exceptions.DBusException as e:
              print(e)
  
@@ -3712,7 +3680,7 @@ index 1ae8f11..ecec756 100644
          self._proxy = Gio.DBusProxy.new_for_bus_finish(result)
          self._proxy.connect('g-signal', self._on_signal)
  
-@@ -192,19 +202,19 @@ class Spice_Harvester(GObject.Object):
+@@ -192,19 +200,19 @@ class Spice_Harvester(GObject.Object):
              if signal_name == name:
                  callback(*params)
  
@@ -3736,7 +3704,7 @@ index 1ae8f11..ecec756 100644
          if self._proxy is None:
              self._proxy_deferred_actions.append((command, args))
          else:
-@@ -216,18 +226,18 @@ class Spice_Harvester(GObject.Object):
+@@ -216,18 +224,18 @@ class Spice_Harvester(GObject.Object):
                  self.running_uuids = self._proxy.GetRunningXletUUIDs('(s)', self.collection_type)
              else:
                  self.running_uuids = []
@@ -3759,7 +3727,7 @@ index 1ae8f11..ecec756 100644
          progressbar = Gtk.ProgressBar()
          progressbar.set_show_text(True)
          progressbar.set_text('')
-@@ -330,15 +340,15 @@ class Spice_Harvester(GObject.Object):
+@@ -330,15 +338,15 @@ class Spice_Harvester(GObject.Object):
          return outfile
  
      def _url_retrieve(self, url, f, reporthook):
@@ -3779,7 +3747,7 @@ index 1ae8f11..ecec756 100644
              f.close()
              self.abort_download = ABORT_ERROR
              self.error = detail
-@@ -379,8 +389,8 @@ class Spice_Harvester(GObject.Object):
+@@ -379,8 +387,8 @@ class Spice_Harvester(GObject.Object):
                          metadata['path'] = subdirectory
                          metadata['writable'] = os.access(subdirectory, os.W_OK)
                          self.meta_map[uuid] = metadata
@@ -3790,7 +3758,7 @@ index 1ae8f11..ecec756 100644
                          print("Skipping %s: there was a problem trying to read metadata.json" % uuid)
              else:
                  print("%s does not exist! Creating it now." % directory)
-@@ -390,16 +400,16 @@ class Spice_Harvester(GObject.Object):
+@@ -390,16 +398,16 @@ class Spice_Harvester(GObject.Object):
          self._load_metadata()
          self.emit("installed-changed")
  
@@ -3810,7 +3778,7 @@ index 1ae8f11..ecec756 100644
          if uuid not in self.index_cache:
              return False
  
-@@ -408,11 +418,11 @@ class Spice_Harvester(GObject.Object):
+@@ -408,11 +416,11 @@ class Spice_Harvester(GObject.Object):
                  return False
              else:
                  return True
@@ -3824,7 +3792,7 @@ index 1ae8f11..ecec756 100644
          enabled_count = 0
          if not self.themes:
              enabled_list = self.settings.get_strv(self.enabled_key)
-@@ -424,16 +434,16 @@ class Spice_Harvester(GObject.Object):
+@@ -424,16 +432,16 @@ class Spice_Harvester(GObject.Object):
  
          return enabled_count
  
@@ -3844,7 +3812,7 @@ index 1ae8f11..ecec756 100644
          return self.index_cache
  
      def _load_cache(self):
-@@ -451,10 +461,10 @@ class Spice_Harvester(GObject.Object):
+@@ -451,10 +459,10 @@ class Spice_Harvester(GObject.Object):
          f = open(filename, 'r')
          try:
              self.index_cache = json.load(f)
@@ -3857,7 +3825,7 @@ index 1ae8f11..ecec756 100644
                  pass
              self.errorMessage(_("Something went wrong with the spices download.  Please try refreshing the list again."), str(detail))
  
-@@ -462,8 +472,8 @@ class Spice_Harvester(GObject.Object):
+@@ -462,8 +470,8 @@ class Spice_Harvester(GObject.Object):
              if self.get_is_installed(uuid) and self.get_has_update(uuid):
                  self.updates_available.append(uuid)
  
@@ -3867,7 +3835,7 @@ index 1ae8f11..ecec756 100644
          self.old_cache = self.index_cache
  
          job = {'func': self._download_cache}
-@@ -521,7 +531,7 @@ class Spice_Harvester(GObject.Object):
+@@ -521,7 +529,7 @@ class Spice_Harvester(GObject.Object):
          for t in trash:
              try:
                  os.remove(os.path.join(self.cache_folder, t))
@@ -3876,7 +3844,7 @@ index 1ae8f11..ecec756 100644
                  pass
  
          self.download_total_files = 0
-@@ -538,7 +548,7 @@ class Spice_Harvester(GObject.Object):
+@@ -538,7 +546,7 @@ class Spice_Harvester(GObject.Object):
      def _is_bad_image(self, path):
          try:
              Image.open(path)
@@ -3885,7 +3853,7 @@ index 1ae8f11..ecec756 100644
              return True
          return False
  
-@@ -546,8 +556,8 @@ class Spice_Harvester(GObject.Object):
+@@ -546,8 +554,8 @@ class Spice_Harvester(GObject.Object):
      def _sanitize_thumb(self, basename):
          return basename.replace("jpg", "png").replace("JPG", "png").replace("PNG", "png")
  
@@ -3895,7 +3863,7 @@ index 1ae8f11..ecec756 100644
          job = {'uuid': uuid, 'func': self._install, 'callback': self._install_finished}
          job['progress_text'] = _("Installing %s") % uuid
          self._push_job(job)
-@@ -556,7 +566,7 @@ class Spice_Harvester(GObject.Object):
+@@ -556,7 +564,7 @@ class Spice_Harvester(GObject.Object):
          try:
              uuid = job['uuid']
  
@@ -3904,7 +3872,7 @@ index 1ae8f11..ecec756 100644
              self.current_uuid = uuid
  
              fd, ziptempfile = tempfile.mkstemp()
-@@ -619,7 +629,7 @@ class Spice_Harvester(GObject.Object):
+@@ -619,7 +627,7 @@ class Spice_Harvester(GObject.Object):
                  shutil.rmtree(dest)
              shutil.copytree(uuidfolder, dest)
  
@@ -3913,7 +3881,7 @@ index 1ae8f11..ecec756 100644
              if not self.abort_download:
                  self.errorMessage(_("An error occurred during the installation of %s. Please report this incident to its developer.") % uuid, str(detail))
              return False
-@@ -635,8 +645,8 @@ class Spice_Harvester(GObject.Object):
+@@ -635,8 +643,8 @@ class Spice_Harvester(GObject.Object):
          if self.get_enabled(uuid):
              self.send_proxy_signal('ReloadXlet', '(ss)', uuid, self.collection_type.upper())
  
@@ -3923,7 +3891,7 @@ index 1ae8f11..ecec756 100644
          job = {'uuid': uuid, 'func': self._uninstall}
          job['progress_text'] = _("Uninstalling %s") % uuid
          self._push_job(job)
-@@ -669,31 +679,31 @@ class Spice_Harvester(GObject.Object):
+@@ -669,31 +677,31 @@ class Spice_Harvester(GObject.Object):
                  if (os.path.exists(os.path.join(settings_dir, uuid))):
                      shutil.rmtree(os.path.join(settings_dir, uuid))
              shutil.rmtree(os.path.join(self.install_folder, uuid))
@@ -3964,7 +3932,7 @@ index 1ae8f11..ecec756 100644
          dialog.destroy()
  
      def errorMessage(self, msg, detail=None):
-@@ -702,14 +712,14 @@ class Spice_Harvester(GObject.Object):
+@@ -702,14 +710,14 @@ class Spice_Harvester(GObject.Object):
      def enable_extension(self, uuid, panel=1, box='right', position=0):
          if self.collection_type == 'applet':
              entries = []
@@ -3982,7 +3950,7 @@ index 1ae8f11..ecec756 100644
                      entries.append(':'.join(info))
                  else:
                      entries.append(entry)
-@@ -718,8 +728,8 @@ class Spice_Harvester(GObject.Object):
+@@ -718,8 +726,8 @@ class Spice_Harvester(GObject.Object):
  
              self.settings.set_strv(self.enabled_key, entries)
          elif self.collection_type == 'desklet':
@@ -3993,7 +3961,7 @@ index 1ae8f11..ecec756 100644
              enabled = self.settings.get_strv(self.enabled_key)
  
              screen = Gdk.Screen.get_default()
-@@ -742,8 +752,8 @@ class Spice_Harvester(GObject.Object):
+@@ -742,8 +750,8 @@ class Spice_Harvester(GObject.Object):
                  new_list.append(enabled_extension)
          self.settings.set_strv(self.enabled_key, new_list)
  
@@ -4003,7 +3971,7 @@ index 1ae8f11..ecec756 100644
          try:
              if self.themes:
                  file_path = os.path.join(self.cache_folder, os.path.basename(self.index_cache[uuid]['screenshot']))
-@@ -753,6 +763,6 @@ class Spice_Harvester(GObject.Object):
+@@ -753,6 +761,6 @@ class Spice_Harvester(GObject.Object):
                  pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(file_path, 24, 24, True)
  
              return Gtk.Image.new_from_pixbuf(pixbuf)
@@ -4140,12 +4108,10 @@ index df3e4ae..9616166 100644
      def get_c_widget(self, mod_id):
          extension = self.extension_point.get_extension_by_name(mod_id)
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/bin/eyedropper.py b/files/usr/share/cinnamon/cinnamon-settings/bin/eyedropper.py
-index e733c79..46bb942 100644
+index e733c79..8ec4c7c 100644
 --- a/files/usr/share/cinnamon/cinnamon-settings/bin/eyedropper.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/bin/eyedropper.py
-@@ -1,21 +1,26 @@
-+import gettext
-+
+@@ -1,21 +1,22 @@
  import gi
 -gi.require_version("Gtk", "3.0")
 -from gi.repository import Gtk, Gdk, GObject, GdkPixbuf
@@ -4153,8 +4119,6 @@ index e733c79..46bb942 100644
 +from gi.repository import Gtk, Gdk, GObject
  from PIL import Image
  
-+_ = gettext.gettext
-+
 +
  class EyeDropper(Gtk.HBox):
      __gsignals__ = {
@@ -4174,7 +4138,7 @@ index e733c79..46bb942 100644
  
          self.pack_start(self.button, False, False, 2)
  
-@@ -41,11 +46,11 @@ class EyeDropper(Gtk.HBox):
+@@ -41,11 +42,11 @@ class EyeDropper(Gtk.HBox):
  
          if isinstance(toplevel, Gtk.Window):
              if toplevel.has_group():
@@ -4188,7 +4152,7 @@ index e733c79..46bb942 100644
  
          grab_status = self.device.grab(window, Gdk.GrabOwnership.APPLICATION, False,
                                         Gdk.EventMask.BUTTON_RELEASE_MASK | Gdk.EventMask.BUTTON_PRESS_MASK | Gdk.EventMask.POINTER_MOTION_MASK,
-@@ -104,6 +109,7 @@ class EyeDropper(Gtk.HBox):
+@@ -104,6 +105,7 @@ class EyeDropper(Gtk.HBox):
          self.grab_widget.handler_disconnect(self.br_handler)
          self.grab_widget.handler_disconnect(self.kp_handler)
  
@@ -4705,7 +4669,7 @@ index ce3ad43..8175070 100644
 +        return easeOutBounce(t * 2, b, c / 2, d)
      return easeInBounce((t * 2) - d, b + c / 2, c / 2, d)
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py b/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py
-index bc8d6b0..9c98df3 100755
+index bc8d6b0..9d589d7 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py
 @@ -1,8 +1,10 @@
@@ -4721,7 +4685,7 @@ index bc8d6b0..9c98df3 100755
  
  import os
  import glob
-@@ -16,24 +18,25 @@ import unicodedata
+@@ -16,12 +18,12 @@ import unicodedata
  import config
  
  import gi
@@ -4738,12 +4702,7 @@ index bc8d6b0..9c98df3 100755
  import capi
  import proxygsettings
  import SettingsWidgets
- 
- # i18n
- gettext.install("cinnamon", "/usr/share/locale")
-+_ = gettext.gettext
- 
- # Standard setting pages... this can be expanded to include applet dirs maybe?
+@@ -33,7 +35,7 @@ gettext.install("cinnamon", "/usr/share/locale")
  mod_files = glob.glob(config.currentPath + "/modules/*.py")
  mod_files.sort()
  if len(mod_files) is 0:
@@ -4752,7 +4711,7 @@ index bc8d6b0..9c98df3 100755
      sys.exit(1)
  
  mod_files = [x.split('/')[-1].split('.')[0] for x in mod_files]
-@@ -91,20 +94,23 @@ STANDALONE_MODULES = [
+@@ -91,20 +93,23 @@ STANDALONE_MODULES = [
      [_("Manage Services and Units"),     "systemd-manager-pkexec",       "cs-sources",         "admin",          _("systemd, units, services, systemctl, init")]
  ]
  
@@ -4777,7 +4736,7 @@ index bc8d6b0..9c98df3 100755
  class MainWindow:
  
      # Change pages
-@@ -124,17 +130,17 @@ class MainWindow:
+@@ -124,17 +129,17 @@ class MainWindow:
  
      def go_to_sidepage(self, cat, path):
          iterator = self.store[cat].get_iter(path)
@@ -4800,7 +4759,7 @@ index bc8d6b0..9c98df3 100755
                      if sidePage.stack.get_visible():
                          self.stack_switcher.set_opacity(1)
                      else:
-@@ -182,8 +188,8 @@ class MainWindow:
+@@ -182,8 +187,8 @@ class MainWindow:
              if key is not cat:
                  self.side_view[key].unselect_all()
  
@@ -4810,7 +4769,7 @@ index bc8d6b0..9c98df3 100755
          self.builder = Gtk.Builder()
          self.builder.add_from_file(config.currentPath + "/cinnamon-settings.ui")
          self.window = XApp.GtkWindow(visible=True, window_position=Gtk.WindowPosition.CENTER,
-@@ -244,8 +250,8 @@ class MainWindow:
+@@ -244,8 +249,8 @@ class MainWindow:
                  mod = module.Module(self.content_box)
                  if self.loadCheck(mod) and self.setParentRefs(mod):
                      self.unsortedSidePages.append((mod.sidePage, mod.name, mod.category))
@@ -4821,7 +4780,7 @@ index bc8d6b0..9c98df3 100755
                  traceback.print_exc()
  
          for item in CONTROL_CENTER_MODULES:
-@@ -267,8 +273,7 @@ class MainWindow:
+@@ -267,8 +272,7 @@ class MainWindow:
                  if(trySidePage[0].name == sidePageName):
                      nextSidePage = trySidePage
  
@@ -4831,7 +4790,7 @@ index bc8d6b0..9c98df3 100755
  
          # create the backing stores for the side nav-view.
          sidePagesIters = {}
-@@ -276,14 +281,14 @@ class MainWindow:
+@@ -276,14 +280,14 @@ class MainWindow:
          self.storeFilter = {}
          for sidepage in self.sidePages:
              sp, sp_id, sp_cat = sidepage
@@ -4849,7 +4808,7 @@ index bc8d6b0..9c98df3 100755
              if len(name) > 30:
                  name = "%s..." % name[:30]
              sidePagesIters[sp_id] = (self.store[sp_cat].append([name, sp.icon, sp, sp_cat]), sp_cat)
-@@ -367,7 +372,7 @@ class MainWindow:
+@@ -367,7 +371,7 @@ class MainWindow:
          text = text.decode("utf-8")
          return str(text)
  
@@ -4858,7 +4817,7 @@ index bc8d6b0..9c98df3 100755
          sidePage = model.get_value(iter, 2)
          text = self.strip_accents(self.search_entry.get_text().lower())
          if self.strip_accents(sidePage.name.lower()).find(text) > -1 or \
-@@ -380,7 +385,7 @@ class MainWindow:
+@@ -380,7 +384,7 @@ class MainWindow:
          widgets = self.side_view_container.get_children()
          for widget in widgets:
              widget.destroy()
@@ -4867,7 +4826,7 @@ index bc8d6b0..9c98df3 100755
          for category in CATEGORIES:
              if category["show"] is True:
                  self.prepCategory(category)
-@@ -391,7 +396,7 @@ class MainWindow:
+@@ -391,7 +395,7 @@ class MainWindow:
          min_width_pixels = 0
          icon_view = Gtk.IconView()
          iter = model.get_iter_first()
@@ -4876,7 +4835,7 @@ index bc8d6b0..9c98df3 100755
              string = model.get_value(iter, 0)
              split_by_word = string.split(" ")
              for word in split_by_word:
-@@ -565,17 +570,17 @@ class MainWindow:
+@@ -565,17 +569,17 @@ class MainWindow:
              iter = self.storeFilter[id].iter_next(iter)
          return visible
  
@@ -4897,7 +4856,7 @@ index bc8d6b0..9c98df3 100755
              return True
  
      def back_to_icon_view(self, widget):
-@@ -598,6 +603,7 @@ class MainWindow:
+@@ -598,6 +602,7 @@ class MainWindow:
          self.window.destroy()
          Gtk.main_quit()
  
@@ -4906,28 +4865,24 @@ index bc8d6b0..9c98df3 100755
      import signal
  
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_accessibility.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_accessibility.py
-index 7f5c2b9..b18f0b5 100755
+index 7f5c2b9..1b9b065 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_accessibility.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_accessibility.py
-@@ -1,23 +1,29 @@
+@@ -1,23 +1,25 @@
  #!/usr/bin/python2
  
 +from __future__ import print_function
-+
-+import gettext
 +
  import gi
 -gi.require_version("Gtk", "3.0")
 -gi.require_version('CDesktopEnums', '3.0')
 +gi.require_version("Gtk", "3.0")  # noqa
 +gi.require_version('CDesktopEnums', '3.0')  # noqa
-+
-+from gi.repository import Gtk
-+from GSettingsWidgets import *  # noqa
  
 -from gi.repository import Gtk, CDesktopEnums
 -from GSettingsWidgets import *
-+_ = gettext.gettext
++from gi.repository import Gtk
++from GSettingsWidgets import *  # noqa
  
 -DPI_FACTOR_LARGE         = 1.25
 -DPI_FACTOR_NORMAL        = 1.0
@@ -4953,7 +4908,7 @@ index 7f5c2b9..b18f0b5 100755
  
  
  class Module:
-@@ -26,22 +32,22 @@ class Module:
+@@ -26,22 +28,22 @@ class Module:
      category = "prefs"
  
      def __init__(self, content_box):
@@ -4981,7 +4936,7 @@ index 7f5c2b9..b18f0b5 100755
  
              page = SettingsPage()
              self.sidePage.stack.add_titled(page, "visual", _("Visual"))
-@@ -84,7 +90,7 @@ class Module:
+@@ -84,7 +86,7 @@ class Module:
              spin = GSettingsSpinButton(_("Magnification"), "org.cinnamon.desktop.a11y.magnifier", "mag-factor", None, 1.0, 15.0, step=0.5)
              settings.add_reveal_row(spin, "org.cinnamon.desktop.a11y.applications", "screen-magnifier-enabled")
  
@@ -4990,7 +4945,7 @@ index 7f5c2b9..b18f0b5 100755
              widget = GSettingsComboBox(_("Mouse wheel modifier"), "org.cinnamon.desktop.wm.preferences", "mouse-button-zoom-modifier", zoom_key_options)
              widget.set_tooltip_text(_("While this modifier is pressed, mouse scrolling will increase or decrease zoom."))
              settings.add_reveal_row(widget, "org.cinnamon.desktop.a11y.applications", "screen-magnifier-enabled")
-@@ -134,7 +140,7 @@ class Module:
+@@ -134,7 +136,7 @@ class Module:
              else:
                  self.zoom_stack.set_visible_child_name("screen")
  
@@ -4999,7 +4954,7 @@ index 7f5c2b9..b18f0b5 100755
  
              page = SettingsPage()
              self.sidePage.stack.add_titled(page, "keyboard", _("Keyboard"))
-@@ -171,7 +177,7 @@ class Module:
+@@ -171,7 +173,7 @@ class Module:
              settings.add_reveal_row(widget, "org.cinnamon.desktop.a11y.applications", "screen-keyboard-enabled")
  
              activation_mode_options = [["accessible", _("Show the keyboard any time something expects input")],
@@ -5008,7 +4963,7 @@ index 7f5c2b9..b18f0b5 100755
  
              widget = GSettingsComboBox(_("Activation mode"), "org.cinnamon.keyboard", "activation-mode", activation_mode_options)
              settings.add_reveal_row(widget, "org.cinnamon.desktop.a11y.applications", "screen-keyboard-enabled")
-@@ -225,7 +231,7 @@ class Module:
+@@ -225,7 +227,7 @@ class Module:
                                                       "bell-sound")
              settings.add_reveal_row(sound_picker, "org.cinnamon.desktop.wm.preferences", "audible-bell")
  
@@ -5017,7 +4972,7 @@ index 7f5c2b9..b18f0b5 100755
  
              page = SettingsPage()
              self.sidePage.stack.add_titled(page, "typing", _("Typing assistance"))
-@@ -321,7 +327,7 @@ class Module:
+@@ -321,7 +323,7 @@ class Module:
  
              settings.add_reveal_row(slider, "org.cinnamon.desktop.a11y.keyboard", "bouncekeys-enable")
  
@@ -5027,15 +4982,14 @@ index 7f5c2b9..b18f0b5 100755
              page = SettingsPage()
              self.sidePage.stack.add_titled(page, "mouse", _("Mouse"))
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_applets.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_applets.py
-index 82fda0e..7e65580 100644
+index 82fda0e..0f4e4f5 100644
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_applets.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_applets.py
-@@ -1,11 +1,18 @@
+@@ -1,11 +1,15 @@
  #!/usr/bin/python2
  
 +from __future__ import print_function
 +
-+import gettext
  import sys
 +
  from ExtensionCore import ManageSpicesPage, DownloadSpicesPage
@@ -5043,13 +4997,11 @@ index 82fda0e..7e65580 100644
  from Spices import Spice_Harvester
  from gi.repository import GLib, Gtk, Gdk
  
-+_ = gettext.gettext
-+
 +
  class Module:
      name = "applets"
      comment = _("Manage Cinnamon applets")
-@@ -17,12 +24,13 @@ class Module:
+@@ -17,12 +21,13 @@ class Module:
  
      def on_module_selected(self):
          if not self.loaded:
@@ -5064,7 +5016,7 @@ index 82fda0e..7e65580 100644
  class AppletsViewSidePage(SidePage):
      collection_type = "applet"
  
-@@ -46,6 +54,7 @@ class AppletsViewSidePage(SidePage):
+@@ -46,6 +51,7 @@ class AppletsViewSidePage(SidePage):
          download_applets_page = DownloadSpicesPage(self, self.collection_type, self.spices, window)
          self.stack.add_titled(download_applets_page, "more", _("Download"))
  
@@ -5073,7 +5025,7 @@ index 82fda0e..7e65580 100644
      directories = [("%s/.local/share/cinnamon/applets") % GLib.get_home_dir(), "/usr/share/cinnamon/applets"]
      collection_type = "applet"
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_backgrounds.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_backgrounds.py
-index 77479a1..ea4ddfc 100755
+index 77479a1..75d5bb3 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_backgrounds.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_backgrounds.py
 @@ -1,12 +1,13 @@
@@ -5091,7 +5043,7 @@ index 77479a1..ea4ddfc 100755
  import locale
  import time
  import hashlib
-@@ -17,14 +18,15 @@ from xml.etree import ElementTree
+@@ -17,12 +18,12 @@ from xml.etree import ElementTree
  
  from PIL import Image
  import gi
@@ -5107,11 +5059,8 @@ index 77479a1..ea4ddfc 100755
 +from GSettingsWidgets import *  # noqa
  
  gettext.install("cinnamon", "/usr/share/locale")
-+_ = gettext.gettext
  
- BACKGROUND_COLOR_SHADING_TYPES = [
-     ("solid", _("None")),
-@@ -51,14 +53,36 @@ BACKGROUND_COLLECTION_TYPE_XML = "xml"
+@@ -51,14 +52,36 @@ BACKGROUND_COLLECTION_TYPE_XML = "xml"
  
  (STORE_IS_SEPARATOR, STORE_ICON, STORE_NAME, STORE_PATH, STORE_TYPE) = range(5)
  
@@ -5155,7 +5104,7 @@ index 77479a1..ea4ddfc 100755
  orientation_funcs = [None,
                       lambda x: x,
                       flip_horizontal,
-@@ -69,6 +93,8 @@ orientation_funcs = [None,
+@@ -69,6 +92,8 @@ orientation_funcs = [None,
                       transverse,
                       rotate_90
                       ]
@@ -5164,7 +5113,7 @@ index 77479a1..ea4ddfc 100755
  def apply_orientation(im):
      """
      Extract the oritentation EXIF tag from the image, which should be a PIL Image instance,
-@@ -81,18 +107,19 @@ def apply_orientation(im):
+@@ -81,18 +106,19 @@ def apply_orientation(im):
  
      try:
          kOrientationEXIFTag = 0x0112
@@ -5189,7 +5138,7 @@ index 77479a1..ea4ddfc 100755
  class Module:
      name = "backgrounds"
      category = "appear"
-@@ -104,7 +131,7 @@ class Module:
+@@ -104,7 +130,7 @@ class Module:
  
      def on_module_selected(self):
          if not self.loaded:
@@ -5198,7 +5147,7 @@ index 77479a1..ea4ddfc 100755
  
              self.sidePage.stack = SettingsStack()
              self.sidePage.add_widget(self.sidePage.stack)
-@@ -261,8 +288,6 @@ class Module:
+@@ -261,8 +287,6 @@ class Module:
              self.icon_view.set_selection_mode(Gtk.SelectionMode.SINGLE)
  
      def get_system_backgrounds(self):
@@ -5207,7 +5156,7 @@ index 77479a1..ea4ddfc 100755
          properties_dir = "/usr/share/gnome-background-properties"
          backgrounds = []
          if os.path.exists(properties_dir):
-@@ -276,7 +301,7 @@ class Module:
+@@ -276,7 +300,7 @@ class Module:
                      # Also, other distros should get equal treatment. If they define cinnamon-backgrounds and use their own distro name, we should add support for it.
                      if display_name == "Retro":
                          icon = "cs-retro"
@@ -5216,7 +5165,7 @@ index 77479a1..ea4ddfc 100755
                      if display_name == "Linuxmint":
                          display_name = "Linux Mint"
                          icon = "cs-linuxmint"
-@@ -321,7 +346,7 @@ class Module:
+@@ -321,7 +345,7 @@ class Module:
              self.remove_folder_button.set_sensitive(True)
  
              if image_source != "" and "://" in image_source:
@@ -5225,7 +5174,7 @@ index 77479a1..ea4ddfc 100755
                      if collection_source == image_source:
                          tree_path = self.collection_store.get_path(tree_iter)
                          self.folder_tree.set_cursor(tree_path)
-@@ -341,8 +366,8 @@ class Module:
+@@ -341,8 +365,8 @@ class Module:
                  if collection_type == BACKGROUND_COLLECTION_TYPE_XML:
                      self.remove_folder_button.set_sensitive(False)
                  self.update_icon_view(collection_path, collection_type)
@@ -5236,7 +5185,7 @@ index 77479a1..ea4ddfc 100755
  
      def on_row_activated(self, tree, path, column):
          self.folder_tree.set_selection(path)
-@@ -454,7 +479,7 @@ class Module:
+@@ -454,7 +478,7 @@ class Module:
          try:
              loc = localeCode.partition("_")
              loc = (loc[0], loc[2])
@@ -5245,7 +5194,7 @@ index 77479a1..ea4ddfc 100755
              loc = ("en", "US")
          return loc
  
-@@ -480,7 +505,6 @@ class Module:
+@@ -480,7 +504,6 @@ class Module:
              locAttrName = "{http://www.w3.org/XML/1998/namespace}lang"
              loc = self.splitLocaleCode(locale.getdefaultlocale()[0])
              res = []
@@ -5253,7 +5202,7 @@ index 77479a1..ea4ddfc 100755
              f = open(filename)
              rootNode = ElementTree.fromstring(f.read())
              f.close()
-@@ -496,7 +520,7 @@ class Module:
+@@ -496,7 +519,7 @@ class Module:
                                  else:
                                      propAttr = prop.attrib
                                      wpName = prop.text
@@ -5262,7 +5211,7 @@ index 77479a1..ea4ddfc 100755
                                      names.append((locName, wpName))
                          wallpaperData["name"] = self.getLocalWallpaperName(names, loc)
  
-@@ -505,18 +529,18 @@ class Module:
+@@ -505,18 +528,18 @@ class Module:
                                  wallpaperData["name"] = os.path.basename(wallpaperData["filename"])
                              res.append(wallpaperData)
              return res
@@ -5286,7 +5235,7 @@ index 77479a1..ea4ddfc 100755
                  show = True
  
          self.secondary_color_revealer.set_reveal_child(show)
-@@ -553,8 +577,8 @@ class PixCache(object):
+@@ -553,8 +576,8 @@ class PixCache(object):
                              pix = pickle.load(cache_file)
                          tmp_img = Image.open(BytesIO(pix[0]))
                          pix[0] = self._image_to_pixbuf(tmp_img)
@@ -5297,7 +5246,7 @@ index 77479a1..ea4ddfc 100755
                          pix = None
  
                  else:
-@@ -573,7 +597,7 @@ class PixCache(object):
+@@ -573,7 +596,7 @@ class PixCache(object):
                      (width, height) = img.size
                      if img.mode != "RGB":
                          if img.mode == "RGBA":
@@ -5306,7 +5255,7 @@ index 77479a1..ea4ddfc 100755
                              img = Image.alpha_composite(bg_img, img)
                          img = img.convert("RGB")
                      if size:
-@@ -589,12 +613,12 @@ class PixCache(object):
+@@ -589,12 +612,12 @@ class PixCache(object):
                          img.save(png_bytes, "png")
                          with open(cache_filename, "w") as cache_file:
                              pickle.dump([png_bytes.getvalue(), width, height], cache_file, 2)
@@ -5323,7 +5272,7 @@ index 77479a1..ea4ddfc 100755
                  pix = None
              if pix:
                  self._data[filename][size] = pix
-@@ -608,6 +632,7 @@ class PixCache(object):
+@@ -608,6 +631,7 @@ class PixCache(object):
                                                 True, 8, w, h,
                                                 w * 4)
  
@@ -5331,7 +5280,7 @@ index 77479a1..ea4ddfc 100755
  PIX_CACHE = PixCache()
  
  
-@@ -717,7 +742,7 @@ class ThreadedIconView(Gtk.IconView):
+@@ -717,7 +741,7 @@ class ThreadedIconView(Gtk.IconView):
                  if filename.endswith(".xml"):
                      filename = self.getFirstFileFromBackgroundXml(filename)
                  pix = PIX_CACHE.get_pix(filename, BACKGROUND_ICONS_SIZE)
@@ -5340,7 +5289,7 @@ index 77479a1..ea4ddfc 100755
                      if "name" in to_load:
                          label = to_load["name"]
                      else:
-@@ -749,8 +774,8 @@ class ThreadedIconView(Gtk.IconView):
+@@ -749,8 +773,8 @@ class ThreadedIconView(Gtk.IconView):
                                  if staticNode[-1].tag == "size":
                                      return staticNode[-1].text
                                  return staticNode.text
@@ -5353,24 +5302,21 @@ index 77479a1..ea4ddfc 100755
 +            print("Failed to read filename from %s: %s" % (filename, detail))
              return None
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_calendar.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_calendar.py
-index a3d9f11..2069670 100755
+index a3d9f11..d8a00d9 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_calendar.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_calendar.py
-@@ -1,6 +1,12 @@
+@@ -1,6 +1,9 @@
  #!/usr/bin/python2
  
 -from GSettingsWidgets import *
 +from __future__ import print_function
-+import gettext
 +
 +from GSettingsWidgets import *  # noqa
-+
-+_ = gettext.gettext
 +
  
  class Module:
      name = "calendar"
-@@ -13,7 +19,7 @@ class Module:
+@@ -13,7 +16,7 @@ class Module:
  
      def on_module_selected(self):
          if not self.loaded:
@@ -5379,7 +5325,7 @@ index a3d9f11..2069670 100755
  
              page = SettingsPage()
              self.sidePage.add_widget(page)
-@@ -25,8 +31,8 @@ class Module:
+@@ -25,8 +28,8 @@ class Module:
                  widget.pack_start(content, False, False, 0)
                  settings.add_row(widget)
  
@@ -5778,15 +5724,13 @@ index 3785b8e..c997d1a 100755
          self.key = key
          super(InvertedSwitch, self).__init__()
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_desklets.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_desklets.py
-index 2768562..3175ed3 100644
+index 2768562..8060a23 100644
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_desklets.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_desklets.py
-@@ -1,10 +1,17 @@
+@@ -1,10 +1,13 @@
  #!/usr/bin/python2
  
 +from __future__ import print_function
-+
-+import gettext
 +
  from ExtensionCore import ManageSpicesPage, DownloadSpicesPage
  from Spices import Spice_Harvester
@@ -5794,13 +5738,11 @@ index 2768562..3175ed3 100644
 +from GSettingsWidgets import *  # noqa
  from gi.repository import GLib, Gtk
  
-+_ = gettext.gettext
-+
 +
  class Module:
      comment = _("Manage your Cinnamon desklets")
      name = "desklets"
-@@ -16,12 +23,13 @@ class Module:
+@@ -16,12 +19,13 @@ class Module:
  
      def on_module_selected(self):
          if not self.loaded:
@@ -5815,7 +5757,7 @@ index 2768562..3175ed3 100644
  class DeskletsViewSidePage(SidePage):
      collection_type = "desklet"
  
-@@ -68,6 +76,7 @@ class DeskletsViewSidePage(SidePage):
+@@ -68,6 +72,7 @@ class DeskletsViewSidePage(SidePage):
          settings.add_row(GSettingsSwitch(_("Snap desklets to grid"), "org.cinnamon", "desklet-snap"))
          settings.add_reveal_row(GSettingsSpinButton(_("Width of desklet snap grid"), "org.cinnamon", "desklet-snap-interval", "", 0, 100, 1, 5), "org.cinnamon", "desklet-snap")
  
@@ -5824,26 +5766,22 @@ index 2768562..3175ed3 100644
      directories = [("%s/.local/share/cinnamon/desklets") % GLib.get_home_dir(), "/usr/share/cinnamon/desklets"]
      collection_type = "desklet"
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_desktop.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_desktop.py
-index 0e2af76..ce135b6 100755
+index 0e2af76..8cf64fd 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_desktop.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_desktop.py
-@@ -1,8 +1,14 @@
+@@ -1,8 +1,10 @@
  #!/usr/bin/python2
  
 +from __future__ import print_function
-+
-+import gettext
 +
  from gi.repository import Gio
  
 -from GSettingsWidgets import *
 +from GSettingsWidgets import *  # noqa
-+
-+_ = gettext.gettext
  
  DESKTOP_SCHEMA = "org.nemo.desktop"
  LAYOUT_KEY = "desktop-layout"
-@@ -34,7 +40,7 @@ class Module:
+@@ -34,7 +36,7 @@ class Module:
          if self.loaded:
              return
  
@@ -5853,26 +5791,20 @@ index 0e2af76..ce135b6 100755
          page = SettingsPage()
          self.sidePage.add_widget(page)
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_effects.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_effects.py
-index 9603637..93b4804 100755
+index 9603637..d8c5cf6 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_effects.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_effects.py
-@@ -1,8 +1,14 @@
+@@ -1,6 +1,8 @@
  #!/usr/bin/python2
  
 -from GSettingsWidgets import *
 +from __future__ import print_function
 +
-+import gettext
-+
 +from GSettingsWidgets import *  # noqa
  from ChooserButtonWidgets import TweenChooserButton, EffectChooserButton
  
-+_ = gettext.gettext
-+
  EFFECT_SETS = {
-     "cinnamon": ("traditional", "traditional", "traditional", "none",  "none",  "none"),
-     "scale":    ("scale",       "scale",       "scale",       "scale", "scale", "scale"),
-@@ -39,7 +45,7 @@ COMBINATIONS = {
+@@ -39,7 +41,7 @@ COMBINATIONS = {
      "move":       ("move",     "normal",   "fast"),
      "flyUp":      ("flyUp",    "normal",   "fast"),
      "flyDown":    ("flyDown",  "normal",   "fast"),
@@ -5881,7 +5813,7 @@ index 9603637..93b4804 100755
      "default":    ("default",  "normal",   "default")
  }
  
-@@ -52,7 +58,7 @@ OPTIONS = (
+@@ -52,7 +54,7 @@ OPTIONS = (
      ("move",       _("Move")),
      ("flyUp",      _("Fly up, down")),
      ("flyDown",    _("Fly down, up")),
@@ -5890,7 +5822,7 @@ index 9603637..93b4804 100755
      ("default",    _("Default"))
  )
  TYPES = ("map", "close", "minimize", "maximize", "unmaximize", "tile")
-@@ -60,7 +66,9 @@ SCHEMA = "org.cinnamon"
+@@ -60,7 +62,9 @@ SCHEMA = "org.cinnamon"
  DEP_PATH = "org.cinnamon/desktop-effects"
  KEY_TEMPLATE = "desktop-effects-%s-%s"
  
@@ -5900,7 +5832,7 @@ index 9603637..93b4804 100755
      def __init__(self, schema, key, dep_key):
          self.key = key
          self.bind_prop = "tween"
-@@ -74,7 +82,9 @@ class GSettingsTweenChooserButton(TweenChooserButton, CSGSettingsBackend):
+@@ -74,7 +78,9 @@ class GSettingsTweenChooserButton(TweenChooserButton, CSGSettingsBackend):
          super(GSettingsTweenChooserButton, self).__init__()
          self.bind_settings()
  
@@ -5910,7 +5842,7 @@ index 9603637..93b4804 100755
      def __init__(self, schema, key, dep_key, options):
          self.key = key
          self.bind_prop = "effect"
-@@ -88,6 +98,7 @@ class GSettingsEffectChooserButton(EffectChooserButton, CSGSettingsBackend):
+@@ -88,6 +94,7 @@ class GSettingsEffectChooserButton(EffectChooserButton, CSGSettingsBackend):
          super(GSettingsEffectChooserButton, self).__init__(options)
          self.bind_settings()
  
@@ -5918,7 +5850,7 @@ index 9603637..93b4804 100755
  class Module:
      name = "effects"
      category = "appear"
-@@ -100,7 +111,7 @@ class Module:
+@@ -100,7 +107,7 @@ class Module:
  
      def on_module_selected(self):
          if not self.loaded:
@@ -5927,7 +5859,7 @@ index 9603637..93b4804 100755
  
              self.sidePage.stack = SettingsStack()
              self.sidePage.add_widget(self.sidePage.stack)
-@@ -151,7 +162,7 @@ class Module:
+@@ -151,7 +158,7 @@ class Module:
              label = Gtk.Label()
              label.set_markup("<b>%s</b>" % _("Customize settings"))
              box.pack_start(label, False, False, 0)
@@ -5936,7 +5868,7 @@ index 9603637..93b4804 100755
              box.pack_end(self.custom_switch, False, False, 0)
              self.custom_switch.connect("notify::active", self.update_effects)
              page.add(box)
-@@ -250,7 +261,7 @@ class Module:
+@@ -250,7 +257,7 @@ class Module:
          active = switch.get_active()
  
          self.revealer.set_reveal_child(active)
@@ -5946,28 +5878,24 @@ index 9603637..93b4804 100755
              self.on_value_changed(self.chooser)
  
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_extensions.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_extensions.py
-index 12af242..93859d8 100755
+index 12af242..e0ea35f 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_extensions.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_extensions.py
-@@ -1,10 +1,17 @@
+@@ -1,10 +1,13 @@
  #!/usr/bin/python2
  
 +from __future__ import print_function
-+
-+import gettext
 +
  from ExtensionCore import ManageSpicesPage, DownloadSpicesPage
  from SettingsWidgets import SidePage, SettingsStack
  from Spices import Spice_Harvester
  from gi.repository import GLib
  
-+_ = gettext.gettext
-+
 +
  class Module:
      name = "extensions"
      category = "prefs"
-@@ -16,12 +23,13 @@ class Module:
+@@ -16,12 +19,13 @@ class Module:
  
      def on_module_selected(self):
          if not self.loaded:
@@ -5982,7 +5910,7 @@ index 12af242..93859d8 100755
  class ExtensionViewSidePage(SidePage):
      collection_type = "extension"
  
-@@ -46,6 +54,7 @@ class ExtensionViewSidePage(SidePage):
+@@ -46,6 +50,7 @@ class ExtensionViewSidePage(SidePage):
          download_extensions_page = DownloadSpicesPage(self, self.collection_type, self.spices, window)
          self.stack.add_titled(download_extensions_page, "more", _("Download"))
  
@@ -5991,15 +5919,13 @@ index 12af242..93859d8 100755
      directories = ['/usr/share/cinnamon/extensions', ("%s/.local/share/cinnamon/extensions") % GLib.get_home_dir()]
      collection_type = "extension"
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_fonts.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_fonts.py
-index 69e942d..9cc2ea6 100755
+index 69e942d..9510be5 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_fonts.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_fonts.py
-@@ -1,10 +1,16 @@
+@@ -1,10 +1,12 @@
  #!/usr/bin/python2
  
 +from __future__ import print_function
-+
-+import gettext
 +
  import gi
 -gi.require_version("Gtk", "3.0")
@@ -6008,12 +5934,10 @@ index 69e942d..9cc2ea6 100755
  
 -from GSettingsWidgets import *
 +from GSettingsWidgets import *  # noqa
-+
-+_ = gettext.gettext
  
  
  class Module:
-@@ -19,7 +25,7 @@ class Module:
+@@ -19,7 +21,7 @@ class Module:
  
      def on_module_selected(self):
          if not self.loaded:
@@ -6023,24 +5947,20 @@ index 69e942d..9cc2ea6 100755
              page = SettingsPage()
              self.sidePage.add_widget(page)
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_general.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_general.py
-index 41177fb..eb9052f 100755
+index 41177fb..b76c32e 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_general.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_general.py
-@@ -1,6 +1,12 @@
+@@ -1,6 +1,8 @@
  #!/usr/bin/python2
  
 -from GSettingsWidgets import *
 +from __future__ import print_function
 +
-+import gettext
-+
 +from GSettingsWidgets import *  # noqa
-+
-+_ = gettext.gettext
  
  
  class Module:
-@@ -15,7 +21,7 @@ class Module:
+@@ -15,7 +17,7 @@ class Module:
  
      def on_module_selected(self):
          if not self.loaded:
@@ -6050,15 +5970,14 @@ index 41177fb..eb9052f 100755
              page = SettingsPage()
              self.sidePage.add_widget(page)
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_hotcorner.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_hotcorner.py
-index 1d42741..52a2ae0 100755
+index 1d42741..261b13a 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_hotcorner.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_hotcorner.py
-@@ -1,15 +1,21 @@
+@@ -1,15 +1,18 @@
  #!/usr/bin/python2
 +
 +from __future__ import print_function
 +
-+import gettext
  import cairo
  import math
  
@@ -6071,8 +5990,6 @@ index 1d42741..52a2ae0 100755
 -_180_DEG = 180.0 * (math.pi/180.0)
 -_90_DEG = 90.0 * (math.pi/180.0)
 -_0_DEG = 0.0 * (math.pi/180.0)
-+_ = gettext.gettext
-+
 +_270_DEG = 270.0 * (math.pi / 180.0)
 +_180_DEG = 180.0 * (math.pi / 180.0)
 +_90_DEG = 90.0 * (math.pi / 180.0)
@@ -6080,7 +5997,7 @@ index 1d42741..52a2ae0 100755
  
  
  class Module:
-@@ -24,7 +30,7 @@ class Module:
+@@ -24,7 +27,7 @@ class Module:
  
      def on_module_selected(self):
          if not self.loaded:
@@ -6089,7 +6006,7 @@ index 1d42741..52a2ae0 100755
  
              self.corners = []
              for i in range(4):
-@@ -47,10 +53,10 @@ class Module:
+@@ -47,10 +50,10 @@ class Module:
  
              self.cornerDisplay = HotCornerDisplay()
              table.attach(self.cornerDisplay, 1, 2, 0, 2)
@@ -6104,7 +6021,7 @@ index 1d42741..52a2ae0 100755
  
              self.cornerDisplay.set_size_request(200, 250)
  
-@@ -81,7 +87,7 @@ class Module:
+@@ -81,7 +84,7 @@ class Module:
  
              try:
                  delay = prop[2]
@@ -6113,7 +6030,7 @@ index 1d42741..52a2ae0 100755
                  delay = "0"
  
              corner.setValues(function, enabled, delay)
-@@ -102,7 +108,7 @@ class Module:
+@@ -102,7 +105,7 @@ class Module:
  
          try:
              props[2] = str(delay)
@@ -6122,7 +6039,7 @@ index 1d42741..52a2ae0 100755
              props.append("0")
  
          self.write_settings()
-@@ -115,8 +121,9 @@ class Module:
+@@ -115,8 +118,9 @@ class Module:
  
  
  class HotCornerDisplay(Gtk.Label):
@@ -6133,7 +6050,7 @@ index 1d42741..52a2ae0 100755
          self.connect('draw', self.expose)
  
          self.cornerEnabled = []
-@@ -140,7 +147,7 @@ class HotCornerDisplay(Gtk.Label):
+@@ -140,7 +144,7 @@ class HotCornerDisplay(Gtk.Label):
              (succ, color) = context.lookup_color(alternative)
          return color
  
@@ -6142,7 +6059,7 @@ index 1d42741..52a2ae0 100755
      def expose(self, widget, cr):
          context = self.get_style_context()
          context.save()
-@@ -161,7 +168,7 @@ class HotCornerDisplay(Gtk.Label):
+@@ -161,7 +165,7 @@ class HotCornerDisplay(Gtk.Label):
  
          cr.rectangle(0, 0, self.allocWidth, self.allocHeight)
          cr.clip()
@@ -6151,7 +6068,7 @@ index 1d42741..52a2ae0 100755
  
          cr.rectangle(0, 0, self.allocWidth, self.allocHeight)
          cr.clip()
-@@ -169,26 +176,26 @@ class HotCornerDisplay(Gtk.Label):
+@@ -169,26 +173,26 @@ class HotCornerDisplay(Gtk.Label):
          cr.set_line_width(1)
  
          self._setCornerColor(cr, 0)
@@ -6187,7 +6104,7 @@ index 1d42741..52a2ae0 100755
          cr.arc(self.allocWidth, self.allocHeight, 50, _180_DEG, _270_DEG)
          cr.fill()
  
-@@ -198,21 +205,22 @@ class HotCornerDisplay(Gtk.Label):
+@@ -198,21 +202,22 @@ class HotCornerDisplay(Gtk.Label):
  
          context.restore()
  
@@ -6213,7 +6130,7 @@ index 1d42741..52a2ae0 100755
          self.functionStore.append(['desktop', _("Show the desktop")])
          self.functionStore.append(['custom', _("Run a command")])
  
-@@ -295,7 +303,7 @@ class HotCornerConfiguration():
+@@ -295,7 +300,7 @@ class HotCornerConfiguration():
      def on_widget_changed(self, widget):
          def apply(self):
              iter = self.functionCombo.get_active_iter()
@@ -6223,30 +6140,27 @@ index 1d42741..52a2ae0 100755
                  enabled = self.hoverCheckbox.get_active()
                  delay = str(int(self.hoverDelaySpinner.get_value()))
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_info.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_info.py
-index 74702a7..cb863fc 100755
+index 74702a7..601776a 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_info.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_info.py
-@@ -1,5 +1,8 @@
+@@ -1,5 +1,7 @@
  #!/usr/bin/python2
  
 +from __future__ import print_function
 +
-+import gettext
  import platform
  import subprocess
  import shlex
-@@ -7,7 +10,9 @@ import os
+@@ -7,7 +9,7 @@ import os
  import re
  import threading
  
 -from GSettingsWidgets import *
 +from GSettingsWidgets import *  # noqa
-+
-+_ = gettext.gettext
  
  
  def killProcess(process):
-@@ -37,7 +42,7 @@ def getGraphicsInfos():
+@@ -37,7 +39,7 @@ def getGraphicsInfos():
      envpath = os.environ["PATH"]
      os.environ["PATH"] = envpath + ":/usr/local/sbin:/usr/sbin:/sbin"
      for card in getProcessOut(("lspci")):
@@ -6255,7 +6169,7 @@ index 74702a7..cb863fc 100755
              continue
          cardId = card.split()[0]
          cardName = None
-@@ -113,7 +118,7 @@ def createSystemInfos():
+@@ -113,7 +115,7 @@ def createSystemInfos():
      infos.append((_("Linux Kernel"), platform.release()))
      infos.append((_("Processor"), processorName))
      if memunit == "kB":
@@ -6264,7 +6178,7 @@ index 74702a7..cb863fc 100755
      else:
          infos.append((_("Memory"), procInfos['mem_total']))
  
-@@ -122,7 +127,7 @@ def createSystemInfos():
+@@ -122,7 +124,7 @@ def createSystemInfos():
          diskText = _("Hard Drives")
      else:
          diskText = _("Hard Drive")
@@ -6273,7 +6187,7 @@ index 74702a7..cb863fc 100755
  
      cards = getGraphicsInfos()
      for card in cards:
-@@ -143,7 +148,7 @@ class Module:
+@@ -143,7 +145,7 @@ class Module:
  
      def on_module_selected(self):
          if not self.loaded:
@@ -6283,10 +6197,10 @@ index 74702a7..cb863fc 100755
              infos = createSystemInfos()
  
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_keyboard.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_keyboard.py
-index 2f3be78..33e7c2b 100755
+index 2f3be78..4880ad3 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_keyboard.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_keyboard.py
-@@ -1,17 +1,19 @@
+@@ -1,15 +1,16 @@
  #!/usr/bin/python2
  
 -from gi.repository import Gio, Gtk, GObject, Gdk
@@ -6306,11 +6220,8 @@ index 2f3be78..33e7c2b 100755
 +from GSettingsWidgets import *  # noqa
  
  gettext.install("cinnamon", "/usr/share/locale")
-+_ = gettext.gettext
  
- # Keybindings page - check if we need to store custom
- # keybindings to gsettings key as well as GConf (In Mint 14 this is changed)
-@@ -26,7 +28,7 @@ CINNAMON_SCHEMA = "org.cinnamon.desktop.keybindings"
+@@ -26,7 +27,7 @@ CINNAMON_SCHEMA = "org.cinnamon.desktop.keybindings"
  CATEGORIES = [
  
      #   Label                   id                  parent
@@ -6319,7 +6230,7 @@ index 2f3be78..33e7c2b 100755
  
      [_("General"),          "general",          None,       "preferences-desktop-keyboard-shortcuts"],
      [_("Troubleshooting"),      "trouble",          "general",      None],
-@@ -39,12 +41,12 @@ CATEGORIES = [
+@@ -39,12 +40,12 @@ CATEGORIES = [
      [_("Direct Navigation"),    "ws-navi",          "workspaces",   None],
      [_("System"),           "system",           None,       "preferences-system"],
      [_("Hardware"),             "sys-hw",           "system",       None],
@@ -6334,7 +6245,7 @@ index 2f3be78..33e7c2b 100755
  ]
  
  KEYBINDINGS = [
-@@ -114,7 +116,7 @@ KEYBINDINGS = [
+@@ -114,7 +115,7 @@ KEYBINDINGS = [
      [_("Move window to workspace 10"), MUFFIN_KEYBINDINGS_SCHEMA, "move-to-workspace-10", "win-workspaces"],
      [_("Move window to workspace 11"), MUFFIN_KEYBINDINGS_SCHEMA, "move-to-workspace-11", "win-workspaces"],
      [_("Move window to workspace 12"), MUFFIN_KEYBINDINGS_SCHEMA, "move-to-workspace-12", "win-workspaces"],
@@ -6343,7 +6254,7 @@ index 2f3be78..33e7c2b 100755
      [_("Move window to left monitor"), MUFFIN_KEYBINDINGS_SCHEMA, "move-to-monitor-left", "win-monitors"],
      [_("Move window to right monitor"), MUFFIN_KEYBINDINGS_SCHEMA, "move-to-monitor-right", "win-monitors"],
      [_("Move window to up monitor"), MUFFIN_KEYBINDINGS_SCHEMA, "move-to-monitor-up", "win-monitors"],
-@@ -197,9 +199,10 @@ KEYBINDINGS = [
+@@ -197,9 +198,10 @@ KEYBINDINGS = [
      [_("Turn on-screen keyboard on or off"), MEDIA_KEYS_SCHEMA, "on-screen-keyboard", "accessibility"],
      [_("Increase text size"), MEDIA_KEYS_SCHEMA, "increase-text-size", "accessibility"],
      [_("Decrease text size"), MEDIA_KEYS_SCHEMA, "decrease-text-size", "accessibility"],
@@ -6355,7 +6266,7 @@ index 2f3be78..33e7c2b 100755
  class Module:
      comment = _("Manage keyboard settings and shortcuts")
      name = "keyboard"
-@@ -212,7 +215,7 @@ class Module:
+@@ -212,7 +214,7 @@ class Module:
  
      def on_module_selected(self):
          if not self.loaded:
@@ -6364,7 +6275,7 @@ index 2f3be78..33e7c2b 100755
  
              self.sidePage.stack = SettingsStack()
              self.sidePage.add_widget(self.sidePage.stack)
-@@ -255,7 +258,7 @@ class Module:
+@@ -255,7 +257,7 @@ class Module:
              headingbox.pack_start(mainbox, True, True, 2)
              headingbox.pack_end(Gtk.Label.new(_("To edit a keyboard binding, click it and press the new keys, or press backspace to clear it.")), False, False, 1)
  
@@ -6373,7 +6284,7 @@ index 2f3be78..33e7c2b 100755
              Gtk.StyleContext.add_class(Gtk.Widget.get_style_context(paned), "wide")
  
              left_vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 2)
-@@ -314,13 +317,13 @@ class Module:
+@@ -314,13 +316,13 @@ class Module:
                                             str,     # The category name
                                             object)  # The category object
  
@@ -6391,7 +6302,7 @@ index 2f3be78..33e7c2b 100755
              pb_cell = Gtk.CellRendererPixbuf()
              cat_column = Gtk.TreeViewColumn(_("Categories"))
              cat_column.pack_start(pb_cell, False)
-@@ -335,14 +338,14 @@ class Module:
+@@ -335,14 +337,14 @@ class Module:
              self.cat_tree.connect("cursor-changed", self.onCategoryChanged)
  
              kb_name_cell = Gtk.CellRendererText()
@@ -6408,7 +6319,7 @@ index 2f3be78..33e7c2b 100755
              entry_cell.connect('accel-edited', self.onEntryChanged, self.entry_store)
              entry_cell.connect('accel-cleared', self.onEntryCleared, self.entry_store)
              entry_cell.set_property('editable', True)
-@@ -367,7 +370,7 @@ class Module:
+@@ -367,7 +369,7 @@ class Module:
              longest_cat_label = " "
  
              for category in self.main_store:
@@ -6417,7 +6328,7 @@ index 2f3be78..33e7c2b 100755
                      cat_iters[category.int_name] = self.cat_store.append(None)
                  else:
                      cat_iters[category.int_name] = self.cat_store.append(cat_iters[category.parent])
-@@ -396,7 +399,7 @@ class Module:
+@@ -396,7 +398,7 @@ class Module:
              self.sidePage.stack.add_titled(vbox, "layouts", _("Layouts"))
              try:
                  widget = self.sidePage.content_box.c_manager.get_c_widget("region")
@@ -6426,7 +6337,7 @@ index 2f3be78..33e7c2b 100755
                  widget = None
  
              if widget is not None:
-@@ -432,7 +435,7 @@ class Module:
+@@ -432,7 +434,7 @@ class Module:
          custom_list = parent.get_strv("custom-list")
  
          for entry in custom_list:
@@ -6435,7 +6346,7 @@ index 2f3be78..33e7c2b 100755
              schema = Gio.Settings.new_with_path(CUSTOM_KEYS_SCHEMA, custom_path)
              custom_kb = CustomKeyBinding(entry,
                                           schema.get_string("name"),
-@@ -455,7 +458,6 @@ class Module:
+@@ -455,7 +457,6 @@ class Module:
                  self.remove_custom_button.set_property('sensitive', isinstance(keybinding, CustomKeyBinding))
  
      def onEntryChanged(self, cell, path, accel_string, accel_label, entry_store):
@@ -6443,7 +6354,7 @@ index 2f3be78..33e7c2b 100755
          keybindings, kb_iter = self.kb_tree.get_selection().get_selected()
          if kb_iter:
              current_keybinding = keybindings[kb_iter][1]
-@@ -480,7 +482,7 @@ class Module:
+@@ -480,7 +481,7 @@ class Module:
                          msg = _("This key combination, <b>%(combination)s</b> is currently in use by <b>%(old)s</b>.  ")
                          msg += _("If you continue, the combination will be reassigned to <b>%(new)s</b>.\n\n")
                          msg += _("Do you want to continue with this operation?")
@@ -6452,7 +6363,7 @@ index 2f3be78..33e7c2b 100755
                          dialog.show_all()
                          response = dialog.run()
                          dialog.destroy()
-@@ -493,7 +495,6 @@ class Module:
+@@ -493,7 +494,6 @@ class Module:
          self.entry_tree.get_selection().select_path(path)
  
      def onEntryCleared(self, cell, path, entry_store):
@@ -6460,7 +6371,7 @@ index 2f3be78..33e7c2b 100755
          keybindings, kb_iter = self.kb_tree.get_selection().get_selected()
          if kb_iter:
              current_keybinding = keybindings[kb_iter][1]
-@@ -595,7 +596,7 @@ class Module:
+@@ -595,7 +595,7 @@ class Module:
  
                  keybinding.label = dialog.name_entry.get_text()
                  keybinding.action = dialog.command_entry.get_text().replace("%20", "\ ")
@@ -6469,7 +6380,7 @@ index 2f3be78..33e7c2b 100755
  
                  i = 0
                  for cat in self.cat_store:
-@@ -609,7 +610,7 @@ class Module:
+@@ -609,7 +609,7 @@ class Module:
                      i += 1
                  dialog.destroy()
  
@@ -6478,7 +6389,7 @@ index 2f3be78..33e7c2b 100755
          model, iter = tree.get_selection().get_selected()
          if iter:
              keybinding = model[iter][1]
-@@ -645,6 +646,7 @@ class Module:
+@@ -645,6 +645,7 @@ class Module:
  
  
  class KeyBindingCategory():
@@ -6486,7 +6397,7 @@ index 2f3be78..33e7c2b 100755
      def __init__(self, label, int_name, parent, icon):
          self.label = label
          self.parent = parent
-@@ -658,11 +660,13 @@ class KeyBindingCategory():
+@@ -658,11 +659,13 @@ class KeyBindingCategory():
      def clear(self):
          del self.keybindings[:]
  
@@ -6501,7 +6412,7 @@ index 2f3be78..33e7c2b 100755
          self.settings = Gio.Settings.new(schema)
          self.loadSettings()
  
-@@ -698,7 +702,9 @@ class KeyBinding():
+@@ -698,7 +701,9 @@ class KeyBinding():
          self.settings.reset(self.key)
          self.loadSettings()
  
@@ -6511,7 +6422,7 @@ index 2f3be78..33e7c2b 100755
      def __init__(self, path, label, action, binding):
          self.path = path
          self.label = label
-@@ -722,7 +728,7 @@ class CustomKeyBinding():
+@@ -722,7 +727,7 @@ class CustomKeyBinding():
          self.writeSettings()
  
      def writeSettings(self):
@@ -6520,7 +6431,7 @@ index 2f3be78..33e7c2b 100755
          settings = Gio.Settings.new_with_path(CUSTOM_KEYS_SCHEMA, custom_path)
  
          settings.set_string("name", self.label)
-@@ -739,7 +745,9 @@ class CustomKeyBinding():
+@@ -739,7 +744,9 @@ class CustomKeyBinding():
          custom_list = parent.get_strv("custom-list")
          parent.set_strv("custom-list", custom_list)
  
@@ -6530,7 +6441,7 @@ index 2f3be78..33e7c2b 100755
      def __init__(self, edit_mode):
          if edit_mode:
              ok_button_label = _("Update")
-@@ -757,7 +765,7 @@ class AddCustomDialog(Gtk.Dialog):
+@@ -757,7 +764,7 @@ class AddCustomDialog(Gtk.Dialog):
          command_box.pack_start(Gtk.Label.new(_("Command:")), False, False, 2)
          self.name_entry = Gtk.Entry()
          self.name_entry.connect('changed', self.onEntriesChanged)
@@ -6540,15 +6451,13 @@ index 2f3be78..33e7c2b 100755
          name_box.pack_start(self.name_entry, True, True, 2)
          command_box.pack_start(self.command_entry, True, True, 2)
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_mouse.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_mouse.py
-index de9e3a2..6221de9 100755
+index de9e3a2..2051f55 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_mouse.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_mouse.py
-@@ -1,10 +1,16 @@
+@@ -1,10 +1,12 @@
  #!/usr/bin/python2
  
 +from __future__ import print_function
-+
-+import gettext
 +
  import gi
 -gi.require_version("Gtk", "3.0")
@@ -6557,12 +6466,10 @@ index de9e3a2..6221de9 100755
  
 -from GSettingsWidgets import *
 +from GSettingsWidgets import *  # noqa
-+
-+_ = gettext.gettext
  
  
  class Module:
-@@ -19,7 +25,7 @@ class Module:
+@@ -19,7 +21,7 @@ class Module:
  
      def on_module_selected(self):
          if not self.loaded:
@@ -6572,30 +6479,26 @@ index de9e3a2..6221de9 100755
              self.sidePage.stack = SettingsStack()
              self.sidePage.add_widget(self.sidePage.stack)
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_notifications.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_notifications.py
-index 05f3011..05d7828 100755
+index 05f3011..59377be 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_notifications.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_notifications.py
-@@ -1,10 +1,16 @@
+@@ -1,10 +1,12 @@
  #!/usr/bin/python2
  
 +from __future__ import print_function
-+
-+import gettext
 +
  import gi
 -gi.require_version('Notify', '0.7')
 -from gi.repository import GObject, Notify
 +gi.require_version('Notify', '0.7')  # noqa
 +from gi.repository import Notify
-+
-+from GSettingsWidgets import *  # noqa
  
 -from GSettingsWidgets import *
-+_ = gettext.gettext
++from GSettingsWidgets import *  # noqa
  
  content = """
  Lorem ipsum dolor sit amet, consectetur adipiscing elit. \
-@@ -43,7 +49,7 @@ class Module:
+@@ -43,7 +45,7 @@ class Module:
          if self.loaded:
              return
  
@@ -6605,25 +6508,21 @@ index 05f3011..05d7828 100755
          Notify.init("cinnamon-settings-notifications-test")
  
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_online_accounts.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_online_accounts.py
-index 366b028..23f95b4 100755
+index 366b028..0a5b877 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_online_accounts.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_online_accounts.py
-@@ -1,6 +1,13 @@
+@@ -1,6 +1,9 @@
  #!/usr/bin/python2
  
 -from GSettingsWidgets import *
 +from __future__ import print_function
 +
-+import gettext
-+
 +from GSettingsWidgets import *  # noqa
-+
-+_ = gettext.gettext
 +
  
  class Module:
      name = "online-accounts"
-@@ -13,7 +20,7 @@ class Module:
+@@ -13,7 +16,7 @@ class Module:
  
      def on_module_selected(self):
          if not self.loaded:
@@ -6632,7 +6531,7 @@ index 366b028..23f95b4 100755
  
              page = SettingsPage()
              self.sidePage.add_widget(page)
-@@ -30,8 +37,8 @@ class Module:
+@@ -30,8 +33,8 @@ class Module:
                  content = self.sidePage.content_box.c_manager.get_c_widget("online-accounts")
                  content.set_no_show_all(True)
                  page.pack_start(content, True, True, 0)
@@ -6644,15 +6543,13 @@ index 366b028..23f95b4 100755
              page.expand = True
  
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_panel.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_panel.py
-index c0de506..043eab3 100755
+index c0de506..c6e8ccf 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_panel.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_panel.py
-@@ -1,16 +1,23 @@
+@@ -1,16 +1,19 @@
  #!/usr/bin/python2
  
 +from __future__ import print_function
-+
-+import gettext
 +
  import sys
  
@@ -6665,8 +6562,6 @@ index c0de506..043eab3 100755
  
 -from GSettingsWidgets import *
 +from GSettingsWidgets import *  # noqa
-+
-+_ = gettext.gettext
  
  
  class Monitor:
@@ -6674,7 +6569,7 @@ index c0de506..043eab3 100755
      def __init__(self):
          self.top = -1
          self.bottom = -1
-@@ -19,6 +26,7 @@ class Monitor:
+@@ -19,6 +22,7 @@ class Monitor:
  
  
  class PanelSettingsPage(SettingsPage):
@@ -6682,7 +6577,7 @@ index c0de506..043eab3 100755
      def __init__(self, panel_id, settings, position):
          super(PanelSettingsPage, self).__init__()
          self.set_margin_top(0)
-@@ -45,25 +53,26 @@ class PanelSettingsPage(SettingsPage):
+@@ -45,25 +49,26 @@ class PanelSettingsPage(SettingsPage):
          widget = PanelComboBox(_("Auto-hide panel"), "org.cinnamon", "panels-autohide", self.panel_id, options)
          section.add_row(widget)
  
@@ -6713,7 +6608,7 @@ index c0de506..043eab3 100755
  class Module:
      name = "panel"
      category = "prefs"
-@@ -75,7 +84,7 @@ class Module:
+@@ -75,7 +80,7 @@ class Module:
  
      def on_module_selected(self):
          if not self.loaded:
@@ -6722,7 +6617,7 @@ index c0de506..043eab3 100755
  
              self.settings = Gio.Settings.new("org.cinnamon")
  
-@@ -84,7 +93,7 @@ class Module:
+@@ -84,7 +89,7 @@ class Module:
                      self.panel_id = sys.argv[2]
                  else:
                      self.panel_id = self.settings.get_strv("panels-enabled")[0].split(":")[0]
@@ -6731,7 +6626,7 @@ index c0de506..043eab3 100755
                  self.panel_id = ""
  
              self.panels = []
-@@ -142,7 +151,7 @@ class Module:
+@@ -142,7 +147,7 @@ class Module:
  
          self.on_panel_list_changed()
  
@@ -6740,7 +6635,7 @@ index c0de506..043eab3 100755
          self.proxy = Gio.DBusProxy.new_for_bus_finish(result)
  
          if not self.proxy.get_name_owner():
-@@ -286,10 +295,10 @@ class Module:
+@@ -286,10 +291,10 @@ class Module:
  
          self.add_panel_button.set_sensitive(can_add)
  
@@ -6755,7 +6650,7 @@ index c0de506..043eab3 100755
  
          if self.proxy:
              self.proxy.highlightPanel('(ib)', int(self.panel_id), True)
-@@ -299,11 +308,13 @@ class Module:
+@@ -299,11 +304,13 @@ class Module:
          if self.panel_id:
              self.proxy.highlightPanel('(ib)', int(self.panel_id), False)
  
@@ -6770,7 +6665,7 @@ index c0de506..043eab3 100755
          self.connect("destroy", self.on_destroy)
          self.on_setting_changed()
  
-@@ -336,7 +347,9 @@ class PanelWidgetBackend(object):
+@@ -336,7 +343,9 @@ class PanelWidgetBackend(object):
      def on_destroy(self, *args):
          self.settings.disconnect(self.settings_changed_id)
  
@@ -6780,7 +6675,7 @@ index c0de506..043eab3 100755
      def __init__(self, label, schema, key, panel_id, *args, **kwargs):
          self.panel_id = panel_id
          super(PanelSwitch, self).__init__(label, *args, **kwargs)
-@@ -362,7 +375,9 @@ class PanelSwitch(Switch, PanelWidgetBackend):
+@@ -362,7 +371,9 @@ class PanelSwitch(Switch, PanelWidgetBackend):
          if self.get_value() != active:
              self.set_value(active)
  
@@ -6790,7 +6685,7 @@ index c0de506..043eab3 100755
      def __init__(self, label, schema, key, panel_id, *args, **kwargs):
          self.panel_id = panel_id
          super(PanelSpinButton, self).__init__(label, *args, **kwargs)
-@@ -387,7 +402,9 @@ class PanelSpinButton(SpinButton, PanelWidgetBackend):
+@@ -387,7 +398,9 @@ class PanelSpinButton(SpinButton, PanelWidgetBackend):
          if value != int(self.content_widget.get_value()):
              self.content_widget.set_value(value)
  
@@ -6800,7 +6695,7 @@ index c0de506..043eab3 100755
      def __init__(self, label, schema, key, panel_id, *args, **kwargs):
          self.panel_id = panel_id
          super(PanelComboBox, self).__init__(label, *args, **kwargs)
-@@ -400,7 +417,9 @@ class PanelComboBox(ComboBox, PanelWidgetBackend):
+@@ -400,7 +413,9 @@ class PanelComboBox(ComboBox, PanelWidgetBackend):
      def unstringify(self, value):
          return value
  
@@ -6811,15 +6706,13 @@ index c0de506..043eab3 100755
          self.panel_id = panel_id
          super(PanelRange, self).__init__(label, *args, **kwargs)
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_power.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_power.py
-index d03428b..26e9410 100755
+index d03428b..1938a39 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_power.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_power.py
-@@ -1,11 +1,18 @@
+@@ -1,11 +1,14 @@
  #!/usr/bin/python2
  
 +from __future__ import print_function
-+
-+import gettext
 +
  import gi
 -gi.require_version('CinnamonDesktop', '3.0')
@@ -6831,12 +6724,10 @@ index d03428b..26e9410 100755
 -from GSettingsWidgets import *
 +from GSettingsWidgets import *  # noqa
 +
-+_ = gettext.gettext
-+
  
  POWER_BUTTON_OPTIONS = [
      ("blank", _("Lock the screen")),
-@@ -47,6 +54,7 @@ SLEEP_DELAY_OPTIONS = [
+@@ -47,6 +50,7 @@ SLEEP_DELAY_OPTIONS = [
  
  (UP_ID, UP_VENDOR, UP_MODEL, UP_TYPE, UP_ICON, UP_PERCENTAGE, UP_STATE, UP_SECONDS) = range(8)
  
@@ -6844,7 +6735,7 @@ index d03428b..26e9410 100755
  def get_timestring(time_seconds):
      minutes = int((time_seconds / 60.0) + 0.5)
  
-@@ -87,6 +95,7 @@ def get_timestring(time_seconds):
+@@ -87,6 +91,7 @@ def get_timestring(time_seconds):
  CSD_SCHEMA = "org.cinnamon.settings-daemon.plugins.power"
  CSM_SCHEMA = "org.cinnamon.SessionManager"
  
@@ -6852,7 +6743,7 @@ index d03428b..26e9410 100755
  class Module:
      name = "power"
      category = "hardware"
-@@ -100,7 +109,7 @@ class Module:
+@@ -100,7 +105,7 @@ class Module:
          if self.loaded:
              # self.loaded = False
              return
@@ -6861,7 +6752,7 @@ index d03428b..26e9410 100755
  
          self.up_client = UPowerGlib.Client.new()
  
-@@ -197,10 +206,10 @@ class Module:
+@@ -197,10 +202,10 @@ class Module:
                          output.get_backlight()
                          primary_output = output
                          break
@@ -6875,7 +6766,7 @@ index d03428b..26e9410 100755
  
          if primary_output is None:
              if self.show_battery_page:
-@@ -222,8 +231,8 @@ class Module:
+@@ -222,8 +227,8 @@ class Module:
              None)
  
          try:
@@ -6886,7 +6777,7 @@ index d03428b..26e9410 100755
              if self.show_battery_page:
                  self.sidePage.add_widget(self.sidePage.stack)
                  self.sidePage.stack.add_titled(power_page, "power", _("Power"))
-@@ -258,10 +267,10 @@ class Module:
+@@ -258,10 +263,10 @@ class Module:
              try:
                  (device_id, device_nickname) = alias.split(":=")
                  self.aliases[device_id] = device_nickname
@@ -6900,7 +6791,7 @@ index d03428b..26e9410 100755
          for widget in self.battery_page.get_children():
              widget.destroy()
  
-@@ -284,7 +293,7 @@ class Module:
+@@ -284,7 +289,7 @@ class Module:
  
          for device in devices:
              if device[UP_TYPE] == UPowerGlib.DeviceKind.LINE_POWER:
@@ -6909,7 +6800,7 @@ index d03428b..26e9410 100755
              elif device[UP_TYPE] == UPowerGlib.DeviceKind.UPS and ups_as_primary:
                  if not primary_settings:
                      primary_settings = self.battery_page.add_section(_("Batteries"))
-@@ -311,7 +320,7 @@ class Module:
+@@ -311,7 +316,7 @@ class Module:
                  else:
                      secondary_settings.add_row(self.add_battery_device_secondary(device))
  
@@ -6918,7 +6809,7 @@ index d03428b..26e9410 100755
          visible = self.battery_page.get_visible()
          self.battery_page.show_all()
          self.battery_page.set_visible(visible)
-@@ -530,7 +539,7 @@ def get_available_options(up_client):
+@@ -530,7 +535,7 @@ def get_available_options(up_client):
          can_suspend = proxy.CanSuspend() == "yes"
          can_hibernate = proxy.CanHibernate() == "yes"
          can_hybrid_sleep = proxy.CanHybridSleep() == "yes"
@@ -6927,7 +6818,7 @@ index d03428b..26e9410 100755
          pass
  
      # New versions of upower does not have get_can_suspend function
-@@ -538,7 +547,7 @@ def get_available_options(up_client):
+@@ -538,7 +543,7 @@ def get_available_options(up_client):
          can_suspend = can_suspend or up_client.get_can_suspend()
          can_hibernate = can_hibernate or up_client.get_can_hibernate()
          can_hybrid_sleep = can_hibernate or up_client.get_can_hybrid_sleep()
@@ -6936,7 +6827,7 @@ index d03428b..26e9410 100755
          pass
  
      def remove(options, item):
-@@ -577,6 +586,7 @@ def get_available_options(up_client):
+@@ -577,6 +582,7 @@ def get_available_options(up_client):
  
      return lid_options, button_power_options, critical_options, can_suspend, can_hybrid_sleep
  
@@ -6944,7 +6835,7 @@ index d03428b..26e9410 100755
  class BrightnessSlider(SettingsWidget):
      step = 5
  
-@@ -594,7 +604,7 @@ class BrightnessSlider(SettingsWidget):
+@@ -594,7 +600,7 @@ class BrightnessSlider(SettingsWidget):
          self.label = Gtk.Label.new(_("Screen brightness"))
          self.label.set_halign(Gtk.Align.CENTER)
  
@@ -6953,7 +6844,7 @@ index d03428b..26e9410 100755
          self.max_label = Gtk.Label()
          self.min_label.set_alignment(1.0, 0.75)
          self.max_label.set_alignment(1.0, 0.75)
-@@ -640,10 +650,12 @@ class BrightnessSlider(SettingsWidget):
+@@ -640,10 +646,12 @@ class BrightnessSlider(SettingsWidget):
          try:
              brightness = self.proxy.GetPercentage()
              self.content_widget.set_value(brightness)
@@ -6967,7 +6858,7 @@ index d03428b..26e9410 100755
      def __init__(self, label, schema, key1, key2, options, valtype="string", dep_key=None, size_group=None):
          super(GSettings2ComboBox, self).__init__(dep_key=dep_key)
  
-@@ -658,7 +670,6 @@ class GSettings2ComboBox(SettingsWidget):
+@@ -658,7 +666,6 @@ class GSettings2ComboBox(SettingsWidget):
          else:
              self.model = Gtk.ListStore(int, str)
  
@@ -6975,7 +6866,7 @@ index d03428b..26e9410 100755
          for option in options:
              iter = self.model.insert_before(None, None)
              self.model.set_value(iter, 0, option[0])
-@@ -693,19 +704,19 @@ class GSettings2ComboBox(SettingsWidget):
+@@ -693,19 +700,19 @@ class GSettings2ComboBox(SettingsWidget):
  
      def on_my_value_changed(self, widget):
          tree_iter = widget.get_active_iter()
@@ -6999,24 +6890,20 @@ index d03428b..26e9410 100755
  
      def add_to_size_group(self, group):
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_privacy.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_privacy.py
-index 32f181a..157c611 100755
+index 32f181a..8319492 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_privacy.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_privacy.py
-@@ -1,6 +1,12 @@
+@@ -1,6 +1,8 @@
  #!/usr/bin/python2
  
 -from GSettingsWidgets import *
 +from __future__ import print_function
 +
-+import gettext
-+
 +from GSettingsWidgets import *  # noqa
-+
-+_ = gettext.gettext
  
  PRIVACY_SCHEMA = "org.cinnamon.desktop.privacy"
  GTK_RECENT_ENABLE_KEY = "remember-recent-files"
-@@ -20,7 +26,7 @@ class Module:
+@@ -20,7 +22,7 @@ class Module:
  
      def on_module_selected(self):
          if not self.loaded:
@@ -7025,7 +6912,7 @@ index 32f181a..157c611 100755
  
              page = SettingsPage()
              self.sidePage.add_widget(page)
-@@ -63,7 +69,7 @@ class Module:
+@@ -63,7 +65,7 @@ class Module:
              else:
                  self.indefinite_switch.content_widget.set_active(False)
                  self.revealer.set_reveal_child(True)
@@ -7035,10 +6922,10 @@ index 32f181a..157c611 100755
                  self.bind_spinner()
  
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_screensaver.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_screensaver.py
-index 18b5560..c9065f5 100755
+index 18b5560..42e1cc1 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_screensaver.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_screensaver.py
-@@ -1,15 +1,23 @@
+@@ -1,15 +1,21 @@
  #!/usr/bin/python2
  
 -import os, json, subprocess, re
@@ -7060,12 +6947,10 @@ index 18b5560..c9065f5 100755
  
 -from GSettingsWidgets import *
 +from GSettingsWidgets import *  # noqa
-+
-+_ = gettext.gettext
  
  LOCK_DELAY_OPTIONS = [
      (0, _("Lock immediately")),
-@@ -42,6 +50,7 @@ def list_header_func(row, before, user_data):
+@@ -42,6 +48,7 @@ def list_header_func(row, before, user_data):
      if before and not row.get_header():
          row.set_header(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
  
@@ -7073,7 +6958,7 @@ index 18b5560..c9065f5 100755
  class Module:
      name = "screensaver"
      category = "prefs"
-@@ -59,7 +68,7 @@ class Module:
+@@ -59,7 +66,7 @@ class Module:
          if self.loaded:
              return
  
@@ -7082,7 +6967,7 @@ index 18b5560..c9065f5 100755
  
          schema = "org.cinnamon.desktop.screensaver"
          self.settings = Gio.Settings.new(schema)
-@@ -168,7 +177,9 @@ class Module:
+@@ -168,7 +175,9 @@ class Module:
          widget.set_tooltip_text(_("When the default screensaver is active, allow the clock and album art widgets to float around randomly"))
          settings.add_row(widget)
  
@@ -7092,7 +6977,7 @@ index 18b5560..c9065f5 100755
      def __init__(self, title):
          Gtk.Box.__init__(self)
          self.set_orientation(Gtk.Orientation.VERTICAL)
-@@ -303,7 +314,7 @@ class ScreensaverBox(Gtk.Box):
+@@ -303,7 +312,7 @@ class ScreensaverBox(Gtk.Box):
  
                      path = os.path.join(XSCREENSAVER_PATH, item)
                      try:
@@ -7101,7 +6986,7 @@ index 18b5560..c9065f5 100755
                          root = tree.getroot()
  
                          name = root.attrib["name"]
-@@ -313,8 +324,8 @@ class ScreensaverBox(Gtk.Box):
+@@ -313,8 +322,8 @@ class ScreensaverBox(Gtk.Box):
                          description = _(description)
                          row = ScreensaverRow(name, label, description, XSCREENSAVER_PATH, "xscreensaver")
                          xscreensavers.append(row)
@@ -7112,7 +6997,7 @@ index 18b5560..c9065f5 100755
  
                  xscreensavers = sorted(xscreensavers, key=lambda x: x.name)
                  for xscreensaver in xscreensavers:
-@@ -322,8 +333,8 @@ class ScreensaverBox(Gtk.Box):
+@@ -322,8 +331,8 @@ class ScreensaverBox(Gtk.Box):
                      if self.current_name == "xscreensaver-" + xscreensaver.uuid:
                          self.list_box.select_row(xscreensaver)
                  gettext.install("cinnamon", "/usr/share/locale")
@@ -7123,7 +7008,7 @@ index 18b5560..c9065f5 100755
  
      def parse_dir(self, path, directory, ss_type):
          try:
-@@ -347,8 +358,8 @@ class ScreensaverBox(Gtk.Box):
+@@ -347,8 +356,8 @@ class ScreensaverBox(Gtk.Box):
  
              if self.current_name == uuid:
                  self.list_box.select_row(row)
@@ -7134,7 +7019,7 @@ index 18b5560..c9065f5 100755
  
      def kill_plug(self):
          if not self.proc:
-@@ -401,7 +412,7 @@ class ScreensaverBox(Gtk.Box):
+@@ -401,7 +410,7 @@ class ScreensaverBox(Gtk.Box):
          try:
              self.proc = Gio.Subprocess.new(command, Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_SILENCE)
          except GLib.Error as e:
@@ -7143,7 +7028,7 @@ index 18b5560..c9065f5 100755
  
          pipe = self.proc.get_stdout_pipe()
          bytes_read = pipe.read_bytes(1024, None)
-@@ -432,7 +443,9 @@ class ScreensaverBox(Gtk.Box):
+@@ -432,7 +441,9 @@ class ScreensaverBox(Gtk.Box):
      def add_row(self, row):
          self.list_box.add(row)
  
@@ -7154,15 +7039,14 @@ index 18b5560..c9065f5 100755
          Gtk.ListBoxRow.__init__(self)
          self.uuid = uuid
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_sound.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_sound.py
-index 5e804ce..a59ca27 100755
+index 5e804ce..fb30ad6 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_sound.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_sound.py
-@@ -1,12 +1,17 @@
+@@ -1,10 +1,12 @@
  #!/usr/bin/python3
  
 +from __future__ import print_function
 +
-+import gettext
  import gi
 -gi.require_version('Cvc', '1.0')
 -gi.require_version('Gtk', '3.0')
@@ -7174,12 +7058,8 @@ index 5e804ce..a59ca27 100755
 +from GSettingsWidgets import *  # noqa
  import dbus
  
-+_ = gettext.gettext
-+
  CINNAMON_SOUNDS = "org.cinnamon.sounds"
- CINNAMON_DESKTOP_SOUNDS = "org.cinnamon.desktop.sound"
- DECAY_STEP = .15
-@@ -24,7 +29,7 @@ EFFECT_LIST = [
+@@ -24,7 +26,7 @@ EFFECT_LIST = [
      {"label": _("Inserting a device"),          "schema": CINNAMON_SOUNDS,         "file": "plug-file",         "enabled": "plug-enabled"},
      {"label": _("Removing a device"),           "schema": CINNAMON_SOUNDS,         "file": "unplug-file",       "enabled": "unplug-enabled"},
      {"label": _("Showing notifications"),       "schema": CINNAMON_SOUNDS,         "file": "notification-file", "enabled": "notification-enabled"},
@@ -7188,7 +7068,7 @@ index 5e804ce..a59ca27 100755
  ]
  
  SOUND_TEST_MAP = [
-@@ -37,14 +42,17 @@ SOUND_TEST_MAP = [
+@@ -37,14 +39,17 @@ SOUND_TEST_MAP = [
      [_("Rear Center"),   "rear-center",   "audio-speaker-center-back",  2,   1,      4],
      [_("Subwoofer"),     "lfe",           "audio-subwoofer",            1,   1,      7],
      [_("Side Left"),     "side-left",     "audio-speaker-left-side",    1,   0,      10],
@@ -7207,7 +7087,7 @@ index 5e804ce..a59ca27 100755
      def __init__(self, title):
          Gtk.Box.__init__(self)
          self.set_orientation(Gtk.Orientation.VERTICAL)
-@@ -92,19 +100,21 @@ class SoundBox(Gtk.Box):
+@@ -92,19 +97,21 @@ class SoundBox(Gtk.Box):
      def add_row(self, row):
          self.list_box.add(row)
  
@@ -7232,7 +7112,7 @@ index 5e804ce..a59ca27 100755
              page = (maxValue - minValue) / 10
          self.adjustment = Gtk.Adjustment.new(value, minValue, maxValue, step, page, 0)
  
-@@ -117,10 +127,10 @@ class Slider(SettingsWidget):
+@@ -117,10 +124,10 @@ class Slider(SettingsWidget):
  
          # add label and icon (if specified)
          labelBox = Gtk.Box(spacing=5)
@@ -7245,7 +7125,7 @@ index 5e804ce..a59ca27 100755
              appIcon = Gtk.Image.new_from_icon_name(iconName, 2)
              labelBox.pack_start(appIcon, False, False, 0)
          self.label = Gtk.Label(title)
-@@ -136,7 +146,7 @@ class Slider(SettingsWidget):
+@@ -136,7 +143,7 @@ class Slider(SettingsWidget):
          self.slider = Gtk.Scale.new(Gtk.Orientation.HORIZONTAL, self.adjustment)
          self.slider.props.draw_value = False
  
@@ -7254,7 +7134,7 @@ index 5e804ce..a59ca27 100755
          max_label = Gtk.Label()
          min_label.set_alignment(1.0, 0.75)
          max_label.set_alignment(0.0, 0.75)
-@@ -158,11 +168,13 @@ class Slider(SettingsWidget):
+@@ -158,11 +165,13 @@ class Slider(SettingsWidget):
      def setMark(self, val):
          self.slider.add_mark(val, Gtk.PositionType.TOP, "")
  
@@ -7269,7 +7149,7 @@ index 5e804ce..a59ca27 100755
          self.volume = 0
          self.isMuted = False
          self.baseTitle = title
-@@ -273,8 +285,10 @@ class VolumeBar(Slider):
+@@ -273,8 +282,10 @@ class VolumeBar(Slider):
              self.label.set_label(self.baseTitle + str(self.volume) + "%")
              self.muteSwitch.set_tooltip_text(_("Click to mute"))
  
@@ -7281,7 +7161,7 @@ index 5e804ce..a59ca27 100755
          self.type = type
          self.norm = norm
          self.value = 0
-@@ -292,7 +306,7 @@ class BalanceBar(Slider):
+@@ -292,7 +303,7 @@ class BalanceBar(Slider):
              minLabel = _("Soft")
              maxLabel = _("Loud")
  
@@ -7290,7 +7170,7 @@ index 5e804ce..a59ca27 100755
  
          self.setMark(0)
          self.slider.props.has_origin = False
-@@ -302,11 +316,11 @@ class BalanceBar(Slider):
+@@ -302,11 +313,11 @@ class BalanceBar(Slider):
      def setChannelMap(self, channelMap):
          self.channelMap = channelMap
          self.channelMap.connect("volume-changed", self.getLevel)
@@ -7304,7 +7184,7 @@ index 5e804ce..a59ca27 100755
          if self.type == "lfe":
              value = value / self.norm
          if value == self.value:
-@@ -321,9 +335,11 @@ class BalanceBar(Slider):
+@@ -321,9 +332,11 @@ class BalanceBar(Slider):
          self.value = value
          if self.type == "lfe":
              value = value * self.norm
@@ -7317,7 +7197,7 @@ index 5e804ce..a59ca27 100755
      def __init__(self, sizeGroup):
          super(VolumeLevelBar, self).__init__()
          self.set_orientation(Gtk.Orientation.VERTICAL)
-@@ -352,7 +368,7 @@ class VolumeLevelBar(SettingsWidget):
+@@ -352,7 +365,7 @@ class VolumeLevelBar(SettingsWidget):
          self.levelBar.set_min_value(0)
  
      def setStream(self, stream):
@@ -7326,7 +7206,7 @@ index 5e804ce..a59ca27 100755
              self.stream.remove_monitor()
              self.stream.disconnect(self.monitorId)
          self.stream = stream
-@@ -366,7 +382,9 @@ class VolumeLevelBar(SettingsWidget):
+@@ -366,7 +379,9 @@ class VolumeLevelBar(SettingsWidget):
  
          self.levelBar.set_value(value)
  
@@ -7336,7 +7216,7 @@ index 5e804ce..a59ca27 100755
      def __init__(self, controller):
          super(ProfileSelector, self).__init__()
          self.controller = controller
-@@ -400,14 +418,16 @@ class ProfileSelector(SettingsWidget):
+@@ -400,14 +415,16 @@ class ProfileSelector(SettingsWidget):
  
      def onProfileSelect(self, a):
          newProfile = self.combo.get_active_id()
@@ -7354,7 +7234,7 @@ index 5e804ce..a59ca27 100755
      def __init__(self, info, sizeGroup):
          super(Effect, self).__init__(info["label"], info["schema"], info["file"])
  
-@@ -422,7 +442,9 @@ class Effect(GSettingsSoundFileChooser):
+@@ -422,7 +439,9 @@ class Effect(GSettingsSoundFileChooser):
          self.settings.bind(self.enabled_key, self.enabled_switch, "active", Gio.SettingsBindFlags.DEFAULT)
          self.settings.bind(self.enabled_key, self.content_widget, "sensitive", Gio.SettingsBindFlags.DEFAULT)
  
@@ -7364,7 +7244,7 @@ index 5e804ce..a59ca27 100755
      def __init__(self, parent, stream):
          Gtk.Dialog.__init__(self, _("Test Sound"), parent)
  
-@@ -449,7 +471,7 @@ class SoundTest(Gtk.Dialog):
+@@ -449,7 +468,7 @@ class SoundTest(Gtk.Dialog):
              box.pack_start(icon, False, False, 0)
              box.pack_start(Gtk.Label(position[0]), False, False, 0)
  
@@ -7373,7 +7253,7 @@ index 5e804ce..a59ca27 100755
  
              button.connect("clicked", self.test, info)
              container.add(button)
-@@ -478,7 +500,7 @@ class SoundTest(Gtk.Dialog):
+@@ -478,7 +497,7 @@ class SoundTest(Gtk.Dialog):
          if position[1] == "lfe":
              sound = "audio-test-signal"
          else:
@@ -7382,7 +7262,7 @@ index 5e804ce..a59ca27 100755
  
          session_bus = dbus.SessionBus()
          sound_dbus = session_bus.get_object("org.cinnamon.SettingsDaemon.Sound", "/org/cinnamon/SettingsDaemon/Sound")
-@@ -494,6 +516,7 @@ class SoundTest(Gtk.Dialog):
+@@ -494,6 +513,7 @@ class SoundTest(Gtk.Dialog):
              else:
                  position["button"].hide()
  
@@ -7390,7 +7270,7 @@ index 5e804ce..a59ca27 100755
  class Module:
      name = "sound"
      category = "hardware"
-@@ -505,19 +528,19 @@ class Module:
+@@ -505,19 +525,19 @@ class Module:
  
      def on_module_selected(self):
          if not self.loaded:
@@ -7421,7 +7301,7 @@ index 5e804ce..a59ca27 100755
  
              self.appList = {}
  
-@@ -531,7 +554,7 @@ class Module:
+@@ -531,7 +551,7 @@ class Module:
          self.sidePage.stack = SettingsStack()
          self.sidePage.add_widget(self.sidePage.stack)
  
@@ -7430,7 +7310,7 @@ index 5e804ce..a59ca27 100755
          page = SettingsPage()
          self.sidePage.stack.add_titled(page, "output", _("Output"))
  
-@@ -559,7 +582,7 @@ class Module:
+@@ -559,7 +579,7 @@ class Module:
          self.woofer = BalanceBar("lfe", 0, self.controller.get_vol_max_norm(), sizeGroup=sizeGroup)
          devSettings.add_row(self.woofer)
  
@@ -7439,7 +7319,7 @@ index 5e804ce..a59ca27 100755
          page = SettingsPage()
          self.sidePage.stack.add_titled(page, "input", _("Input"))
  
-@@ -598,7 +621,7 @@ class Module:
+@@ -598,7 +618,7 @@ class Module:
          self.inputStack.add_named(noInputsMessage, "noInputsMessage")
          self.inputStack.show_all()
  
@@ -7448,7 +7328,7 @@ index 5e804ce..a59ca27 100755
          page = SettingsPage()
          self.sidePage.stack.add_titled(page, "effects", _("Sound Effects"))
  
-@@ -612,7 +635,7 @@ class Module:
+@@ -612,7 +632,7 @@ class Module:
          for effect in EFFECT_LIST:
              effectsSection.add_row(Effect(effect, sizeGroup))
  
@@ -7457,7 +7337,7 @@ index 5e804ce..a59ca27 100755
          page = SettingsPage()
          self.sidePage.stack.add_titled(page, "applications", _("Applications"))
  
-@@ -636,7 +659,7 @@ class Module:
+@@ -636,7 +656,7 @@ class Module:
          self.appStack.add_named(noAppsMessage, "noAppsMessage")
  
      def inializeController(self):
@@ -7466,7 +7346,7 @@ index 5e804ce..a59ca27 100755
          self.controller.connect("state-changed", self.setChannelMap)
          self.controller.connect("output-added", self.deviceAdded, "output")
          self.controller.connect("input-added", self.deviceAdded, "input")
-@@ -668,13 +691,13 @@ class Module:
+@@ -668,13 +688,13 @@ class Module:
  
          model = view.get_model()
          newDevice = model.get_value(model.get_iter(selected[0]), 3)
@@ -7484,7 +7364,7 @@ index 5e804ce..a59ca27 100755
  
          iconTheme = Gtk.IconTheme.get_default()
          gicon = device.get_gicon()
-@@ -691,13 +714,13 @@ class Module:
+@@ -691,13 +711,13 @@ class Module:
              else:
                  icon = iconTheme.load_icon("audio-card", 32, 0)
  
@@ -7500,7 +7380,7 @@ index 5e804ce..a59ca27 100755
          for row in store:
              if row[3] == id:
                  store.remove(row.iter)
-@@ -738,14 +761,14 @@ class Module:
+@@ -738,14 +758,14 @@ class Module:
  
      def defaultSinkChanged(self, c, id):
          defaultSink = self.controller.get_default_sink()
@@ -7518,15 +7398,14 @@ index 5e804ce..a59ca27 100755
          self.inVolume.setStream(defaultSource)
          self.inLevel.setStream(defaultSource)
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_startup.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_startup.py
-index d39edaf..bd78b86 100755
+index d39edaf..1846cd0 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_startup.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_startup.py
-@@ -1,27 +1,34 @@
+@@ -1,27 +1,31 @@
  #!/usr/bin/python2
  
 +from __future__ import print_function
 +
-+import gettext
  import os
  import glob
  import shutil
@@ -7536,11 +7415,9 @@ index d39edaf..bd78b86 100755
 -from gi.repository import Gio, Gtk, GObject, Gdk, GdkPixbuf, GLib, Pango
 +gi.require_version('Gtk', '3.0')  # noqa
 +from gi.repository import Gio, Gtk, Gdk, GdkPixbuf, GLib, Pango
-+
-+from GSettingsWidgets import *  # noqa
  
 -from GSettingsWidgets import *
-+_ = gettext.gettext
++from GSettingsWidgets import *  # noqa
  
  try:
      ENVIRON = os.environ['XDG_CURRENT_DESKTOP']
@@ -7560,7 +7437,7 @@ index d39edaf..bd78b86 100755
  class Module:
      name = "startup"
      comment = _("Manage your startup applications")
-@@ -34,7 +41,7 @@ class Module:
+@@ -34,7 +38,7 @@ class Module:
  
      def on_module_selected(self):
          if not self.loaded:
@@ -7569,7 +7446,7 @@ index d39edaf..bd78b86 100755
  
              page = SettingsPage()
              page.expand = True
-@@ -57,8 +64,8 @@ class Module:
+@@ -57,8 +61,8 @@ class Module:
          if not os.path.isdir(user_autostart_dir):
              try:
                  os.makedirs(user_autostart_dir)
@@ -7580,7 +7457,7 @@ index d39edaf..bd78b86 100755
  
      def gather_apps(self):
          system_files = []
-@@ -81,7 +88,9 @@ class Module:
+@@ -81,7 +85,9 @@ class Module:
              if not found:
                  AUTOSTART_APPS.append(AutostartApp(sys_app, system_position=os.path.dirname(sys_app)))
  
@@ -7590,7 +7467,7 @@ index d39edaf..bd78b86 100755
      def __init__(self, app, user_position=None, system_position=None):
          self.app = app
          self.user_position = user_position
-@@ -99,7 +108,7 @@ class AutostartApp():
+@@ -99,7 +105,7 @@ class AutostartApp():
          try:
              self.key_file.load_from_file(self.app, GLib.KeyFileFlags.KEEP_COMMENTS and GLib.KeyFileFlags.KEEP_TRANSLATIONS)
          except GLib.GError:
@@ -7599,7 +7476,7 @@ index d39edaf..bd78b86 100755
              return
  
          self.key_file_loaded = True
-@@ -120,7 +129,7 @@ class AutostartApp():
+@@ -120,7 +126,7 @@ class AutostartApp():
      def get_string(self, key_file, key, default_value=None):
          try:
              retval = key_file.get_string(D_GROUP, key)
@@ -7608,7 +7485,7 @@ index d39edaf..bd78b86 100755
              retval = default_value
  
          return retval
-@@ -128,7 +137,7 @@ class AutostartApp():
+@@ -128,7 +134,7 @@ class AutostartApp():
      def get_locale_string(self, key_file, key, default_value=None):
          try:
              retval = key_file.get_locale_string(D_GROUP, key, None)
@@ -7617,7 +7494,7 @@ index d39edaf..bd78b86 100755
              retval = default_value
  
          return retval
-@@ -136,7 +145,7 @@ class AutostartApp():
+@@ -136,7 +142,7 @@ class AutostartApp():
      def get_boolean(self, key_file, key, default_value):
          try:
              retval = key_file.get_boolean(D_GROUP, key)
@@ -7626,7 +7503,7 @@ index d39edaf..bd78b86 100755
              retval = default_value
  
          return retval
-@@ -144,7 +153,7 @@ class AutostartApp():
+@@ -144,7 +150,7 @@ class AutostartApp():
      def get_shown(self, key_file):
          try:
              only_show_in = key_file.get_string_list(D_GROUP, GLib.KEY_FILE_DESKTOP_KEY_ONLY_SHOW_IN)
@@ -7635,7 +7512,7 @@ index d39edaf..bd78b86 100755
              only_show_in = False
  
          if only_show_in:
-@@ -158,7 +167,7 @@ class AutostartApp():
+@@ -158,7 +164,7 @@ class AutostartApp():
  
          try:
              not_show_in = key_file.get_string_list(D_GROUP, GLib.KEY_FILE_DESKTOP_KEY_NOT_SHOW_IN)
@@ -7644,7 +7521,7 @@ index d39edaf..bd78b86 100755
              not_show_in = False
  
          if not_show_in:
-@@ -195,7 +204,7 @@ class AutostartApp():
+@@ -195,7 +201,7 @@ class AutostartApp():
  
          try:
              key_file.load_from_file(use_path, GLib.KeyFileFlags.KEEP_COMMENTS and GLib.KeyFileFlags.KEEP_TRANSLATIONS)
@@ -7653,7 +7530,7 @@ index d39edaf..bd78b86 100755
              key_file.set_string(D_GROUP, GLib.KEY_FILE_DESKTOP_KEY_TYPE, "Application")
              key_file.set_string(D_GROUP, GLib.KEY_FILE_DESKTOP_KEY_EXEC, "/bin/false")
  
-@@ -236,7 +245,7 @@ class AutostartApp():
+@@ -236,7 +242,7 @@ class AutostartApp():
          return False
  
      def queue_save(self):
@@ -7662,7 +7539,7 @@ index d39edaf..bd78b86 100755
              self.user_position = os.path.join(GLib.get_user_config_dir(), "autostart")
              self.path = os.path.join(self.user_position, self.basename)
  
-@@ -335,7 +344,9 @@ class AutostartApp():
+@@ -335,7 +341,9 @@ class AutostartApp():
  
          return current_locale
  
@@ -7672,7 +7549,7 @@ index d39edaf..bd78b86 100755
      def __init__(self):
          self.contents = []
          self.all = ["enabled", "no-display", "hidden", "name", "comment", "command", "delay"]
-@@ -350,7 +361,9 @@ class SaveMask():
+@@ -350,7 +358,9 @@ class SaveMask():
          for item in self.contents:
              self.contents.remove(item)
  
@@ -7682,7 +7559,7 @@ index d39edaf..bd78b86 100755
      def __init__(self, title):
          Gtk.Box.__init__(self)
          self.set_orientation(Gtk.Orientation.VERTICAL)
-@@ -461,7 +474,7 @@ class AutostartBox(Gtk.Box):
+@@ -461,7 +471,7 @@ class AutostartBox(Gtk.Box):
          self.on_edit_button_clicked(list_box)
  
      def on_run_button_clicked(self, button):
@@ -7691,7 +7568,7 @@ index d39edaf..bd78b86 100755
              self.infobar_holder.get_child().destroy()
  
          row = self.list_box.get_selected_row()
-@@ -570,7 +583,7 @@ class AutostartBox(Gtk.Box):
+@@ -570,7 +580,7 @@ class AutostartBox(Gtk.Box):
              try:
                  shutil.copyfile(desktop_file_dir, user_desktop_file)
              except IOError:
@@ -7700,7 +7577,7 @@ index d39edaf..bd78b86 100755
  
              app = AutostartApp(user_desktop_file, user_position=os.path.dirname(user_desktop_file))
  
-@@ -616,7 +629,7 @@ class AutostartBox(Gtk.Box):
+@@ -616,7 +626,7 @@ class AutostartBox(Gtk.Box):
  
          return None
  
@@ -7709,7 +7586,7 @@ index d39edaf..bd78b86 100755
          # the introspection for GtkMenuPositionFunc seems to change with each Gtk version,
          # this is a workaround to make sure we get the menu and the widget
          menu = args[0]
-@@ -633,7 +646,9 @@ class AutostartBox(Gtk.Box):
+@@ -633,7 +643,9 @@ class AutostartBox(Gtk.Box):
          push_in = True
          return (x, y, push_in)
  
@@ -7719,7 +7596,7 @@ index d39edaf..bd78b86 100755
      def __init__(self, app):
          Gtk.ListBoxRow.__init__(self)
          self.app = app
-@@ -654,7 +669,7 @@ class AutostartRow(Gtk.ListBoxRow):
+@@ -654,7 +666,7 @@ class AutostartRow(Gtk.ListBoxRow):
                  else:
                      pixbuf = icon_theme.load_icon(self.app.icon, 24, Gtk.IconLookupFlags.FORCE_SIZE)
                      img = Gtk.Image.new_from_pixbuf(pixbuf)
@@ -7728,7 +7605,7 @@ index d39edaf..bd78b86 100755
                  img = Gtk.Image.new_from_gicon(Gio.ThemedIcon.new(DEFAULT_ICON), Gtk.IconSize.LARGE_TOOLBAR)
          else:
              img = Gtk.Image.new_from_gicon(Gio.ThemedIcon.new(DEFAULT_ICON), Gtk.IconSize.LARGE_TOOLBAR)
-@@ -725,7 +740,9 @@ class AutostartRow(Gtk.ListBoxRow):
+@@ -725,7 +737,9 @@ class AutostartRow(Gtk.ListBoxRow):
              self.desc_box.set_sensitive(False)
              self.delay_box.set_sensitive(False)
  
@@ -7738,7 +7615,7 @@ index d39edaf..bd78b86 100755
      def __init__(self, app=None):
          super(AppDialog, self).__init__()
          self.app = app
-@@ -866,7 +883,9 @@ class AppDialog(Gtk.Dialog):
+@@ -866,7 +880,9 @@ class AppDialog(Gtk.Dialog):
  
          chooser.destroy()
  
@@ -7748,7 +7625,7 @@ index d39edaf..bd78b86 100755
      def __init__(self):
          Gtk.Dialog.__init__(self, title=_("Applications"))
  
-@@ -914,7 +933,7 @@ class AppChooserDialog(Gtk.Dialog):
+@@ -914,7 +930,7 @@ class AppChooserDialog(Gtk.Dialog):
          self.get_content_area().set_border_width(6)
          self.get_content_area().pack_start(frame, True, True, 0)
          self.set_modal(True)
@@ -7757,7 +7634,7 @@ index d39edaf..bd78b86 100755
  
          self.list_box = list_box
  
-@@ -951,7 +970,7 @@ class AppChooserDialog(Gtk.Dialog):
+@@ -951,7 +967,7 @@ class AppChooserDialog(Gtk.Dialog):
                  else:
                      pixbuf = icon_theme.load_icon(icon.to_string(), 24, Gtk.IconLookupFlags.FORCE_SIZE)
                      img = Gtk.Image.new_from_pixbuf(pixbuf)
@@ -7766,7 +7643,7 @@ index d39edaf..bd78b86 100755
                  img = Gtk.Image.new_from_gicon(Gio.ThemedIcon.new(DEFAULT_ICON), Gtk.IconSize.LARGE_TOOLBAR)
          else:
              img = Gtk.Image.new_from_gicon(Gio.ThemedIcon.new(DEFAULT_ICON), Gtk.IconSize.LARGE_TOOLBAR)
-@@ -992,8 +1011,8 @@ class AppChooserDialog(Gtk.Dialog):
+@@ -992,8 +1008,8 @@ class AppChooserDialog(Gtk.Dialog):
              if not self.entry.is_focus() and self.search_bar.get_search_mode():
                  if self.entry.im_context_filter_keypress(event):
                      self.entry.grab_focus()
@@ -7778,31 +7655,21 @@ index d39edaf..bd78b86 100755
              return self.search_bar.handle_event(event)
  
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py
-index f0a8fee..91543f5 100755
+index f0a8fee..5e3c92c 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py
-@@ -1,14 +1,18 @@
+@@ -1,8 +1,8 @@
  #!/usr/bin/python2
  
 -from gi.repository.Gtk import SizeGroup, SizeGroupMode
 +from __future__ import print_function
  
 -from GSettingsWidgets import *
-+import gettext
-+
 +from GSettingsWidgets import *  # noqa
  from CinnamonGtkSettings import GtkSettingsSwitch
  from ExtensionCore import DownloadSpicesPage
  from Spices import Spice_Harvester
- 
- import glob
- 
-+_ = gettext.gettext
-+
- ICON_SIZE = 48
- 
- 
-@@ -26,7 +30,7 @@ class Module:
+@@ -26,7 +26,7 @@ class Module:
  
      def on_module_selected(self):
          if not self.loaded:
@@ -7811,7 +7678,7 @@ index f0a8fee..91543f5 100755
  
              self.spices = Spice_Harvester('theme', self.window)
  
-@@ -139,7 +143,7 @@ class Module:
+@@ -139,7 +139,7 @@ class Module:
                  if folder:
                      path = folder.get_filename()
                      chooser.add_picture(path, callback, title=theme, id=theme)
@@ -7820,7 +7687,7 @@ index f0a8fee..91543f5 100755
          else:
              if path_suffix == "cinnamon":
                  chooser.add_picture("/usr/share/cinnamon/theme/thumbnail.png", callback, title="cinnamon", id="cinnamon")
-@@ -153,7 +157,7 @@ class Module:
+@@ -153,7 +153,7 @@ class Module:
                          if os.path.exists(path):
                              chooser.add_picture(path, callback, title=theme_name, id=theme_name)
                              break
@@ -7829,7 +7696,7 @@ index f0a8fee..91543f5 100755
                      chooser.add_picture("/usr/share/cinnamon/thumbnails/%s/unknown.png" % path_suffix, callback, title=theme_name, id=theme_name)
                  GLib.timeout_add(5, self.increment_progress, (chooser, inc))
          GLib.timeout_add(500, self.hide_progress, chooser)
-@@ -205,7 +209,7 @@ class Module:
+@@ -205,7 +205,7 @@ class Module:
                      if os.path.exists(path):
                          chooser.set_picture_from_file(path)
                          break
@@ -7838,7 +7705,7 @@ index f0a8fee..91543f5 100755
                  chooser.set_picture_from_file("/usr/share/cinnamon/thumbnails/%s/unknown.png" % path_suffix)
          return chooser
  
-@@ -214,8 +218,8 @@ class Module:
+@@ -214,8 +214,8 @@ class Module:
              self.settings.set_string("icon-theme", theme)
              self.icon_chooser.set_button_label(theme)
              self.icon_chooser.set_tooltip_text(theme)
@@ -7849,7 +7716,7 @@ index f0a8fee..91543f5 100755
          return True
  
      def _on_metacity_theme_selected(self, path, theme):
-@@ -223,8 +227,8 @@ class Module:
+@@ -223,8 +223,8 @@ class Module:
              self.wm_settings.set_string("theme", theme)
              self.metacity_chooser.set_button_label(theme)
              self.metacity_chooser.set_tooltip_text(theme)
@@ -7860,7 +7727,7 @@ index f0a8fee..91543f5 100755
          return True
  
      def _on_gtk_theme_selected(self, path, theme):
-@@ -232,8 +236,8 @@ class Module:
+@@ -232,8 +232,8 @@ class Module:
              self.settings.set_string("gtk-theme", theme)
              self.theme_chooser.set_button_label(theme)
              self.theme_chooser.set_tooltip_text(theme)
@@ -7871,7 +7738,7 @@ index f0a8fee..91543f5 100755
          return True
  
      def _on_cursor_theme_selected(self, path, theme):
-@@ -241,8 +245,8 @@ class Module:
+@@ -241,8 +241,8 @@ class Module:
              self.settings.set_string("cursor-theme", theme)
              self.cursor_chooser.set_button_label(theme)
              self.cursor_chooser.set_tooltip_text(theme)
@@ -7882,7 +7749,7 @@ index f0a8fee..91543f5 100755
  
          self.update_cursor_theme_link(path, theme)
          return True
-@@ -252,15 +256,15 @@ class Module:
+@@ -252,15 +252,15 @@ class Module:
              self.cinnamon_settings.set_string("name", theme)
              self.cinnamon_chooser.set_button_label(theme)
              self.cinnamon_chooser.set_tooltip_text(theme)
@@ -7901,7 +7768,7 @@ index f0a8fee..91543f5 100755
          res = []
          for i in valid:
              for j in res:
-@@ -297,7 +301,7 @@ class Module:
+@@ -297,7 +297,7 @@ class Module:
                  except Exception as e:
                      print (e)
  
@@ -7910,7 +7777,7 @@ index f0a8fee..91543f5 100755
          res = []
          for i in valid:
              for j in res:
-@@ -312,7 +316,7 @@ class Module:
+@@ -312,7 +312,7 @@ class Module:
      def _load_cursor_themes(self):
          dirs = ("/usr/share/icons", os.path.join(os.path.expanduser("~"), ".icons"))
          valid = walk_directories(dirs, lambda d: os.path.isdir(d) and os.path.exists(os.path.join(d, "cursors")), return_directories=True)
@@ -7919,7 +7786,7 @@ index f0a8fee..91543f5 100755
          res = []
          for i in valid:
              for j in res:
-@@ -327,7 +331,7 @@ class Module:
+@@ -327,7 +327,7 @@ class Module:
      def _load_metacity_themes(self):
          dirs = ("/usr/share/themes", os.path.join(os.path.expanduser("~"), ".themes"))
          valid = walk_directories(dirs, lambda d: os.path.exists(os.path.join(d, "metacity-1")), return_directories=True)
@@ -7928,7 +7795,7 @@ index f0a8fee..91543f5 100755
          res = [('Default', '/usr/share/muffin/theme')]
          for i in valid:
              for j in res:
-@@ -342,7 +346,7 @@ class Module:
+@@ -342,7 +342,7 @@ class Module:
      def _load_cinnamon_themes(self):
          dirs = ("/usr/share/themes", os.path.join(os.path.expanduser("~"), ".themes"))
          valid = walk_directories(dirs, lambda d: os.path.exists(os.path.join(d, "cinnamon")), return_directories=True)
@@ -7937,7 +7804,7 @@ index f0a8fee..91543f5 100755
          res = []
          for i in valid:
              for j in res:
-@@ -360,7 +364,7 @@ class Module:
+@@ -360,7 +360,7 @@ class Module:
  
          try:
              os.makedirs(default_dir)
@@ -7947,24 +7814,20 @@ index f0a8fee..91543f5 100755
  
          if os.path.exists(index_path):
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_tiling.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_tiling.py
-index 0ab035b..a5e78d9 100755
+index 0ab035b..040b6be 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_tiling.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_tiling.py
-@@ -1,6 +1,12 @@
+@@ -1,6 +1,8 @@
  #!/usr/bin/python2
  
 -from GSettingsWidgets import *
 +from __future__ import print_function
 +
-+import gettext
-+
 +from GSettingsWidgets import *  # noqa
-+
-+_ = gettext.gettext
  
  
  class Module:
-@@ -15,7 +21,7 @@ class Module:
+@@ -15,7 +17,7 @@ class Module:
  
      def on_module_selected(self):
          if not self.loaded:
@@ -7973,7 +7836,7 @@ index 0ab035b..a5e78d9 100755
  
              page = SettingsPage()
              self.sidePage.add_widget(page)
-@@ -29,7 +35,7 @@ class Module:
+@@ -29,7 +31,7 @@ class Module:
  
              settings.add_row(GSettingsSpinButton(_("Tiling HUD visibility threshold"), "org.cinnamon.muffin", "tile-hud-threshold", _("Pixels")))
  
@@ -7983,15 +7846,14 @@ index 0ab035b..a5e78d9 100755
  
              settings.add_row(GSettingsSwitch(_("Maximize, instead of tile, when dragging a window to the top edge"), "org.cinnamon.muffin", "tile-maximize"))
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_user.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_user.py
-index 8e4dcee..6754e7c 100755
+index 8e4dcee..b852e29 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_user.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_user.py
-@@ -1,8 +1,11 @@
+@@ -1,8 +1,10 @@
  #!/usr/bin/python2
  
 +from __future__ import print_function
 +
-+import gettext
  try:
      import PAM
 -except:
@@ -7999,7 +7861,7 @@ index 8e4dcee..6754e7c 100755
      import pam as PAM
  import pexpect
  import time
-@@ -13,10 +16,12 @@ import subprocess
+@@ -13,10 +15,10 @@ import subprocess
  
  import PIL
  import gi
@@ -8009,12 +7871,10 @@ index 8e4dcee..6754e7c 100755
  
 -from GSettingsWidgets import *
 +from GSettingsWidgets import *  # noqa
-+
-+_ = gettext.gettext
  
  
  class Module:
-@@ -31,7 +36,7 @@ class Module:
+@@ -31,7 +33,7 @@ class Module:
  
      def on_module_selected(self):
          if not self.loaded:
@@ -8023,7 +7883,7 @@ index 8e4dcee..6754e7c 100755
  
              page = SettingsPage()
              self.sidePage.add_widget(page)
-@@ -104,7 +109,7 @@ class Module:
+@@ -104,7 +106,7 @@ class Module:
  
              self.face_button.add_menuitem(self.face_browse_menuitem)
  
@@ -8032,7 +7892,7 @@ index 8e4dcee..6754e7c 100755
          filename = dialog.get_preview_filename()
          if filename is not None:
              if os.path.isfile(filename):
-@@ -124,7 +129,7 @@ class Module:
+@@ -124,7 +126,7 @@ class Module:
  
          # streamer takes -t photos, uses /dev/video0
          if 0 != subprocess.call(["streamer", "-j90", "-t8", "-s800x600", "-o", "/tmp/temp-account-pic00.jpeg"]):
@@ -8041,7 +7901,7 @@ index 8e4dcee..6754e7c 100755
              return
  
          # Use the 8th frame (the webcam takes a few frames to "lighten up")
-@@ -158,7 +163,6 @@ class Module:
+@@ -158,7 +160,6 @@ class Module:
          self.accountService.set_icon_file(face_path)
          self.face_button.set_picture_from_file(face_path)
  
@@ -8049,7 +7909,7 @@ index 8e4dcee..6754e7c 100755
      def _on_face_browse_menuitem_activated(self, menuitem):
          dialog = Gtk.FileChooserDialog(None, None, Gtk.FileChooserAction.OPEN, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
          dialog.set_current_folder(self.accountService.get_home_dir())
-@@ -213,15 +217,15 @@ class Module:
+@@ -213,15 +214,15 @@ class Module:
  
      def _on_password_button_clicked(self, widget):
          dialog = PasswordDialog()
@@ -8068,7 +7928,7 @@ index 8e4dcee..6754e7c 100755
  
          self.set_modal(True)
          self.set_skip_taskbar_hint(True)
-@@ -260,7 +264,7 @@ class PasswordDialog(Gtk.Dialog):
+@@ -260,7 +261,7 @@ class PasswordDialog(Gtk.Dialog):
          self.strengh_indicator = Gtk.ProgressBar()
          self.strengh_indicator.set_tooltip_text(_("Your new password needs to be at least 8 characters long"))
          self.strengh_indicator.set_fraction(0.0)
@@ -8077,7 +7937,7 @@ index 8e4dcee..6754e7c 100755
          self.strengh_indicator.set_size_request(-1, 1)
  
          self.strengh_label = Gtk.Label()
-@@ -331,8 +335,8 @@ class PasswordDialog(Gtk.Dialog):
+@@ -331,8 +332,8 @@ class PasswordDialog(Gtk.Dialog):
          self.show_password.set_active(True)
          characters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-"
          newpass = ""
@@ -8088,7 +7948,7 @@ index 8e4dcee..6754e7c 100755
              newpass = newpass + characters[index]
  
          self.new_password.set_text(newpass)
-@@ -352,12 +356,12 @@ class PasswordDialog(Gtk.Dialog):
+@@ -352,12 +353,12 @@ class PasswordDialog(Gtk.Dialog):
              try:
                  auth.authenticate()
                  auth.acct_mgmt()
@@ -8104,7 +7964,7 @@ index 8e4dcee..6754e7c 100755
              else:
                  self.current_password.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, None)
                  self.correct_current_password = True
-@@ -378,10 +382,10 @@ class PasswordDialog(Gtk.Dialog):
+@@ -378,10 +379,10 @@ class PasswordDialog(Gtk.Dialog):
                  symbol += 1
          length = len(password)
  
@@ -8120,29 +7980,26 @@ index 8e4dcee..6754e7c 100755
              ((length * 0.1) - 0.2) +
              (digit * 0.1) +
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_windows.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_windows.py
-index 011f7e7..d9e8be3 100755
+index 011f7e7..725aaa4 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_windows.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_windows.py
-@@ -1,10 +1,15 @@
+@@ -1,10 +1,12 @@
  #!/usr/bin/python2
  
 +from __future__ import print_function
 +
-+import gettext
  import gi
 -gi.require_version('Gtk', '3.0')
 -from gi.repository import Gio, Gtk, GObject, Gdk
 +gi.require_version('Gtk', '3.0')  # noqa
 +from gi.repository import Gio, Gtk
-+
-+from GSettingsWidgets import *  # noqa
  
 -from GSettingsWidgets import *
-+_ = gettext.gettext
++from GSettingsWidgets import *  # noqa
  
  
  class Module:
-@@ -19,7 +24,7 @@ class Module:
+@@ -19,7 +21,7 @@ class Module:
  
      def on_module_selected(self):
          if not self.loaded:
@@ -8151,7 +8008,7 @@ index 011f7e7..d9e8be3 100755
  
              self.sidePage.stack = SettingsStack()
              self.sidePage.add_widget(self.sidePage.stack)
-@@ -50,7 +55,7 @@ class Module:
+@@ -50,7 +52,7 @@ class Module:
              widget = GSettingsComboBox(_("Action on title bar right-click"), "org.cinnamon.desktop.wm.preferences", "action-right-click-titlebar", action_options, size_group=size_group)
              settings.add_row(widget)
  
@@ -8160,7 +8017,7 @@ index 011f7e7..d9e8be3 100755
  
              widget = GSettingsComboBox(_("Action on title bar with mouse scroll"), "org.cinnamon.desktop.wm.preferences", "action-scroll-titlebar", scroll_options, size_group=size_group)
              settings.add_row(widget)
-@@ -92,7 +97,7 @@ class Module:
+@@ -92,7 +94,7 @@ class Module:
              widget = GSettingsComboBox(_("Location of newly opened windows"), "org.cinnamon.muffin", "placement-mode", placement_options, size_group=size_group)
              settings.add_row(widget)
  
@@ -8169,7 +8026,7 @@ index 011f7e7..d9e8be3 100755
              widget = GSettingsComboBox(_("Special key to move and resize windows"), "org.cinnamon.desktop.wm.preferences", "mouse-button-modifier", special_key_options, size_group=size_group)
              widget.set_tooltip_text(_("While the special key is pressed, windows can be dragged with the left mouse button and resized with the right mouse button."))
              settings.add_row(widget)
-@@ -135,7 +140,9 @@ class Module:
+@@ -135,7 +137,9 @@ class Module:
              widget = GSettingsSwitch(_("Show windows from all workspaces"), "org.cinnamon", "alttab-switcher-show-all-workspaces")
              settings.add_row(widget)
  
@@ -8179,7 +8036,7 @@ index 011f7e7..d9e8be3 100755
      def __init__(self):
          self.schema = "org.cinnamon.muffin"
          self.key = "button-layout"
-@@ -159,7 +166,7 @@ class TitleBarButtonsOrderSelector(SettingsBox):
+@@ -159,7 +163,7 @@ class TitleBarButtonsOrderSelector(SettingsBox):
  
          try:
              left_items, right_items = self.value.split(":")
@@ -8189,24 +8046,20 @@ index 011f7e7..d9e8be3 100755
          if len(left_items) > 0:
              left_items = left_items.split(",")
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_workspaces.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_workspaces.py
-index de3534d..0ed63fd 100755
+index de3534d..a53c099 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_workspaces.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_workspaces.py
-@@ -1,6 +1,12 @@
+@@ -1,6 +1,8 @@
  #!/usr/bin/python2
  
 -from GSettingsWidgets import *
 +from __future__ import print_function
 +
-+import gettext
-+
 +from GSettingsWidgets import *  # noqa
-+
-+_ = gettext.gettext
  
  
  class Module:
-@@ -18,7 +24,7 @@ class Module:
+@@ -18,7 +20,7 @@ class Module:
  
      def on_module_selected(self):
          if not self.loaded:
