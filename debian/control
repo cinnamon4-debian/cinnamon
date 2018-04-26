@@ -83,6 +83,7 @@ Depends:
  gnome-themes-extra | gnome-themes-standard,
  gsettings-desktop-schemas (>= 0.1.7),
  iso-flags-png-320x240,
+ libcanberra-pulse,
  libglib2.0-bin,
  mesa-utils,
  muffin (>= 3.6),
