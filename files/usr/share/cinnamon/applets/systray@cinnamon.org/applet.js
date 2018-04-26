@@ -13,18 +13,12 @@ const ICON_SCALE_FACTOR = 0.8; // for custom panel heights, 20 (default icon siz
 const DEFAULT_ICON_SIZE = 20;
 
 // Override the factory and create an AppletPopupMenu instead of a PopupMenu
-function IndicatorMenuFactory() {
-   this._init.apply(this, arguments);
-}
+class IndicatorMenuFactory extends PopupMenu.PopupMenuFactory {
+    constructor() {
+        super();
+    }
 
-IndicatorMenuFactory.prototype = {
-    __proto__: PopupMenu.PopupMenuFactory.prototype,
-
-    _init: function() {
-        PopupMenu.PopupMenuFactory.prototype._init.call(this);
-    },
-
-    _createShellItem: function(factoryItem, launcher, orientation) {
+    _createShellItem(factoryItem, launcher, orientation) {
         // Decide whether it's a submenu or not
         let shellItem = null;
         let item_type = factoryItem.getFactoryType();
@@ -40,17 +34,11 @@ IndicatorMenuFactory.prototype = {
             shellItem = new PopupMenu.PopupIndicatorMenuItem("FIXME");
         return shellItem;
     }
-};
-
-function MyApplet(orientation, panel_height, instance_id) {
-    this._init(orientation, panel_height, instance_id);
 }
 
-MyApplet.prototype = {
-    __proto__: Applet.Applet.prototype,
-
-    _init: function(orientation, panel_height, instance_id) {
-        Applet.Applet.prototype._init.call(this, orientation, panel_height, instance_id);
+class CinnamonSystrayApplet extends Applet.Applet {
+    constructor(orientation, panel_height, instance_id) {
+        super(orientation, panel_height, instance_id);
 
         this.setAllowedLayout(Applet.AllowedLayout.BOTH);
 
@@ -76,14 +64,14 @@ MyApplet.prototype = {
         this.manager_container.show();
 
         this._statusItems = [];
-        this._shellIndicators = {};
+        this._shellIndicators = [];
         this.menuFactory = new IndicatorMenuFactory();
         this.menuManager = new PopupMenu.PopupMenuManager(this);
         this._signalAdded = 0;
         this._signalRemoved = 0;
-    },
+    }
 
-    _addIndicatorSupport: function() {
+    _addIndicatorSupport() {
         let manager = Main.indicatorManager;
 
         // Blacklist some of the icons
@@ -104,9 +92,9 @@ MyApplet.prototype = {
             this._signalAdded = manager.connect('indicator-added', Lang.bind(this, this._onIndicatorAdded));
         if (this._signalRemoved == 0)
             this._signalRemoved = manager.connect('indicator-removed', Lang.bind(this, this._onIndicatorRemoved));
-    },
+    }
 
-    _removeIndicatorSupport: function() {
+    _removeIndicatorSupport() {
         if (this.signalAdded) {
             Main.indicatorManager.disconnect(this.signalAdded);
             this.signalAdded = 0;
@@ -116,23 +104,25 @@ MyApplet.prototype = {
             this.signalRemoved = 0;
         }
 
-        for (let id in this._shellIndicators) {
-            this._shellIndicators[id].destroy();
+        for (let i = 0; i < this._shellIndicators.length; i++) {
+            this._shellIndicators[i].instance.destroy();
         }
 
-        this._shellIndicators = {};
+        this._shellIndicators = [];
 
-    },
+    }
 
-    _onIndicatorAdded: function(manager, appIndicator) {
+    _onIndicatorAdded(manager, appIndicator) {
         if (!(appIndicator.id in this._shellIndicators)) {
             let size = null;
-            size = this._getIconSize(this._panelHeight/global.ui_scale);
+            size = this._getIconSize(this._panelHeight / global.ui_scale);
 
             let indicatorActor = appIndicator.getActor(size);
-            indicatorActor._applet = this;
 
-            this._shellIndicators[appIndicator.id] = indicatorActor;
+            this._shellIndicators.push({
+                id: appIndicator.id,
+                instance: indicatorActor
+            });
             this._signalManager.connect(indicatorActor.actor, 'destroy', this._onIndicatorIconDestroy, this);
             this._signalManager.connect(indicatorActor.actor, 'enter-event', this._onEnterEvent, this);
             this._signalManager.connect(indicatorActor.actor, 'leave-event', this._onLeaveEvent, this);
@@ -150,26 +140,26 @@ MyApplet.prototype = {
                 }
             }));
         }
-    },
+    }
 
-    _onEnterEvent: function(actor, event) {
-       this.set_applet_tooltip(actor._delegate.getToolTip());
-    },
+    _onEnterEvent(actor, event) {
+        this.set_applet_tooltip(actor._delegate.getToolTip());
+    }
 
-    _onLeaveEvent: function(actor, event) {
+    _onLeaveEvent(actor, event) {
         this.set_applet_tooltip("");
-    },
+    }
 
-    _onIndicatorIconDestroy: function(actor) {
-        for (let id in this._shellIndicators) {
-            if (this._shellIndicators[id].actor == actor) {
-                delete this._shellIndicators[id];
+    _onIndicatorIconDestroy(actor) {
+        for (let i = 0; i < this._shellIndicators.length; i++) {
+            if (this._shellIndicators[i].instance.actor == actor) {
+                this._shellIndicators.splice(this._shellIndicators.indexOf(this._shellIndicators[i]), 1);
                 break;
             }
         }
-    },
+    }
 
-    _getIconSize: function(ht) {
+    _getIconSize(ht) {
         let size;
         let disp_size = ht * ICON_SCALE_FACTOR;  // hidpi with largest panel, gets up to 80
 
@@ -189,33 +179,35 @@ MyApplet.prototype = {
             size = 48;
         }
         return size;
-    },
+    }
 
-    _onIndicatorRemoved: function(manager, appIndicator) {
-        if (appIndicator.id in this._shellIndicators) {
-            let indicatorActor = this._shellIndicators[appIndicator.id];
-            delete this._shellIndicators[appIndicator.id];
-            indicatorActor.destroy();
+    _onIndicatorRemoved(manager, appIndicator) {
+        for (let i = 0; i < this._shellIndicators.length; i++) {
+            if (this._shellIndicators[i].id === appIndicator.id) {
+                this._shellIndicators[i].instance.destroy();
+                this._shellIndicators.splice(this._shellIndicators.indexOf(this._shellIndicators[i]), 1);
+                break;
+            }
         }
-    },
+    }
 
-    on_applet_clicked: function(event) {
-    },
+    on_applet_clicked(event) {
+    }
 
-    on_orientation_changed: function(neworientation) {
+    on_orientation_changed(neworientation) {
         if (neworientation == St.Side.TOP || neworientation == St.Side.BOTTOM) {
             this.manager.set_vertical(false);
         } else {
             this.manager.set_vertical(true);
         }
-    },
+    }
 
-    on_applet_removed_from_panel: function () {
+    on_applet_removed_from_panel () {
         this._signalManager.disconnectAllSignals();
         this._removeIndicatorSupport();
-    },
+    }
 
-    on_applet_added_to_panel: function() {
+    on_applet_added_to_panel() {
         Main.statusIconDispatcher.start(this.actor.get_parent().get_parent());
 
         this._signalManager.connect(Main.statusIconDispatcher, 'status-icon-added', this._onTrayIconAdded, this);
@@ -223,21 +215,22 @@ MyApplet.prototype = {
         this._signalManager.connect(Main.statusIconDispatcher, 'before-redisplay', this._onBeforeRedisplay, this);
         this._signalManager.connect(Main.systrayManager, "changed", Main.statusIconDispatcher.redisplay, Main.statusIconDispatcher);
         this._addIndicatorSupport();
-    },
+    }
 
-    on_panel_height_changed: function() {
+    on_panel_height_changed() {
         Main.statusIconDispatcher.redisplay();
         let size = null;
-        size = this._getIconSize(this._panelHeight/global.ui_scale);
-        for (let id in this._shellIndicators) {
-            let indicator = Main.indicatorManager.getIndicatorById(id);
+        size = this._getIconSize(this._panelHeight / global.ui_scale);
+
+        for (let i = 0; i < this._shellIndicators.length; i++) {
+            let indicator = Main.indicatorManager.getIndicatorById(this._shellIndicators[i].id);
             if (indicator) {
-                this._shellIndicators[id].setSize(size);
+                this._shellIndicators[i].instance.setSize(size);
             }
         }
-    },
+    }
 
-    _onBeforeRedisplay: function() {
+    _onBeforeRedisplay() {
         // Mark all icons as obsolete
         // There might still be pending delayed operations to insert/resize of them
         // And that would crash Cinnamon
@@ -254,9 +247,9 @@ MyApplet.prototype = {
         for (let i = 0; i < children.length; i++) {
             children[i].destroy();
         }
-    },
+    }
 
-    _onTrayIconAdded: function(o, icon, role) {
+    _onTrayIconAdded(o, icon, role) {
         try {
             let hiddenIcons = Main.systrayManager.getRoles();
 
@@ -299,18 +292,18 @@ MyApplet.prototype = {
         } catch (e) {
             global.logError(e);
         }
-    },
+    }
 
-    _insertStatusItemLater: function(role, icon, position, delay) {
+    _insertStatusItemLater(role, icon, position, delay) {
         // Inserts an icon in the systray after a delay (useful for buggy icons)
         // Delaying the insertion of pidgin by 10 seconds for instance is known to fix it on empty disk cache
         let timerId = Mainloop.timeout_add(delay, Lang.bind(this, function() {
             this._insertStatusItem(role, icon, position);
             Mainloop.source_remove(timerId);
         }));
-    },
+    }
 
-    _onTrayIconRemoved: function(o, icon) {
+    _onTrayIconRemoved(o, icon) {
         icon.obsolete = true;
         for (var i = 0; i < this._statusItems.length; i++) {
             if (this._statusItems[i] == icon) {
@@ -323,9 +316,9 @@ MyApplet.prototype = {
         }
 
         icon.destroy();
-    },
+    }
 
-    _insertStatusItem: function(role, icon, position) {
+    _insertStatusItem(role, icon, position) {
         if (icon.obsolete == true) {
             return;
         }
@@ -349,18 +342,15 @@ MyApplet.prototype = {
         icon._rolePosition = position;
 
         if (this._scaleMode) {
-            let timerId = Mainloop.timeout_add(500, Lang.bind(this, function() {
-                this._resizeStatusItem(role, icon);
-                Mainloop.source_remove(timerId);
-            }));
+            this._resizeStatusItem(role, icon);
         } else {
             icon.set_pivot_point(0.5, 0.5);
             icon.set_scale((DEFAULT_ICON_SIZE * global.ui_scale) / icon.width,
                            (DEFAULT_ICON_SIZE * global.ui_scale) / icon.height);
         }
-    },
+    }
 
-    _resizeStatusItem: function(role, icon) {
+    _resizeStatusItem(role, icon) {
         if (icon.obsolete == true) {
             return;
         }
@@ -373,12 +363,9 @@ MyApplet.prototype = {
             global.log("Resized " + role + " with normalized size (" + icon.get_width() + "x" + icon.get_height() + "px)");
             //Note: dropbox doesn't scale, even though we resize it...
         }
-    },
-
-
-};
+    }
+}
 
 function main(metadata, orientation, panel_height, instance_id) {
-    let myApplet = new MyApplet(orientation, panel_height, instance_id);
-    return myApplet;
+    return new CinnamonSystrayApplet(orientation, panel_height, instance_id);
 }

@@ -1,22 +1,25 @@
+#!/usr/bin/python3
+
 try:
-    from SettingsWidgets import rec_mkdir
     import gettext
     from gi.repository import Gio, Gtk, GObject, Gdk, GdkPixbuf, GLib
     import tempfile
     import os
     import sys
-    import urllib2
     import zipfile
     import shutil
     import cgi
     import subprocess
     import threading
     import time
+    import dbus
     from PIL import Image
-    import config
-except Exception, detail:
-    print detail
+    import datetime
+except Exception as detail:
+    print(detail)
     sys.exit(1)
+
+from urllib.request import urlopen
 
 try:
     import json
@@ -57,7 +60,7 @@ def removeEmptyFolders(path):
     # if folder empty, delete it
     files = os.listdir(path)
     if len(files) == 0:
-        print "Removing empty folder:", path
+        print("Removing empty folder:", path)
         os.rmdir(path)
 
 class ThreadedTaskManager(GObject.GObject):
@@ -167,8 +170,14 @@ class Spice_Harvester(GObject.Object):
         self.abort_download = ABORT_NONE
         self._sigLoadFinished = None
 
-        self.monitor = Gio.File.new_for_path(self.install_folder).monitor_directory(0, None)
-        self.monitorId = self.monitor.connect('changed', self._directory_changed)
+        self.monitorId = 0
+        self.monitor = None
+        try:
+            self.monitor = Gio.File.new_for_path(self.install_folder).monitor_directory(0, None)
+            self.monitorId = self.monitor.connect('changed', self._directory_changed)
+        except Exception as e:
+            # File monitors can fail when the OS runs out of file handles
+            print(e)
 
         try:
             Gio.DBusProxy.new_for_bus(Gio.BusType.SESSION, Gio.DBusProxyFlags.NONE, None,
@@ -192,19 +201,19 @@ class Spice_Harvester(GObject.Object):
             if signal_name == name:
                 callback(*params)
 
-    """ connects a callback to a dbus signal"""
     def connect_proxy(self, name, callback):
+        """ connects a callback to a dbus signal"""
         self._proxy_signals.append((name, callback))
 
-    """ disconnects a previously connected dbus signal"""
     def disconnect_proxy(self, name):
-        for signal in self._proxy+_signals:
+        """ disconnects a previously connected dbus signal"""
+        for signal in self._proxy_signals:
             if name in signal:
                 self._proxy_signals.remove(signal)
                 break
 
-    """ sends a command over dbus"""
     def send_proxy_signal(self, command, *args):
+        """ sends a command over dbus"""
         if self._proxy is None:
             self._proxy_deferred_actions.append((command, args))
         else:
@@ -220,14 +229,15 @@ class Spice_Harvester(GObject.Object):
             self.running_uuids = []
         self.emit('status-changed')
 
-    """ opens to the web page of the given uuid"""
     def open_spice_page(self, uuid):
+        """ opens to the web page of the given uuid"""
         id = self.index_cache[uuid]['spices-id']
         os.system('xdg-open "%s/%ss/view/%s"' % (URL_SPICES_HOME, self.collection_type, id))
 
-    """ returns a Gtk.Widget that can be added to the application. This widget will show the progress of any
-        asynchronous actions taking place (ie. refreshing the cache or downloading an applet)"""
     def get_progressbar(self):
+        """ returns a Gtk.Widget that can be added to the application. This widget will show the
+            progress of any asynchronous actions taking place (ie. refreshing the cache or
+            downloading an applet)"""
         progressbar = Gtk.ProgressBar()
         progressbar.set_show_text(True)
         progressbar.set_text('')
@@ -250,6 +260,8 @@ class Spice_Harvester(GObject.Object):
     def _set_progressbar_fraction(self, fraction):
         for progressbar in self.progressbars:
             progressbar.set_fraction(fraction)
+        if self.window:
+            self.window.set_progress(int(fraction*100))
 
     def _set_progressbar_visible(self, visible):
         for progressbar in self.progressbars:
@@ -312,12 +324,17 @@ class Spice_Harvester(GObject.Object):
             self.total_jobs = 0
             self._set_progressbar_visible(False)
             self._set_progressbar_text('')
-            self.monitorId = self.monitor.connect('changed', self._directory_changed)
+            if self.monitor is not None:
+                try:
+                    self.monitorId = self.monitor.connect('changed', self._directory_changed)
+                except Exception as e:
+                    # File monitors can fail when the OS runs out of file handles
+                    print(e)
             self._directory_changed()
 
-    def _download(self, outfd, outfile, url):
+    def _download(self, outfd, outfile, url, binary=True):
         try:
-            self._url_retrieve(url, outfd, self._update_progress)
+            self._url_retrieve(url, outfd, self._update_progress, binary)
         except KeyboardInterrupt:
             try:
                 os.remove(outfile)
@@ -329,16 +346,16 @@ class Spice_Harvester(GObject.Object):
 
         return outfile
 
-    def _url_retrieve(self, url, f, reporthook):
+    def _url_retrieve(self, url, f, reporthook, binary):
         #Like the one in urllib. Unlike urllib.retrieve url_retrieve
         #can be interrupted. KeyboardInterrupt exception is rasied when
         #interrupted.
         count = 0
         blockSize = 1024 * 8
         try:
-            urlobj = urllib2.urlopen(url)
+            urlobj = urlopen(url)
             assert urlobj.getcode() == 200
-        except Exception, detail:
+        except Exception as detail:
             f.close()
             self.abort_download = ABORT_ERROR
             self.error = detail
@@ -352,6 +369,8 @@ class Spice_Harvester(GObject.Object):
                 count += 1
                 if not data:
                     break
+                if not binary:
+                    data = data.decode("utf-8")
                 f.write(data)
                 ui_thread_do(reporthook, count, blockSize, totalSize)
         except KeyboardInterrupt:
@@ -379,8 +398,8 @@ class Spice_Harvester(GObject.Object):
                         metadata['path'] = subdirectory
                         metadata['writable'] = os.access(subdirectory, os.W_OK)
                         self.meta_map[uuid] = metadata
-                    except Exception, detail:
-                        print detail
+                    except Exception as detail:
+                        print(detail)
                         print("Skipping %s: there was a problem trying to read metadata.json" % uuid)
             else:
                 print("%s does not exist! Creating it now." % directory)
@@ -388,31 +407,29 @@ class Spice_Harvester(GObject.Object):
 
     def _directory_changed(self, *args):
         self._load_metadata()
+        self._generate_update_list()
         self.emit("installed-changed")
 
-    """ returns a dictionary of the metadata by uuid of all installed spices"""
     def get_installed(self):
+        """ returns a dictionary of the metadata by uuid of all installed spices"""
         return self.meta_map
 
-    """ returns a boolean specifying whether the given spice is installed or not"""
     def get_is_installed(self, uuid):
+        """ returns a boolean specifying whether the given spice is installed or not"""
         return uuid in self.meta_map
 
-    """ returns a boolean indicating whether the given spice has an update available"""
     def get_has_update(self, uuid):
+        """ returns a boolean indicating whether the given spice has an update available"""
         if uuid not in self.index_cache:
             return False
 
         try:
-            if self.meta_map[uuid]["last-edited"] == self.index_cache[uuid]["last_edited"]:
-                return False
-            else:
-                return True
+            return self.meta_map[uuid]["last-edited"] < self.index_cache[uuid]["last_edited"]
         except Exception as e:
             return False
 
-    """ returns the number of instances currently enabled"""
     def get_enabled(self, uuid):
+        """ returns the number of instances currently enabled"""
         enabled_count = 0
         if not self.themes:
             enabled_list = self.settings.get_strv(self.enabled_key)
@@ -424,22 +441,27 @@ class Spice_Harvester(GObject.Object):
 
         return enabled_count
 
-    """ checks whether the spice is currently running (it may be enabled but not running if there was an error in initialization)"""
     def get_is_running(self, uuid):
+        """ checks whether the spice is currently running (it may be enabled but not running if
+            there was an error in initialization)"""
         return uuid in self.running_uuids
 
-    """ returns True if there are updates available or False otherwise"""
     def are_updates_available(self):
+        """ returns True if there are updates available or False otherwise"""
         return len(self.updates_available) > 0
 
-    """ retrieves a copy of the index cache """
+    def get_n_updates(self):
+        """ returns the number of available updates"""
+        return len(self.updates_available)
+
     def get_cache(self):
+        """ retrieves a copy of the index cache """
         return self.index_cache
 
     def _load_cache(self):
         filename = os.path.join(self.cache_folder, 'index.json')
         if not os.path.exists(self.cache_folder):
-            rec_mkdir(self.cache_folder)
+            os.makedirs(self.cache_folder, mode=0o755, exist_ok=True)
 
         if not os.path.exists(filename):
             self.has_cache = False
@@ -447,23 +469,26 @@ class Spice_Harvester(GObject.Object):
         else:
             self.has_cache = True
 
-        self.updates_available = []
         f = open(filename, 'r')
         try:
             self.index_cache = json.load(f)
-        except ValueError, detail:
+        except ValueError as detail:
             try:
                 os.remove(filename)
             except:
                 pass
             self.errorMessage(_("Something went wrong with the spices download.  Please try refreshing the list again."), str(detail))
 
+        self._generate_update_list()
+
+    def _generate_update_list(self):
+        self.updates_available = []
         for uuid in self.index_cache:
             if self.get_is_installed(uuid) and self.get_has_update(uuid):
                 self.updates_available.append(uuid)
 
-    """ downloads an updated version of the index and assets"""
     def refresh_cache(self):
+        """ downloads an updated version of the index and assets"""
         self.old_cache = self.index_cache
 
         job = {'func': self._download_cache}
@@ -475,7 +500,7 @@ class Spice_Harvester(GObject.Object):
 
         filename = os.path.join(self.cache_folder, "index.json")
         f = open(filename, 'w')
-        self._download(f, filename, download_url)
+        self._download(f, filename, download_url, binary=False)
 
         self._load_cache()
         self._download_image_cache()
@@ -501,7 +526,7 @@ class Spice_Harvester(GObject.Object):
 
             # if the image doesn't exist, is corrupt, or may have changed we want to download it
             if not os.path.isfile(icon_path) or self._is_bad_image(icon_path) or self.old_cache[uuid]["last_edited"] != self.index_cache[uuid]["last_edited"]:
-                fstream = open(icon_path, 'w')
+                fstream = open(icon_path, 'w+b')
                 self.download_manager.push(self._download, self._check_download_image_cache_complete, (fstream, icon_path, download_url))
                 self.download_total_files += 1
 
@@ -538,7 +563,7 @@ class Spice_Harvester(GObject.Object):
     def _is_bad_image(self, path):
         try:
             Image.open(path)
-        except IOError, detail:
+        except IOError as detail:
             return True
         return False
 
@@ -546,8 +571,8 @@ class Spice_Harvester(GObject.Object):
     def _sanitize_thumb(self, basename):
         return basename.replace("jpg", "png").replace("JPG", "png").replace("PNG", "png")
 
-    """ downloads and installs the given extension"""
     def install(self, uuid):
+        """ downloads and installs the given extension"""
         job = {'uuid': uuid, 'func': self._install, 'callback': self._install_finished}
         job['progress_text'] = _("Installing %s") % uuid
         self._push_job(job)
@@ -556,7 +581,7 @@ class Spice_Harvester(GObject.Object):
         try:
             uuid = job['uuid']
 
-            download_url = URL_SPICES_HOME + self.index_cache[uuid]['file'];
+            download_url = URL_SPICES_HOME + self.index_cache[uuid]['file']
             self.current_uuid = uuid
 
             fd, ziptempfile = tempfile.mkstemp()
@@ -568,58 +593,9 @@ class Spice_Harvester(GObject.Object):
             zip.extractall(tempfolder)
 
             uuidfolder = os.path.join(tempfolder, uuid)
-            contents = os.listdir(uuidfolder)
-            # do we need to check file permissions?
-            #         os.chmod(os.path.join(dirname, file.filename), 0o755)
 
-            # check integrity of the download
-
-            if not self.themes:
-                if 'po' in contents:
-                    po_dir = os.path.join(uuidfolder, 'po')
-                    for file in os.listdir(po_dir):
-                        if file.endswith('.po'):
-                            lang = file.split(".")[0]
-                            locale_dir = os.path.join(locale_inst, lang, 'LC_MESSAGES')
-                            rec_mkdir(locale_dir)
-                            subprocess.call(['msgfmt', '-c', os.path.join(po_dir, file), '-o', os.path.join(locale_dir, '%s.mo' % uuid)])
-
-                schema = [filename for filename in contents if 'gschema.xml' in filename]
-                for filename in schema:
-                    if os.path.exists('/usr/bin/gksu') and os.path.exists(config.currentPath + "/bin/installSchema.py"):
-                        message = _("Please enter your password to install the required settings schema for %s") % (uuid)
-                        path = os.path.join(uuidfolder, filename)
-                        tool = config.currentPath + "/bin/installSchema.py"
-
-                        command = 'gksu  --message "<b>%s</b>" %s %s' % (message, tool, path)
-                        os.system(command)
-                    else:
-                        self.errorMessage(_("Could not install the settings schema for %s.  You will have to perform this step yourself.") % (uuid))
-
-            meta_path = os.path.join(uuidfolder, 'metadata.json')
-            if self.themes and not os.path.exists(meta_path):
-                md = {}
-            else:
-                file = open(meta_path, 'r')
-                raw_meta = file.read()
-                file.close()
-                md = json.loads(raw_meta)
-
-            if not self.themes and len(schema) > 0:
-                md['schema-file'] = ','.join(schema)
-            md['last-edited'] = self.index_cache[uuid]['last_edited']
-
-            raw_meta = json.dumps(md, indent=4)
-            file = open(meta_path, 'w+')
-            file.write(raw_meta)
-            file.close()
-
-            dest = os.path.join(self.install_folder, uuid)
-            if os.path.exists(dest):
-                shutil.rmtree(dest)
-            shutil.copytree(uuidfolder, dest)
-
-        except Exception, detail:
+            self.install_from_folder(uuidfolder, uuid, True)
+        except Exception as detail:
             if not self.abort_download:
                 self.errorMessage(_("An error occurred during the installation of %s. Please report this incident to its developer.") % uuid, str(detail))
             return False
@@ -630,13 +606,60 @@ class Spice_Harvester(GObject.Object):
         except Exception:
             pass
 
+    def install_from_folder(self, folder, uuid, from_spices=False):
+        """ installs a spice from a specified folder"""
+        contents = os.listdir(folder)
+
+        if not self.themes:
+            # Install spice localization files, if any
+            if 'po' in contents:
+                po_dir = os.path.join(folder, 'po')
+                for file in os.listdir(po_dir):
+                    if file.endswith('.po'):
+                        lang = file.split(".")[0]
+                        locale_dir = os.path.join(locale_inst, lang, 'LC_MESSAGES')
+                        os.makedirs(locale_dir, mode=0o755, exist_ok=True)
+                        subprocess.call(['msgfmt', '-c', os.path.join(po_dir, file), '-o', os.path.join(locale_dir, '%s.mo' % uuid)])
+
+            # Install spice schema file, if any
+            schema = [filename for filename in contents if 'gschema.xml' in filename]
+            for filename in schema:
+                path = os.path.join(folder, filename)
+                subprocess.call(['pkexec', 'cinnamon-schema-install', path])
+
+        dest = os.path.join(self.install_folder, uuid)
+        if os.path.exists(dest):
+            shutil.rmtree(dest)
+        shutil.copytree(folder, dest)
+
+        meta_path = os.path.join(dest, 'metadata.json')
+        if self.themes and not os.path.exists(meta_path):
+            md = {}
+        else:
+            file = open(meta_path, 'r')
+            raw_meta = file.read()
+            file.close()
+            md = json.loads(raw_meta)
+
+        if not self.themes and len(schema) > 0:
+            md['schema-file'] = ','.join(schema)
+        if from_spices and uuid in self.index_cache:
+            md['last-edited'] = self.index_cache[uuid]['last_edited']
+        else:
+            md['last-edited'] = int(datetime.datetime.utcnow().timestamp())
+
+        raw_meta = json.dumps(md, indent=4)
+        file = open(meta_path, 'w+')
+        file.write(raw_meta)
+        file.close()
+
     def _install_finished(self, job):
         uuid = job['uuid']
         if self.get_enabled(uuid):
             self.send_proxy_signal('ReloadXlet', '(ss)', uuid, self.collection_type.upper())
 
-    """ uninstalls and removes the given extension"""
     def uninstall(self, uuid):
+        """ uninstalls and removes the given extension"""
         job = {'uuid': uuid, 'func': self._uninstall}
         job['progress_text'] = _("Uninstalling %s") % uuid
         self._push_job(job)
@@ -645,16 +668,10 @@ class Spice_Harvester(GObject.Object):
         try:
             uuid = job['uuid']
             if not self.themes:
+                # Uninstall spice schema files, if any
                 if 'schema-file' in self.meta_map[uuid]:
-                    sentence = _("Please enter your password to remove the settings schema for %s") % (uuid)
-                    if os.path.exists('/usr/bin/gksu') and os.path.exists(config.currentPath + "/bin/removeSchema.py"):
-                        for file in self.meta_map[uuid]:
-                            launcher = 'gksu  --message "<b>%s</b>"' % sentence
-                            tool = config.currentPath + "/bin/removeSchema.py %s" % (file)
-                            command = '%s %s' % (launcher, tool)
-                            os.system(command)
-                    else:
-                        self.errorMessage(_("Could not remove the settings schema for %s.  You will have to perform this step yourself.  This is not a critical error.") % (job["uuid"]))
+                    for path in self.meta_map[uuid]['schema-file'].split(','):
+                        subprocess.call(['pkexec', 'cinnamon-schema-remove', path])
 
                 # Uninstall spice localization files, if any
                 if (os.path.exists(locale_inst)):
@@ -669,16 +686,16 @@ class Spice_Harvester(GObject.Object):
                 if (os.path.exists(os.path.join(settings_dir, uuid))):
                     shutil.rmtree(os.path.join(settings_dir, uuid))
             shutil.rmtree(os.path.join(self.install_folder, uuid))
-        except Exception, detail:
+        except Exception as detail:
             self.errorMessage(_("A problem occurred while removing %s.") % job['uuid'], str(detail))
 
-    """ applies all available updates"""
     def update_all(self):
+        """ applies all available updates"""
         for uuid in self.updates_available:
             self.install(uuid)
 
-    """ trigger in-progress download to halt"""
     def abort(self, *args):
+        """ trigger in-progress download to halt"""
         self.abort_download = ABORT_USER
         return
 
@@ -702,8 +719,8 @@ class Spice_Harvester(GObject.Object):
     def enable_extension(self, uuid, panel=1, box='right', position=0):
         if self.collection_type == 'applet':
             entries = []
-            applet_id = self.settings.get_int('next-applet-id');
-            self.settings.set_int('next-applet-id', (applet_id+1));
+            applet_id = self.settings.get_int('next-applet-id')
+            self.settings.set_int('next-applet-id', (applet_id+1))
 
             for entry in self.settings.get_strv(self.enabled_key):
                 info = entry.split(':')
@@ -718,8 +735,8 @@ class Spice_Harvester(GObject.Object):
 
             self.settings.set_strv(self.enabled_key, entries)
         elif self.collection_type == 'desklet':
-            desklet_id = self.settings.get_int('next-desklet-id');
-            self.settings.set_int('next-desklet-id', (desklet_id+1));
+            desklet_id = self.settings.get_int('next-desklet-id')
+            self.settings.set_int('next-desklet-id', (desklet_id+1))
             enabled = self.settings.get_strv(self.enabled_key)
 
             screen = Gdk.Screen.get_default()
@@ -742,8 +759,8 @@ class Spice_Harvester(GObject.Object):
                 new_list.append(enabled_extension)
         self.settings.set_strv(self.enabled_key, new_list)
 
-    """ gets the icon  for a given uuid"""
     def get_icon(self, uuid):
+        """ gets the icon  for a given uuid"""
         try:
             if self.themes:
                 file_path = os.path.join(self.cache_folder, os.path.basename(self.index_cache[uuid]['screenshot']))

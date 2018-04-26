@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from __future__ import division
 from gi.repository import Gtk, GObject, GLib, GdkPixbuf
 import cairo
@@ -394,7 +396,7 @@ class TweenChooserButton(BaseChooserButton):
                   "tween value",
                   "Value of the selected tween",
                   None,
-                  GObject.PARAM_READWRITE)
+                  GObject.ParamFlags.READWRITE)
     }
 
     def __init__(self):
@@ -506,12 +508,12 @@ class TweenMenuItem(Gtk.MenuItem):
         self.arrow.queue_draw()
         self.graph.queue_draw()
 
-        self.timer = GObject.timeout_add(ANIMATION_FRAME_RATE, self.advance_animation)
+        self.timer = GLib.timeout_add(ANIMATION_FRAME_RATE, self.advance_animation)
 
     def stop_animation(self, *args):
         self.animating = False
         if self.timer:
-            GObject.source_remove(self.timer)
+            GLib.source_remove(self.timer)
             self.timer = None
 
         self.arrow.queue_draw()
@@ -534,7 +536,7 @@ class EffectChooserButton(BaseChooserButton):
                    "effect value",
                    "Value of the selected effect",
                    None,
-                   GObject.PARAM_READWRITE)
+                   GObject.ParamFlags.READWRITE)
     }
 
     def __init__(self, effect_styles=None):
@@ -611,12 +613,12 @@ class EffectMenuItem(Gtk.MenuItem):
         self.elapsed = 0
         self.drawing.queue_draw()
 
-        self.timer = GObject.timeout_add(ANIMATION_FRAME_RATE, self.advance_animation)
+        self.timer = GLib.timeout_add(ANIMATION_FRAME_RATE, self.advance_animation)
 
     def stop_animation(self, *args):
         self.animating = False
         if self.timer:
-            GObject.source_remove(self.timer)
+            GLib.source_remove(self.timer)
             self.timer = None
 
         self.drawing.queue_draw()

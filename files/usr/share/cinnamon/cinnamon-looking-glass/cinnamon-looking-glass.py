@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 # Todo:
 # - TextTag.invisible does not work nicely with scrollheight, find out why
@@ -15,7 +15,7 @@ import os
 import pyinotify
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gio, Gtk, GObject, Gdk
+from gi.repository import Gio, Gtk, GObject, Gdk, GLib
 import dbus, dbus.service, dbus.glib
 import pageutils
 from lookingglass_proxy import LookingGlassProxy
@@ -45,8 +45,8 @@ class MenuButton(Gtk.Button):
         h = parent.get_height()
         extents = parent.get_frame_extents()
         allocation = self.get_allocation()
-        return (x + (extents.width-w)/2 + allocation.x,
-                y + (extents.height-h)-(extents.width-w)/2 + allocation.y,
+        return (x + (extents.width-w)//2 + allocation.x,
+                y + (extents.height-h)-(extents.width-w)//2 + allocation.y,
                 allocation.width,
                 allocation.height)
 
@@ -229,6 +229,7 @@ class FileWatcherView(Gtk.ScrolledWindow):
 
         self.filename = filename
         self.changed = 0
+        self.updateId = 0
         self.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
         self.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
 
@@ -261,8 +262,16 @@ class FileWatcherView(Gtk.ScrolledWindow):
             self.changed -= 1
 
     def getUpdates(self):
+        # only update 2 times per second max
+        # without this rate limiting, certain file modifications can cause a crash at Gtk.TextBuffer.set_text()
+        if self.updateId == 0:
+            self.updateId = GLib.timeout_add(500, self.update)
+
+    def update(self):
         self.changed = 2 # onSizeChanged will be called twice, but only the second time is final
         self.textbuffer.set_text(open(self.filename, 'r').read())
+        self.updateId = 0
+        return False
 
 class ClosableTabLabel(Gtk.Box):
     __gsignals__ = {
@@ -281,17 +290,6 @@ class ClosableTabLabel(Gtk.Box):
         button.set_focus_on_click(False)
         button.add(Gtk.Image.new_from_stock(Gtk.STOCK_CLOSE, Gtk.IconSize.MENU))
         button.connect("clicked", self.button_clicked)
-        data =  ".button {\n" \
-                "-GtkButton-default-border : 0px;\n" \
-                "-GtkButton-default-outside-border : 0px;\n" \
-                "-GtkButton-inner-border: 0px;\n" \
-                "-GtkWidget-focus-line-width : 0px;\n" \
-                "-GtkWidget-focus-padding : 0px;\n" \
-                "padding: 0px;\n" \
-                "}"
-        provider = Gtk.CssProvider()
-        provider.load_from_data(data)
-        button.get_style_context().add_provider(provider, 600)
         self.pack_start(button, False, False, 0)
 
         self.show_all()
@@ -364,6 +362,10 @@ class MelangeApp(dbus.service.Object):
         numRows = 3
         numColumns = 6
         table = Gtk.Table(numRows, numColumns, False)
+        table.set_margin_start(6)
+        table.set_margin_end(6)
+        table.set_margin_top(6)
+        table.set_margin_bottom(6)
         self.window.add(table)
 
         self.notebook = Gtk.Notebook()
@@ -389,15 +391,21 @@ class MelangeApp(dbus.service.Object):
         table.attach(self.notebook, 0, numColumns, 0, 1)
 
         column = 0
-        pickerButton = pageutils.ImageButton("gtk-color-picker", Gtk.IconSize.SMALL_TOOLBAR)
+        pickerButton = pageutils.ImageButton("color-select-symbolic")
+        pickerButton.set_tooltip_text("Select an actor to inspect")
         pickerButton.connect("clicked", self.onPickerClicked)
         table.attach(pickerButton, column, column+1, 1, 2, 0, 0, 2)
         column += 1
 
-        table.attach(Gtk.Label("Exec:"), column, column+1, 1, 2, 0, 0, 3)
+        fullGc = pageutils.ImageButton("user-trash-full-symbolic")
+        fullGc.set_tooltip_text("Invoke garbage collection")
+        # ignore signal arg
+        fullGc.connect ('clicked', lambda source: lookingGlassProxy.FullGc())
+        table.attach(fullGc, column, column+1, 1, 2, 0, 0, 2)
         column += 1
 
         self.commandline = CommandLine()
+        self.commandline.set_tooltip_text("Evaluate javascript")
         table.attach(self.commandline, column, column+1, 1, 2, Gtk.AttachOptions.EXPAND|Gtk.AttachOptions.FILL, 0, 3, 2)
         column += 1
 
@@ -408,26 +416,21 @@ class MelangeApp(dbus.service.Object):
         table.attach(self.statusLabel, column, column+1, 1, 2, 0, 0, 1)
         column += 1
 
+        box = Gtk.HBox()
         settings = Gio.Settings("org.cinnamon.desktop.keybindings")
         arr = settings.get_strv("looking-glass-keybinding")
-        accel = ""
-        done_one = False
-
-        for element in arr:
-            if done_one:
-                accel += ", "
-
-            accel += element.replace("<", "&lt;").replace(">", "&gt;")
-            if not done_one:
-                done_one = True
-
-        keybinding = Gtk.Label()
-        keybinding.set_markup('<i>Toggle shortcut: %s</i>' % accel)
+        if len(arr) > 0:
+            # only the first mapped keybinding
+            [accelKey, mask] = Gtk.accelerator_parse(arr[0])
+            if accelKey == 0 and mask == 0:
+                # failed to parse, fallback to plain accel string
+                label = Gtk.Label(arr[0])
+            else:
+                label = Gtk.Label(Gtk.accelerator_get_label(accelKey, mask))
+            label.set_tooltip_text("Toggle shortcut")
+            box.pack_start(label, False, False, 3)
 
         actionButton = self.createActionButton()
-
-        box = Gtk.HBox()
-        box.pack_start(keybinding, False, False, 3)
         box.pack_start(actionButton, False, False, 3)
 
         table.attach(box, column, column+1, 1, 2, 0, 0, 1)
@@ -453,7 +456,7 @@ class MelangeApp(dbus.service.Object):
         menu.append(self.createMenuItem('Quit', self.onDelete))
         menu.show_all()
 
-        button = Gtk.MenuButton(u"Actions \u25BE")
+        button = Gtk.MenuButton("Actions \u25BE")
         button.set_popup(menu)
         return button
 
@@ -510,7 +513,7 @@ If you defined a hotkey for Melange, pressing it while Melange is visible it wil
 
     def onDelete(self, widget=None, event=None):
         tmpPages = self.customPages.copy()
-        for label, content in tmpPages.iteritems():
+        for label, content in tmpPages.items():
             self.onCloseTab(label, content)
         Gtk.main_quit()
         return False

@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # coding: utf-8
 
 # This parser starts by parsing all the javascript code, and representing each
@@ -104,7 +104,7 @@ for _file in _files:
     if not FILE_REGEX.match(parts[-1]):
         continue
 
-    file_obj = open(_file, 'r')
+    file_obj = open(_file, 'r', encoding="utf-8")
 
     curr_file = JSFile(parts[-2], parts[-1][:-3])
 

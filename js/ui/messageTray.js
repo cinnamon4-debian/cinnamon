@@ -21,23 +21,23 @@ const Tweener = imports.ui.tweener;
 const Util = imports.misc.util;
 const AppletManager = imports.ui.appletManager;
 
-const ANIMATION_TIME = .2;
-const NOTIFICATION_TIMEOUT = 4;
-const NOTIFICATION_CRITICAL_TIMEOUT_WITH_APPLET = 10;
-const SUMMARY_TIMEOUT = 1;
-const LONGER_SUMMARY_TIMEOUT = 4;
+var ANIMATION_TIME = .2;
+var NOTIFICATION_TIMEOUT = 4;
+var NOTIFICATION_CRITICAL_TIMEOUT_WITH_APPLET = 10;
+var SUMMARY_TIMEOUT = 1;
+var LONGER_SUMMARY_TIMEOUT = 4;
 
-const HIDE_TIMEOUT = 0.2;
-const LONGER_HIDE_TIMEOUT = 0.6;
+var HIDE_TIMEOUT = 0.2;
+var LONGER_HIDE_TIMEOUT = 0.6;
 
-const MAX_SOURCE_TITLE_WIDTH = 180;
+var MAX_SOURCE_TITLE_WIDTH = 180;
 
 
 // We delay hiding of the tray if the mouse is within MOUSE_LEFT_ACTOR_THRESHOLD
 // range from the point where it left the tray.
-const MOUSE_LEFT_ACTOR_THRESHOLD = 20;
+var MOUSE_LEFT_ACTOR_THRESHOLD = 20;
 
-const State = {
+var State = {
     HIDDEN:  0,
     SHOWING: 1,
     SHOWN:   2,
@@ -49,7 +49,7 @@ const State = {
 // user did not interact with, DISMISSED for all other notifications that were
 // destroyed as a result of a user action, and SOURCE_CLOSED for the notifications
 // that were requested to be destroyed by the associated source.
-const NotificationDestroyedReason = {
+var NotificationDestroyedReason = {
     EXPIRED: 1,
     DISMISSED: 2,
     SOURCE_CLOSED: 3
@@ -59,7 +59,7 @@ const NotificationDestroyedReason = {
 // urgency values map to the corresponding values for the notifications received
 // through the notification daemon. HIGH urgency value is used for chats received
 // through the Telepathy client.
-const Urgency = {
+var Urgency = {
     LOW: 0,
     NORMAL: 1,
     HIGH: 2,
@@ -196,21 +196,21 @@ URLHighlighter.prototype = {
     },
 
     _findUrlAtPos: function(event) {
+        if (!this._urls.length)
+            return -1;
+
         let success;
         let [x, y] = event.get_coords();
-        [success, x, y] = this.actor.transform_stage_point(x, y);
-        let find_pos = -1;
-        for (let i = 0; i < this.actor.clutter_text.text.length; i++) {
-            let [success, px, py, line_height] = this.actor.clutter_text.position_to_coords(i);
-            if (py > y || py + line_height < y || x < px)
-                continue;
-            find_pos = i;
-        }
-        if (find_pos != -1) {
-            for (let i = 0; i < this._urls.length; i++)
-            if (find_pos >= this._urls[i].pos &&
-                this._urls[i].pos + this._urls[i].url.length > find_pos)
-                return i;
+        let ct = this.actor.clutter_text;
+        [success, x, y] = ct.transform_stage_point(x, y);
+        if (success && x >= 0 && x <= ct.width
+                    && y >= 0 && y <= ct.height) {
+            let pos = ct.coords_to_position(x, y);
+            for (let i = 0; i < this._urls.length; i++) {
+                let url = this._urls[i]
+                if (pos >= url.pos && pos <= url.pos + url.url.length)
+                    return i;
+            }
         }
         return -1;
     }
@@ -440,7 +440,6 @@ Notification.prototype = {
         this._bannerBodyText = null;
         this._bannerBodyMarkup = false;
         this._titleFitsInBannerMode = true;
-        this._inhibitTransparency = false;
         this._titleDirection = St.TextDirection.NONE;
         this._spacing = 0;
 
@@ -448,21 +447,15 @@ Notification.prototype = {
         this._timestamp = new Date();
         this._inNotificationBin = false;
 
-        this.enter_id = 0;
-        this.leave_id = 0;
-
         source.connect('destroy', Lang.bind(this,
             function (source, reason) {
                 this.destroy(reason);
             }));
 
         this.actor = new St.Button({ accessible_role: Atk.Role.NOTIFICATION });
-        this.actor._delegate = this;
         this.actor._parent_container = null;
         this.actor.connect('clicked', Lang.bind(this, this._onClicked));
         this.actor.connect('destroy', Lang.bind(this, this._onDestroy));
-
-        this.updateFadeOnMouseover();
 
         this._table = new St.Table({ name: 'notification',
                                      reactive: true });
@@ -494,6 +487,21 @@ Notification.prototype = {
                                         col: 2,
                                         y_expand: false,
                                         y_fill: false });
+
+        // notification dismiss button
+        let icon = new St.Icon({ icon_name: 'window-close',
+                                 icon_type: St.IconType.SYMBOLIC,
+                                 icon_size: 16 });
+        let closeButton = new St.Button({ child: icon, opacity: 128 });
+        closeButton.connect('clicked', Lang.bind(this, this.destroy));
+        closeButton.connect('notify::hover', function() { closeButton.opacity = closeButton.hover ? 255 : 128; });
+        this._table.add(closeButton, { row: 0,
+                                       col: 3,
+                                       x_expand: false,
+                                       y_expand: false,
+                                       y_fill: false,
+                                       y_align: St.Align.START });
+
         this._timeLabel = new St.Label();
         this._titleLabel = new St.Label();
         this._bannerBox.add_actor(this._titleLabel);
@@ -608,46 +616,28 @@ Notification.prototype = {
         this._updated();
     },
 
-    updateFadeOnMouseover: function() {
-        // Transparency on mouse over?
-        if (Main.messageTray.fadeOnMouseover && !this._inhibitTransparency) {
-            // Register to every notification as we intend to support multiple notifications on screen.
-            this.enter_id = this.actor.connect('enter-event', Lang.bind(this, function() {
-                Tweener.addTween(this.actor, {
-                    opacity: ((Main.messageTray.fadeOpacity / 100) * 255).clamp(0, 255),
-                    time: ANIMATION_TIME,
-                    transition: 'easeOutQuad'
-                });
-            }));
-            this.leave_id = this.actor.connect('leave-event', Lang.bind(this, function() {
-                Tweener.addTween(this.actor, {
-                    opacity: (this._table.get_theme_node().get_length('opacity') / global.ui_scale) || 255,
-                    time: ANIMATION_TIME,
-                    transition: 'easeOutQuad'
-                });
-            }));
-        } else {
-            if (this.enter_id > 0) {
-                this.actor.disconnect(this.enter_id);
-                this.enter_id = 0;
-            }
-            if (this.leave_id > 0) {
-                this.actor.disconnect(this.leave_id);
-                this.leave_id = 0;
-            }
-        }
-    },
-
     setIconVisible: function(visible) {
         this._icon.visible = visible;
     },
 
     _createScrollArea: function() {
         this._table.add_style_class_name('multi-line-notification');
+
+        // FIXME: this doesn't actually scroll/limit notification size with the current policies.
+        // if we allow scrolling, then there doesn't seem to be a minimum height when inside the
+        // tray which breaks the layout and in the extreme case makes the notifications unreadable
         this._scrollArea = new St.ScrollView({ name: 'notification-scrollview',
                                                vscrollbar_policy: Gtk.PolicyType.NEVER,
                                                hscrollbar_policy: Gtk.PolicyType.NEVER,
                                                style_class: 'vfade' });
+
+        // prevent non-scrollable notifications from taking scroll events, otherwise we can't
+        // easily scroll the message tray.
+        // FIXME: if we enable scrolling then we may want to toggle this based on vscrollbar_visible
+        // or whether the notification is in the tray.
+        // something like: scrollArea.connect("notify::vscrollbar-visible", () => (enable = visible));
+        this._scrollArea.enable_mouse_scrolling = false;
+
         this._table.add(this._scrollArea, { row: 1,
                                             col: 2 });
         this._updateLastColumnSettings();
@@ -738,10 +728,10 @@ Notification.prototype = {
     _updateLastColumnSettings: function() {
         if (this._scrollArea)
             this._table.child_set(this._scrollArea, { col: this._imageBin ? 2 : 1,
-                                                      col_span: this._imageBin ? 1 : 2 });
+                                                      col_span: this._imageBin ? 2 : 3 });
         if (this._actionArea)
             this._table.child_set(this._actionArea, { col: this._imageBin ? 2 : 1,
-                                                      col_span: this._imageBin ? 1 : 2 });
+                                                      col_span: this._imageBin ? 2 : 3 });
     },
 
     setImage: function(image) {
@@ -812,10 +802,6 @@ Notification.prototype = {
         this._buttonBox.add(button);
         this._buttonFocusManager.add_group(this._buttonBox);
         button.connect('clicked', Lang.bind(this, this._onActionInvoked, id));
-
-        this._inhibitTransparency = true;
-
-        this.updateFadeOnMouseover();
 
         this._updated();
     },
@@ -1044,7 +1030,6 @@ Notification.prototype = {
     destroy: function(reason) {
         this._destroyedReason = reason;
         this.actor.destroy();
-        this.actor._delegate = null;
     }
 };
 Signals.addSignalMethods(Notification.prototype);
@@ -1469,11 +1454,10 @@ MessageTray.prototype = {
 			updater();
 		}
 		setting(this, this.settings, "_notificationsEnabled", "display-notifications");
-		setting(this, this.settings, "fadeOnMouseover", "fade-on-mouseover");
-        this.fadeOpacity = this.settings.get_int("fade-opacity");
-        this.settings.connect("changed::fade-opacity", Lang.bind(this, function() {
-            this.fadeOpacity = this.settings.get_int("fade-opacity");
-        }))
+        this.bottomPosition = this.settings.get_boolean("bottom-notifications");
+        this.settings.connect("changed::bottom-notifications", () => {
+            this.bottomPosition = this.settings.get_boolean("bottom-notifications");
+        });
         this._setSizePosition();
 
         let updateLockState = Lang.bind(this, function() {
@@ -1640,6 +1624,9 @@ MessageTray.prototype = {
                     this._notification = this._notificationQueue.shift();
                     if (AppletManager.get_role_provider_exists(AppletManager.Roles.NOTIFICATIONS)) {
                         this.emit('notify-applet-update', this._notification);
+                    } else {
+                        this._notification.destroy(NotificationDestroyedReason.DISMISSED);
+                        this._notification = null;
                     }
                 }
             }
@@ -1686,14 +1673,22 @@ MessageTray.prototype = {
 
         let monitor = Main.layoutManager.primaryMonitor;
         let topPanel = Main.panelManager.getPanel(0, 0);
+        let bottomPanel = Main.panelManager.getPanel(0, 1);
         let rightPanel = Main.panelManager.getPanel(0, 3);
-        let topGap = 5;
+        let topGap = 10;
+        let bottomGap = 10;
         let rightGap = 0;
-        if (topPanel)
-            topGap += topPanel.actor.get_height();
-        if (rightPanel)
+
+        if (rightPanel) {
             rightGap += rightPanel.actor.get_width();
-        this._notificationBin.y = monitor.y + topGap * 2; // Notifications appear from here (for the animation)
+        }
+
+        if (!this.bottomPosition) {
+            if (topPanel) {
+                topGap += topPanel.actor.get_height();
+            }
+            this._notificationBin.y = monitor.y + topGap; // Notifications appear from here (for the animation)
+        }
 
         let margin = this._notification._table.get_theme_node().get_length('margin-from-right-edge-of-screen');
         this._notificationBin.x = monitor.x + monitor.width - this._notification._table.width - margin - rightGap;
@@ -1704,6 +1699,29 @@ MessageTray.prototype = {
             Main.layoutManager._chrome.modifyActorParams(this._notificationBin, { visibleInFullscreen: false });
         }
         this._notificationBin.show();
+
+        if (this.bottomPosition) {
+            if (bottomPanel) {
+                bottomGap += bottomPanel.actor.get_height();
+            }
+            let getBottomPositionY = () => {
+                return monitor.y + monitor.height - this._notificationBin.height - bottomGap;
+            };
+            let shouldReturn = false;
+            let initialY = getBottomPositionY();
+            // For multi-line notifications, the correct height will not be known until the notification is done animating,
+            // so this will set _notificationBin.y when queue-redraw is emitted, and return early if the  height decreases
+            // to prevent unnecessary property setting.
+            this.bottomPositionSignal = this._notificationBin.connect('queue-redraw', () => {
+                if (shouldReturn) {
+                    return;
+                }
+                this._notificationBin.y = getBottomPositionY();
+                if (initialY > this._notificationBin.y) {
+                    shouldReturn = true;
+                }
+            });
+        }
 
         this._updateShowingNotification();
 
@@ -1801,14 +1819,22 @@ MessageTray.prototype = {
             this._notificationExpandedId = 0;
         }
 
-        this._tween(this._notificationBin, '_notificationState', State.HIDDEN,
-                    { y: Main.layoutManager.primaryMonitor.y,
-                      opacity: 0,
-                      time: ANIMATION_TIME,
-                      transition: 'easeOutQuad',
-                      onComplete: this._hideNotificationCompleted,
-                      onCompleteScope: this
-                    });
+        let y = Main.layoutManager.primaryMonitor.y;
+        if (this.bottomPosition) {
+            if (this.bottomPositionSignal) {
+                this._notificationBin.disconnect(this.bottomPositionSignal);
+            }
+            y += Main.layoutManager.primaryMonitor.height - this._notificationBin.height;
+        }
+
+        this._tween(this._notificationBin, '_notificationState', State.HIDDEN, {
+            y,
+            opacity: 0,
+            time: ANIMATION_TIME,
+            transition: 'easeOutQuad',
+            onComplete: this._hideNotificationCompleted,
+            onCompleteScope: this
+        });
     },
 
     _hideNotificationCompleted: function() {

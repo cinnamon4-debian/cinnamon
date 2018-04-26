@@ -4,6 +4,7 @@ const Cinnamon = imports.gi.Cinnamon;
 const Clutter = imports.gi.Clutter;
 const Cogl = imports.gi.Cogl;
 const Gio = imports.gi.Gio;
+const GLib = imports.gi.GLib;
 const Lang = imports.lang;
 const Meta = imports.gi.Meta;
 const Signals = imports.signals;
@@ -515,7 +516,7 @@ Melange.prototype = {
 
         let resultObj;
 
-        let ts = new Date().getTime();
+        let ts = GLib.get_monotonic_time();
 
         try {
             resultObj = eval(fullCmd);
@@ -523,9 +524,9 @@ Melange.prototype = {
             resultObj = '<exception ' + e + '>';
         }
 
-        let ts2 = new Date().getTime();
+        let ts2 = GLib.get_monotonic_time();
 
-        let tooltip = _("Execution time (ms): ") + (ts2 - ts);
+        let tooltip = _("Execution time (ms): ") + (ts2 - ts) / 1000;
 
         this._pushResult(command, resultObj, tooltip);
 
@@ -591,8 +592,8 @@ Melange.prototype = {
         try {
             let inspector = new Inspector();
             inspector.connect('target', Lang.bind(this, function(i, target, stageX, stageY) {
-                this._pushResult('<inspect x:' + stageX + ' y:' + stageY + '>',
-                                 target, "");
+                let name = '<inspect x:' + stageX + ' y:' + stageY + '>';
+                this._pushResult(name, target, "Inspected actor");
             }));
             inspector.connect('closed', Lang.bind(this, function() {
                 this.emitInspectorDone();
@@ -605,26 +606,23 @@ Melange.prototype = {
     // DBus function
     GetExtensionList: function() {
         try {
-            let extensionList = [];
-            for (let type in Extension.Type) {
-                type = Extension.Type[type];
-                for(let uuid in type.maps.meta){
-                    let meta = type.maps.meta[uuid];
-                    // There can be cases where we create dummy extension metadata
-                    // that's not really a proper extension. Don't bother with these.
-                    if (meta.name) {
-                        extensionList.push({
-                            status: Extension.getMetaStateString(meta.state),
-                            name: meta.name,
-                            description: meta.description,
-                            uuid: uuid,
-                            folder: meta.path,
-                            url: meta.url ? meta.url : '',
-                            type: type.name,
-                            error_message: meta.error ? meta.error : _("Loaded successfully"),
-                            error: meta.error ? "true" : "false" // Must use string due to dbus restrictions
-                        });
-                    }
+            let extensionList = Array(Extension.extensions.length);
+            for (let i = 0; i < extensionList.length; i++) {
+                let meta = Extension.extensions[i].meta;
+                // There can be cases where we create dummy extension metadata
+                // that's not really a proper extension. Don't bother with these.
+                if (meta.name) {
+                    extensionList[i] = {
+                        status: Extension.getMetaStateString(meta.state),
+                        name: meta.name,
+                        description: meta.description,
+                        uuid: Extension.extensions[i].uuid,
+                        folder: meta.path,
+                        url: meta.url ? meta.url : '',
+                        type: Extension.extensions[i].name,
+                        error_message: meta.error ? meta.error : _("Loaded successfully"),
+                        error: meta.error ? "true" : "false" // Must use string due to dbus restrictions
+                    };
                 }
             }
             return [true, extensionList];

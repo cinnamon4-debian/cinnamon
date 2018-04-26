@@ -41,10 +41,6 @@
 #include "st-private.h"
 #include "st-button.h"
 
-G_DEFINE_TYPE (StScrollBar, st_scroll_bar, ST_TYPE_WIDGET)
-
-#define ST_SCROLL_BAR_GET_PRIVATE(o)  (G_TYPE_INSTANCE_GET_PRIVATE ((o), ST_TYPE_SCROLL_BAR, StScrollBarPrivate))
-
 #define PAGING_INITIAL_REPEAT_TIMEOUT 500
 #define PAGING_SUBSEQUENT_REPEAT_TIMEOUT 200
 
@@ -71,6 +67,8 @@ struct _StScrollBarPrivate
 
   guint             vertical : 1;
 };
+
+G_DEFINE_TYPE_WITH_PRIVATE (StScrollBar, st_scroll_bar, ST_TYPE_WIDGET)
 
 enum
 {
@@ -252,10 +250,10 @@ scroll_bar_allocate_children (StScrollBar           *bar,
           handle_size = CLAMP (handle_size, min_size, max_size);
 
           handle_box.x1 = content_box.x1;
-          handle_box.y1 = content_box.y1 + position * (avail_size - handle_size);
+          handle_box.y1 = content_box.y1 + floor (position * (avail_size - handle_size));
 
           handle_box.x2 = content_box.x2;
-          handle_box.y2 = handle_box.y1 + handle_size;
+          handle_box.y2 = handle_box.y1 + floor (handle_size);
         }
       else
         {
@@ -263,10 +261,10 @@ scroll_bar_allocate_children (StScrollBar           *bar,
           handle_size = increment * avail_size;
           handle_size = CLAMP (handle_size, min_size, max_size);
 
-          handle_box.x1 = content_box.x1 + position * (avail_size - handle_size);
+          handle_box.x1 = content_box.x1 + floor (position * (avail_size - handle_size));
           handle_box.y1 = content_box.y1;
 
-          handle_box.x2 = handle_box.x1 + handle_size;
+          handle_box.x2 = handle_box.x1 + floor (handle_size);
           handle_box.y2 = content_box.y2;
         }
 
@@ -487,8 +485,6 @@ st_scroll_bar_class_init (StScrollBarClass *klass)
   ClutterActorClass *actor_class = CLUTTER_ACTOR_CLASS (klass);
   StWidgetClass *widget_class = ST_WIDGET_CLASS (klass);
   GParamSpec *pspec;
-
-  g_type_class_add_private (klass, sizeof (StScrollBarPrivate));
 
   object_class->get_property = st_scroll_bar_get_property;
   object_class->set_property = st_scroll_bar_set_property;
@@ -870,7 +866,7 @@ st_scroll_bar_notify_reactive (StScrollBar *self)
 static void
 st_scroll_bar_init (StScrollBar *self)
 {
-  self->priv = ST_SCROLL_BAR_GET_PRIVATE (self);
+  self->priv = st_scroll_bar_get_instance_private (self);
 
   self->priv->trough = (ClutterActor *) st_bin_new ();
   clutter_actor_set_reactive ((ClutterActor *) self->priv->trough, TRUE);
@@ -978,4 +974,3 @@ st_scroll_bar_get_adjustment (StScrollBar *bar)
 
   return bar->priv->adjustment;
 }
-

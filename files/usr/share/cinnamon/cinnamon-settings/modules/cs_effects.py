@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 from GSettingsWidgets import *
 from ChooserButtonWidgets import TweenChooserButton, EffectChooserButton
@@ -22,7 +22,7 @@ TRANSITIONS_SETS = {
 }
 
 TIME_SETS = {
-    "cinnamon": (175, 175, 200, 100, 100, 100),
+    "cinnamon": (100, 120, 160, 100, 100, 100),
     "slow":     (400, 400, 400, 100, 100, 100),
     "normal":   (250, 250, 250, 100, 100, 100),
     "fast":     (100, 100, 100, 100, 100, 100),
@@ -67,7 +67,7 @@ class GSettingsTweenChooserButton(TweenChooserButton, CSGSettingsBackend):
         self.bind_dir = Gio.SettingsBindFlags.DEFAULT
         self.bind_object = self
 
-        if schema not in settings_objects.keys():
+        if schema not in settings_objects:
             settings_objects[schema] = Gio.Settings.new(schema)
         self.settings = settings_objects[schema]
 
@@ -81,7 +81,7 @@ class GSettingsEffectChooserButton(EffectChooserButton, CSGSettingsBackend):
         self.bind_dir = Gio.SettingsBindFlags.DEFAULT
         self.bind_object = self
 
-        if schema not in settings_objects.keys():
+        if schema not in settings_objects:
             settings_objects[schema] = Gio.Settings.new(schema)
         self.settings = settings_objects[schema]
 
@@ -100,7 +100,7 @@ class Module:
 
     def on_module_selected(self):
         if not self.loaded:
-            print "Loading Effects module"
+            print("Loading Effects module")
 
             self.sidePage.stack = SettingsStack()
             self.sidePage.add_widget(self.sidePage.stack)

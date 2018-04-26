@@ -83,6 +83,7 @@ const CinnamonIface =
             <method name="JumpToNewWorkspace" /> \
             <method name="RemoveCurrentWorkspace" /> \
             <method name="ShowExpo" /> \
+            <method name="ShowOverview" /> \
             <method name="GetRunningXletUUIDs"> \
                 <arg type="s" direction="in" /> \
                 <arg type="as" direction="out" /> \
@@ -304,20 +305,17 @@ CinnamonDBus.prototype = {
         let list = null;
         let res = [];
 
-        if (type == "applet") {
-            list = AppletManager.appletObj;
-            for (let key in list) {
-                res.push(list[key]._uuid);
+        if (type === 'applet') {
+            for (let i = 0; i < AppletManager.definitions.length; i++) {
+                res.push(AppletManager.definitions[i].uuid);
             }
-        } else if (type == "desklet") {
-            list = DeskletManager.deskletObj;
-            for (let key in list) {
-                res.push(list[key]._uuid);
+        } else if (type === 'desklet') {
+            for (let i = 0; i < DeskletManager.definitions.length; i++) {
+                res.push(DeskletManager.definitions[i].uuid);
             }
         } else {
-            list = ExtensionSystem.runningExtensions;
-            for (let uuid in list) {
-                res.push(uuid);
+            for (let i = 0; i < ExtensionSystem.runningExtensions.length; i++) {
+                res.push(ExtensionSystem.runningExtensions[i]);
             }
         }
 
@@ -392,6 +390,11 @@ CinnamonDBus.prototype = {
             Main.expo.toggle();
     },
 
+    ShowOverview: function() {
+        if (!Main.overview.animationInProgress)
+            Main.overview.toggle();
+    },
+
     PushSubprocessResult: function(process_id, result, success) {
         if (Util.subprocess_callbacks[process_id]) {
             if (success)
@@ -403,10 +406,11 @@ CinnamonDBus.prototype = {
     ToggleKeyboard: function() {
         Main.keyboard.toggle();
     },
-    
+
     OpenSpicesAbout: function(uuid, type) {
-        let metadata = Extension.getMetadata(uuid, Extension.Type[type.toUpperCase()]);
-        new ModalDialog.SpicesAboutDialog(metadata, type+"s");
+        Extension.getMetadata(uuid, Extension.Type[type.toUpperCase()]).then(function(metadata) {
+            new ModalDialog.SpicesAboutDialog(metadata, `${type}s`);
+        });
     },
 
     GetMonitors: function() {

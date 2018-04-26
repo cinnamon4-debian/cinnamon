@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 from gi.repository import Gtk, Gdk, GObject
 
@@ -29,7 +29,7 @@ class ButtonKeybinding(Gtk.TreeView):
                          "accelerator string",
                          "Parseable accelerator string",
                          None,
-                         GObject.PARAM_READWRITE)
+                         GObject.ParamFlags.READWRITE)
     }
 
     def __init__(self):
@@ -38,6 +38,7 @@ class ButtonKeybinding(Gtk.TreeView):
         self.set_headers_visible(False)
         self.set_enable_search(False)
         self.set_hover_selection(True)
+        self.set_tooltip_text(CellRendererKeybinding.TOOLTIP_TEXT)
 
         self.entry_store = None
         self.accel_string = ""
@@ -112,8 +113,12 @@ class CellRendererKeybinding(Gtk.CellRendererText):
                          "accelerator string",
                          "Parseable accelerator string",
                          None,
-                         GObject.PARAM_READWRITE)
+                         GObject.ParamFlags.READWRITE)
     }
+
+    TOOLTIP_TEXT = "%s\n%s\n%s" % (_("Click to set a new accelerator key."),
+                                   _("Press Escape or click again to cancel the operation."),
+                                   _("Press Backspace to clear the existing keybinding."))
 
     def __init__(self, a_widget, accel_string=None):
         super(CellRendererKeybinding, self).__init__()
@@ -146,11 +151,11 @@ class CellRendererKeybinding(Gtk.CellRendererText):
             raise AttributeError('unknown property %s' % prop.name)
 
     def update_label(self):
-        if not self.accel_string:
-            text = _("unassigned")
-        else:
+        text = _("unassigned")
+        if self.accel_string:
             key, codes, mods = Gtk.accelerator_parse_with_keycode(self.accel_string)
-            text = Gtk.accelerator_get_label_with_keycode(None, key, codes[0], mods)
+            if codes is not None and len(codes) > 0:
+                text = Gtk.accelerator_get_label_with_keycode(None, key, codes[0], mods)
         self.set_property("text", text)
 
     def set_value(self, accel_string=None):
@@ -182,6 +187,7 @@ class CellRendererKeybinding(Gtk.CellRendererText):
             self.teaching = False
 
     def on_focus_out(self, widget, event):
+        self.teaching = False
         self.ungrab()
 
     def on_key_press(self, widget, event):

@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 import gi
 gi.require_version('CinnamonDesktop', '3.0')
@@ -100,7 +100,7 @@ class Module:
         if self.loaded:
             # self.loaded = False
             return
-        print "Loading Power module"
+        print("Loading Power module")
 
         self.up_client = UPowerGlib.Client.new()
 
@@ -153,9 +153,9 @@ class Module:
                 section.add_row(GSettings2ComboBox(_("When the lid is closed"), CSD_SCHEMA, "lid-close-ac-action", "lid-close-battery-action", lid_options, size_group=size_group))
 
         else:
-            section.add_row(GSettingsComboBox(_("Turn off the screen when inactive for"), CSD_SCHEMA, "sleep-display-ac", SLEEP_DELAY_OPTIONS, valtype="int", size_group=size_group))
+            section.add_row(GSettingsComboBox(_("Turn off the screen when inactive for"), CSD_SCHEMA, "sleep-display-ac", SLEEP_DELAY_OPTIONS, valtype=int, size_group=size_group))
 
-            section.add_row(GSettingsComboBox(_("Suspend when inactive for"), CSD_SCHEMA, "sleep-inactive-ac-timeout", SLEEP_DELAY_OPTIONS, valtype="int", size_group=size_group))
+            section.add_row(GSettingsComboBox(_("Suspend when inactive for"), CSD_SCHEMA, "sleep-inactive-ac-timeout", SLEEP_DELAY_OPTIONS, valtype=int, size_group=size_group))
 
             if self.has_lid:
                 section.add_row(GSettingsComboBox(_("When the lid is closed"), CSD_SCHEMA, "lid-close-ac-action", lid_options, size_group=size_group))
@@ -199,8 +199,8 @@ class Module:
                         break
                     except:
                         pass
-        except Exception, detail:
-            print "Failed to query backlight information in cs_power module: %s" % detail
+        except Exception as detail:
+            print("Failed to query backlight information in cs_power module: %s" % detail)
 
         if primary_output is None:
             if self.show_battery_page:
@@ -246,9 +246,9 @@ class Module:
 
             section.add_row(GSettingsSwitch(_("On battery, dim screen when inactive"), CSD_SCHEMA, "idle-dim-battery"))
 
-            section.add_reveal_row(GSettingsComboBox(_("Brightness level when inactive"), CSD_SCHEMA, "idle-brightness", IDLE_BRIGHTNESS_OPTIONS, valtype="int", size_group=size_group), CSD_SCHEMA, "idle-dim-battery")
+            section.add_reveal_row(GSettingsComboBox(_("Brightness level when inactive"), CSD_SCHEMA, "idle-brightness", IDLE_BRIGHTNESS_OPTIONS, valtype=int, size_group=size_group), CSD_SCHEMA, "idle-dim-battery")
 
-            section.add_reveal_row(GSettingsComboBox(_("Dim screen after inactive for"), CSD_SCHEMA, "idle-dim-time", IDLE_DELAY_OPTIONS, valtype="int", size_group=size_group), CSD_SCHEMA, "idle-dim-battery")
+            section.add_reveal_row(GSettingsComboBox(_("Dim screen after inactive for"), CSD_SCHEMA, "idle-dim-time", IDLE_DELAY_OPTIONS, valtype=int, size_group=size_group), CSD_SCHEMA, "idle-dim-battery")
 
     def build_battery_page(self, *args):
 
@@ -549,6 +549,7 @@ def get_available_options(up_client):
 
     lid_options = [
         ("suspend", _("Suspend")),
+        ("shutdown", _("Shutdown immediately")),
         ("hibernate", _("Hibernate")),
         ("nothing", _("Do nothing"))
     ]
@@ -563,6 +564,7 @@ def get_available_options(up_client):
     ]
 
     critical_options = [
+        ("shutdown", _("Shutdown immediately")),
         ("hibernate", _("Hibernate")),
         ("nothing", _("Do nothing"))
     ]

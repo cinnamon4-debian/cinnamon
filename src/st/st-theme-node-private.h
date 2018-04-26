@@ -107,14 +107,15 @@ struct _StThemeNode {
   float alloc_width;
   float alloc_height;
 
-  CoglHandle background_shadow_material;
-  CoglHandle box_shadow_material;
-  CoglHandle background_texture;
-  CoglHandle background_material;
-  CoglHandle border_slices_texture;
-  CoglHandle border_slices_material;
-  CoglHandle prerendered_texture;
-  CoglHandle prerendered_material;
+  CoglPipeline *background_shadow_material;
+  CoglPipeline *box_shadow_material;
+  CoglPipeline *background_texture;
+  CoglPipeline *background_material;
+  CoglPipeline *border_slices_texture;
+  CoglPipeline *border_slices_material;
+  CoglPipeline *prerendered_texture;
+  CoglPipeline *prerendered_material;
+  CoglPipeline *color_pipeline;
   CoglHandle corner_material[4];
 };
 

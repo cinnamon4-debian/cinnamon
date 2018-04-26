@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 from ExtensionCore import ManageSpicesPage, DownloadSpicesPage
 from Spices import Spice_Harvester
@@ -16,7 +16,7 @@ class Module:
 
     def on_module_selected(self):
         if not self.loaded:
-            print "Loading Desklets module"
+            print("Loading Desklets module")
             self.sidePage.load(self.window)
 
     def _setParentRef(self, window):
@@ -53,7 +53,7 @@ class DeskletsViewSidePage(SidePage):
 
         dec = [[0, _("No decoration")], [1, _("Border only")], [2, _("Border and header")]]
         widget = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        combo_box = GSettingsComboBox(_("Decoration of desklets"), "org.cinnamon", "desklet-decorations", dec, valtype="int")
+        combo_box = GSettingsComboBox(_("Decoration of desklets"), "org.cinnamon", "desklet-decorations", dec, valtype=int)
         widget.pack_start(combo_box, False, False, 0)
         line1 = Gtk.Label()
         line1.set_markup("<i><small>%s</small></i>" % _("Note: Some desklets require the border/header to be always present"))

@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 import os, json, subprocess, re
 from xml.etree import ElementTree
@@ -59,7 +59,7 @@ class Module:
         if self.loaded:
             return
 
-        print "Loading Screensaver module"
+        print("Loading Screensaver module")
 
         schema = "org.cinnamon.desktop.screensaver"
         self.settings = Gio.Settings.new(schema)
@@ -82,7 +82,7 @@ class Module:
 
         size_group = Gtk.SizeGroup.new(Gtk.SizeGroupMode.HORIZONTAL)
 
-        widget = GSettingsComboBox(_("Delay before starting the screensaver"), "org.cinnamon.desktop.session", "idle-delay", LOCK_INACTIVE_OPTIONS, valtype="uint", size_group=size_group)
+        widget = GSettingsComboBox(_("Delay before starting the screensaver"), "org.cinnamon.desktop.session", "idle-delay", LOCK_INACTIVE_OPTIONS, valtype=int, size_group=size_group)
         widget.set_tooltip_text(_("This option defines the amount of time to wait before starting the screensaver, when the computer is not being used"))
         settings.add_row(widget)
 
@@ -96,7 +96,7 @@ class Module:
         widget.set_tooltip_text(_("Enable this option to require a password when the screen turns itself off, or when the screensaver activates after a period of inactivity"))
         settings.add_row(widget)
 
-        widget = GSettingsComboBox(_("Delay before locking"), schema, "lock-delay", LOCK_DELAY_OPTIONS, valtype="uint", size_group=size_group)
+        widget = GSettingsComboBox(_("Delay before locking"), schema, "lock-delay", LOCK_DELAY_OPTIONS, valtype=int, size_group=size_group)
         widget.set_tooltip_text(_("This option defines the amount of time to wait before locking the screen, after showing the screensaver or after turning off the screen"))
         settings.add_reveal_row(widget, schema, "lock-enabled")
 
@@ -203,16 +203,6 @@ class ScreensaverBox(Gtk.Box):
         toolbar.add(title_holder)
         self.main_box.add(toolbar)
 
-        toolbar_separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
-        self.main_box.add(toolbar_separator)
-        separator_context = toolbar_separator.get_style_context()
-        frame_color = frame_style.get_border_color(Gtk.StateFlags.NORMAL).to_string()
-        css_provider = Gtk.CssProvider()
-        css_provider.load_from_data(".separator { -GtkWidget-wide-separators: 0; \
-                                                   color: %s;                    \
-                                                }" % frame_color)
-        separator_context.add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-
         self.preview_stack = Gtk.Stack()
         self.preview_stack.set_border_width(30)
         self.preview_stack.set_size_request(-1, 300)
@@ -313,8 +303,8 @@ class ScreensaverBox(Gtk.Box):
                         description = _(description)
                         row = ScreensaverRow(name, label, description, XSCREENSAVER_PATH, "xscreensaver")
                         xscreensavers.append(row)
-                    except Exception, detail:
-                        print "Unable to parse xscreensaver information at %s: %s" % (path, detail)
+                    except Exception as detail:
+                        print("Unable to parse xscreensaver information at %s: %s" % (path, detail))
 
                 xscreensavers = sorted(xscreensavers, key=lambda x: x.name)
                 for xscreensaver in xscreensavers:
@@ -322,8 +312,8 @@ class ScreensaverBox(Gtk.Box):
                     if self.current_name == "xscreensaver-" + xscreensaver.uuid:
                         self.list_box.select_row(xscreensaver)
                 gettext.install("cinnamon", "/usr/share/locale")
-            except Exception, detail:
-                print "Unable to parse xscreensaver hacks: %s" % detail
+            except Exception as detail:
+                print("Unable to parse xscreensaver hacks: %s" % detail)
 
     def parse_dir(self, path, directory, ss_type):
         try:
@@ -348,7 +338,7 @@ class ScreensaverBox(Gtk.Box):
             if self.current_name == uuid:
                 self.list_box.select_row(row)
         except:
-            print "Unable to parse screensaver information at %s" % path
+            print("Unable to parse screensaver information at %s" % path)
 
     def kill_plug(self):
         if not self.proc:
@@ -395,13 +385,13 @@ class ScreensaverBox(Gtk.Box):
         else:
             command = [os.path.join(path, "main")]
 
-        GObject.idle_add(self.idle_spawn_plug, command)
+        GLib.idle_add(self.idle_spawn_plug, command)
 
     def idle_spawn_plug(self, command):
         try:
             self.proc = Gio.Subprocess.new(command, Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_SILENCE)
         except GLib.Error as e:
-            print e.message
+            print(e.message)
 
         pipe = self.proc.get_stdout_pipe()
         bytes_read = pipe.read_bytes(1024, None)

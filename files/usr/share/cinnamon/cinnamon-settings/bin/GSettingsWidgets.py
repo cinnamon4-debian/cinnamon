@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from gi.repository import Gio, GLib
 from SettingsWidgets import *
 
@@ -93,10 +95,10 @@ class BinFileMonitor(GObject.GObject):
 
     def queue_emit_changed(self, file, other, event_type, data=None):
         if self.changed_id > 0:
-            GObject.source_remove(self.changed_id)
+            GLib.source_remove(self.changed_id)
             self.changed_id = 0
 
-        self.changed_id = GObject.idle_add(self._emit_changed)
+        self.changed_id = GLib.idle_add(self._emit_changed)
 
 file_monitor = None
 
@@ -147,7 +149,7 @@ class DependencyCheckInstallButton(Gtk.Box):
 
         self.connect("destroy", self.on_destroy)
 
-        GObject.idle_add(self.check)
+        GLib.idle_add(self.check)
 
     def check(self):
         self.start_pulse()
@@ -159,7 +161,7 @@ class DependencyCheckInstallButton(Gtk.Box):
                 success = False
                 break
 
-        GObject.idle_add(self.on_check_complete, success)
+        GLib.idle_add(self.on_check_complete, success)
 
         return False
 
@@ -169,11 +171,11 @@ class DependencyCheckInstallButton(Gtk.Box):
 
     def start_pulse(self):
         self.cancel_pulse()
-        self.progress_source_id = GObject.timeout_add(200, self.pulse_progress)
+        self.progress_source_id = GLib.timeout_add(200, self.pulse_progress)
 
     def cancel_pulse(self):
         if (self.progress_source_id > 0):
-            GObject.source_remove(self.progress_source_id)
+            GLib.source_remove(self.progress_source_id)
             self.progress_source_id = 0
 
     def on_check_complete(self, result, data=None):
@@ -265,6 +267,7 @@ class CSGSettingsBackend(object):
             self.settings.bind(self.key, bind_object, self.bind_prop, self.bind_dir)
         else:
             self.settings.connect("changed::"+self.key, self.on_setting_changed)
+            self.settings.bind_writable(self.key, bind_object, "sensitive", False)
             self.on_setting_changed()
             self.connect_widget_handlers()
 
@@ -292,14 +295,14 @@ def g_settings_factory(subclass):
     class NewClass(globals()[subclass], CSGSettingsBackend):
         def __init__(self, label, schema, key, *args, **kwargs):
             self.key = key
-            if schema not in settings_objects.keys():
+            if schema not in settings_objects:
                 settings_objects[schema] = Gio.Settings.new(schema)
             self.settings = settings_objects[schema]
 
-            if kwargs.has_key("map_get"):
+            if "map_get" in kwargs:
                 self.map_get = kwargs["map_get"]
                 del kwargs["map_get"]
-            if kwargs.has_key("map_set"):
+            if "map_set" in kwargs:
                 self.map_set = kwargs["map_set"]
                 del kwargs["map_set"]
 
