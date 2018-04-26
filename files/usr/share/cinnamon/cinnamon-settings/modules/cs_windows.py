@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 import gi
 gi.require_version('Gtk', '3.0')
@@ -19,7 +19,7 @@ class Module:
 
     def on_module_selected(self):
         if not self.loaded:
-            print "Loading Windows module"
+            print("Loading Windows module")
 
             self.sidePage.stack = SettingsStack()
             self.sidePage.add_widget(self.sidePage.stack)
@@ -137,7 +137,7 @@ class Module:
 
 class TitleBarButtonsOrderSelector(SettingsBox):
     def __init__(self):
-        self.schema = "org.cinnamon.muffin"
+        self.schema = "org.cinnamon.desktop.wm.preferences"
         self.key = "button-layout"
 
         super(TitleBarButtonsOrderSelector, self).__init__(_("Buttons"))

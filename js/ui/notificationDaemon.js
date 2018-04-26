@@ -121,11 +121,6 @@ NotificationDaemon.prototype = {
         }
         setting(this, this.settings, "boolean", "removeOld", "remove-old");
         setting(this, this.settings, "int", "timeout", "timeout");
-
-        Cinnamon.WindowTracker.get_default().connect('notify::focus-app',
-            Lang.bind(this, this._onFocusAppChanged));
-        Main.overview.connect('hidden',
-            Lang.bind(this, this._onFocusAppChanged));
     },
 
    // Create an icon for a notification from icon string/path.
@@ -525,20 +520,6 @@ NotificationDaemon.prototype = {
         ];
     },
 
-    _onFocusAppChanged: function() {
-        let tracker = Cinnamon.WindowTracker.get_default();
-        if (!tracker.focus_app)
-            return;
-
-        for (let i = 0; i < this._sources.length; i++) {
-            let source = this._sources[i];
-            if (source.app == tracker.focus_app) {
-                source.destroyNonResidentNotifications();
-                return;
-            }
-        }
-    },
-
     _emitNotificationClosed: function(id, reason) {
         this._dbusImpl.emit_signal('NotificationClosed',
                                    GLib.Variant.new('(uu)', [id, reason]));
@@ -597,7 +578,7 @@ Source.prototype = {
     _onNameVanished: function() {
         // Destroy the notification source when its sender is removed from DBus.
         // Only do so if this.app is set to avoid removing "notify-send" sources, senders
-        // of which аre removed from DBus immediately.
+        // of which are removed from DBus immediately.
         // Sender being removed from DBus would normally result in a tray icon being removed,
         // so allow the code path that handles the tray icon being removed to handle that case.
         if (!this.trayIcon && this.app)
@@ -610,11 +591,7 @@ Source.prototype = {
         if (!this.app && icon)
             this._setSummaryIcon(icon);
 
-        let tracker = Cinnamon.WindowTracker.get_default();
-        if (notification.resident && this.app && tracker.focus_app == this.app)
-            this.pushNotification(notification);
-        else
-            this.notify(notification);
+        this.notify(notification);
     },
 
     handleSummaryClick: function() {

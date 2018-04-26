@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 from GSettingsWidgets import *
 
@@ -15,7 +15,7 @@ class Module:
 
     def on_module_selected(self):
         if not self.loaded:
-            print "Loading General module"
+            print("Loading General module")
 
             page = SettingsPage()
             self.sidePage.add_widget(page)
@@ -23,7 +23,7 @@ class Module:
             settings = page.add_section(_("Desktop Scaling"))
 
             ui_scales = [[0, _("Auto")], [1, _("Normal")], [2, _("Double (Hi-DPI)")]]
-            combo = GSettingsComboBox(_("User interface scaling:"), "org.cinnamon.desktop.interface", "scaling-factor", ui_scales, valtype="uint")
+            combo = GSettingsComboBox(_("User interface scaling:"), "org.cinnamon.desktop.interface", "scaling-factor", ui_scales, valtype=int)
             settings.add_row(combo)
 
             # Some applications hard code the GNOME path for HiDPI settings,
@@ -31,7 +31,7 @@ class Module:
             # values.
             schema = Gio.SettingsSchemaSource.get_default().lookup("org.gnome.desktop.interface", False)
             if schema is not None:
-                gnome_settings = Gio.Settings("org.gnome.desktop.interface")
+                gnome_settings = Gio.Settings(schema="org.gnome.desktop.interface")
 
                 def on_changed(widget):
                     tree_iter = widget.get_active_iter()
@@ -57,7 +57,4 @@ class Module:
             settings.add_reveal_row(spin, "org.cinnamon.SessionManager", "quit-delay-toggle")
 
             switch = GSettingsSwitch(_("Enable support for indicators (Requires Cinnamon restart)"), "org.cinnamon", "enable-indicators")
-            settings.add_row(switch)
-
-            switch = GSettingsSwitch(_("Log LookingGlass output to ~/.cinnamon/glass.log (Requires Cinnamon restart)"), "org.cinnamon", "enable-looking-glass-logs")
             settings.add_row(switch)

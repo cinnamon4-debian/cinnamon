@@ -164,14 +164,13 @@ get_actor_for_icon_name (CinnamonApp *app,
 
 static ClutterActor *
 window_backed_app_get_icon (CinnamonApp *app,
-                            int       size)
+                            int          size)
 {
   MetaWindow *window;
   ClutterActor *actor;
   gint scale;
   CinnamonGlobal *global;
   StThemeContext *context;
-  const gchar *icon_name;
 
   actor = NULL;
 
@@ -192,27 +191,19 @@ window_backed_app_get_icon (CinnamonApp *app,
 
   window = window_backed_app_get_window (app);
 
-  icon_name = meta_window_get_icon_name (window);
+  size *= scale;
 
-  if (icon_name != NULL)
-    {
-      actor = get_actor_for_icon_name (app, icon_name, size);
-    }
-
-  if (actor == NULL)
-    {
-      size *= scale;
-
-      actor = st_texture_cache_bind_pixbuf_property (st_texture_cache_get_default (),
-                                                     G_OBJECT (window), "icon");
-      g_object_set (actor, "width", (float) size, "height", (float) size, NULL);
-    }
+  actor = st_texture_cache_bind_pixbuf_property (st_texture_cache_get_default (),
+                                                 G_OBJECT (window), "icon");
+  g_object_set (actor, "width", (float) size, "height", (float) size, NULL);
 
   return actor;
 }
 
 /**
  * cinnamon_app_create_icon_texture:
+ * @app: a #CinnamonApp
+ * @size: the size of the icon to create
  *
  * Look up the icon for this application, and create a #ClutterTexture
  * for it at the given size.
@@ -221,28 +212,14 @@ window_backed_app_get_icon (CinnamonApp *app,
  */
 ClutterActor *
 cinnamon_app_create_icon_texture (CinnamonApp   *app,
-                               int         size)
+                                  int            size)
 {
   GIcon *icon;
   ClutterActor *ret;
-  gboolean has_custom_icon;
 
-  has_custom_icon = FALSE;
   ret = NULL;
 
-  if (app->running_state != NULL)
-  {
-    MetaWindow *window;
-    const gchar *icon_name;
-
-    window = window_backed_app_get_window (app);
-
-    icon_name = meta_window_get_icon_name (window);
-
-    has_custom_icon = icon_name != NULL;
-  }
-
-  if (app->entry == NULL || has_custom_icon)
+  if (app->entry == NULL)
     {
       return window_backed_app_get_icon (app, size);
     }
@@ -262,6 +239,59 @@ cinnamon_app_create_icon_texture (CinnamonApp   *app,
     }
 
   return ret;
+}
+
+/**
+ * cinnamon_app_create_icon_texture_for_window:
+ * @app: a #CinnamonApp
+ * @size: the size of the icon to create
+ * @for_window: (nullable): Optional - the backing MetaWindow to look up for.
+ *
+ * Look up the icon for this application, and create a #ClutterTexture
+ * for it at the given size.  If for_window is NULL, it bases the icon
+ * off the most-recently-used window for the app, otherwise it attempts to
+ * use for_window for determining the icon.
+ *
+ * Return value: (transfer none): A floating #ClutterActor
+ */
+ClutterActor *
+cinnamon_app_create_icon_texture_for_window (CinnamonApp   *app,
+                                             int            size,
+                                             MetaWindow    *for_window)
+{
+  MetaWindow *window;
+
+  window = NULL;
+
+  if (app->running_state != NULL)
+  {
+    const gchar *icon_name;
+
+    if (for_window != NULL)
+      {
+        if (g_slist_find (app->running_state->windows, for_window) != NULL)
+          {
+            window = for_window;
+          }
+        else
+          {
+            g_warning ("cinnamon_app_create_icon_texture: MetaWindow %p provided that does not match App %p",
+                       for_window, app);
+          }
+      }
+
+    if (window != NULL)
+      {
+        icon_name = meta_window_get_icon_name (window);
+
+        if (icon_name != NULL)
+          {
+            return get_actor_for_icon_name (app, icon_name, size);
+          }
+      }
+  }
+
+  return cinnamon_app_create_icon_texture (app, size);
 }
 
 typedef struct {

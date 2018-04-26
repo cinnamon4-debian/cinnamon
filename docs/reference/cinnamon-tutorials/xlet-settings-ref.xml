@@ -308,15 +308,17 @@
       </itemizedlist>
 
       <para>
-        This widget provides a list which can be edited and reordered from the settings window. The columns in the list are specified by the <code>columns</code> propery. Each column object in the array must have the following properties:
+        This widget provides a list with columns, and rows which can be created, edited, deleted and reordered. The columns in the list are specified by the <code>columns</code> propery. All columns have the following properties:
         <itemizedlist>
           <listitem><code>id</code>: a unique string for identifying the column</listitem>
           <listitem><code>title</code>: the title that will be displayed in the column header</listitem>
           <listitem><code>type</code>: the data type for the column</listitem>
+          <listitem><code>default</code>: (optional) a default value for the column when a new row is being created. This will only be used to auto-populate the corresponding widget when it is first generated in the add row dialog. If this property is omitted, the default will be determined by the widget.</listitem>
+          <listitem><code>options</code>: (optional) A list of acceptable values for that column. Either an array or an object with key value pairs may be used. If an object is given, the key is displayed as the text of the widget, and must be a string; the value must match the data type of the column (ie. string, integer, boolean, etc).</listitem>
         </itemizedlist>
       </para>
       <para>
-        Each column type determines the data type that is stored. In addition, it specifies the widget that is generated when the user clicks the add or edit buttons. These widgets act just like the corresponding widgets in this document, and all the same properties are available, with the exception of <code>description</code> and <code>type</code>. The following types are currently available:
+        The column type determines the type of data that will be stored. When the user presses the add or edit button, a dialog is generated with a widget for each column definition. Starting in Cinnamon 3.8, if the <code>options</code> property is given, the widget will be a combo box. Otherwise the widget will be determined by the data type of the column as listed below. These widgets act just like the corresponding widgets in this document, and all the same properties can be included in the column definition, with the exception of <code>description</code> and <code>type</code>. The following types are currently available:
         <itemizedlist>
           <listitem><code>string</code>: this type stores data as a string. An <code>entry</code> is generated in the add/edit dialog. The default value for new entries is an empty string unless specified with the <code>default</code> property.</listitem>
           <listitem><code>file</code>: this type stores data as a string. A <code>filechooser</code> is generated in the add/edit dialog. The default value for new entries is an empty string unless specified with the <code>default</code> property.</listitem>
@@ -325,7 +327,8 @@
           <listitem><code>boolean</code>: this type stores data as a bool. A <code>switch</code> is generated in the add/edit dialog. The default value for new entries is false unless specified with the <code>default</code> property.</listitem>
         </itemizedlist>
       </para>
-      <para>The values are stored as an array of row objects. Each row object has a set of key:value pairs where the key is the <code>column id</code> of the column to which the value corresponds.</para>
+      <para>The values are stored as an array of objects where each object in the array corresponds to a row in the list, and each entry in the row object is a key:value pair where the key being the <code>column id</code> of the column to which the value corresponds.</para>
+      <para>For an example of how to use this widget, see the settings example applet that is included with Cinnamon. The source code for it can be found in <code>/usr/share/cinnamon/applets/settings-example@cinnamon.org</code></para>
       <para>Note: For appearance, it is recommended that you do not use the description property of this setting, but rather place it in it's own <code>section</code>.</para>
       <para>New in Cinnamon 3.4</para>
 
@@ -391,9 +394,18 @@
       These fields can be added to any widget:
 
       <itemizedlist>
-        <listitem><code>indent: true</code>: Indent the widget in the settings page to help with organizing your layout.</listitem>
-        <listitem><code>dependency: &lt;key&gt;</code>: where <code>key</code> is the name of a <code>checkbox</code> setting. If that checkbox setting is un-checked, this setting will be made insensitive (greyed out). The checkbox must occur <emphasis>before</emphasis> the setting that depends on it.</listitem>
+        <listitem>
+            <code>dependency: </code>Shows or hides the settings widget based on the value of another key in the settings-schema file. There are several possibl values for this option:
+            <itemizedlist>
+                <listitem>The most common value for this option is simply the <code>key</code> of the setting you wish to depend on. This is most useful for depending on a boolean setting such as a switch. This will make your setting hide if the key you're depending on is false, and show it when the key is true.</listitem>
+                <listitem>If you wish to 'invert' the dependence you can precede the key with a <code>!</code>. This will make your setting hide if the key you're depending on is true, and show it when the key is false.</listitem>
+                <listitem>For non-boolean values, you can use a simple expression of the form <code>my-key=value</code> where <code>my-key</code> is the key you're depending on, and <code>value</code> is the value that wish to compare to. In addition to '=' you can also use '&lt;', '&lt;=', '&gt;', '&gt;=', and '!='.</listitem>
+            </itemizedlist>
+            <para>In addition to settings widgets, a dependency can also be added to a section to show or hide the section and all it's widgets. This works with or without the <code>layout</code> item.</para>
+            <para>New in Cinnamon 3.8.</para>
+        </listitem>
         <listitem><code>tooltip</code>: Adds a popup tooltip to the widget</listitem>
+        <listitem><code>indent: true</code>: Indent the widget in the settings page to help with organizing your layout. Note: this key has been deprecated since Cinnamon 3.2 and will be ignored.</listitem>
       </itemizedlist>
     </sect3>
   </sect2>

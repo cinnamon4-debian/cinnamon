@@ -29,7 +29,7 @@ const SCROLL_SCALE_AMOUNT = 50;
 const LIGHTBOX_FADE_TIME = 0.1;
 const CLOSE_BUTTON_FADE_TIME = 0.1;
 
-const BUTTON_LAYOUT_SCHEMA = 'org.cinnamon.muffin';
+const BUTTON_LAYOUT_SCHEMA = 'org.cinnamon.desktop.wm.preferences';
 const BUTTON_LAYOUT_KEY = 'button-layout';
 
 const DEMANDS_ATTENTION_CLASS_NAME = "window-list-item-demands-attention";
@@ -425,7 +425,7 @@ WindowOverlay.prototype = {
         let app = tracker.get_window_app(metaWindow);
         let icon = null;
         if (app) {
-            icon = app.create_icon_texture(WINDOWOVERLAY_ICON_SIZE);
+            icon = app.create_icon_texture_for_window(WINDOWOVERLAY_ICON_SIZE, metaWindow);
         }
         if (!icon) {
             icon = new St.Icon({ icon_name: 'application-default-icon',

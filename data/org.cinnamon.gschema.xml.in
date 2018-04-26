@@ -217,7 +217,7 @@
     </key>
     
     <key type="i" name="desktop-effects-close-time">
-      <default>175</default>
+      <default>120</default>
       <_summary>Duration of the effect (in milliseconds)</_summary>
       <_description>
        Duration of the effect (in milliseconds)    
@@ -241,7 +241,7 @@
     </key>
     
     <key type="i" name="desktop-effects-map-time">
-      <default>175</default>
+      <default>100</default>
       <_summary>Duration of the effect (in milliseconds)</_summary>
       <_description>
        Duration of the effect (in milliseconds)    
@@ -266,7 +266,7 @@
     </key>
     
     <key type="i" name="desktop-effects-minimize-time">
-      <default>200</default>
+      <default>160</default>
       <_summary>Duration of the effect (in milliseconds)</_summary>
       <_description>
        Duration of the effect (in milliseconds)    
@@ -412,7 +412,7 @@
     </key>
 
     <key name="favorite-apps" type="as">
-      <default>[ 'firefox.desktop', 'mintinstall.desktop', 'cinnamon-settings.desktop', 'hexchat.desktop', 'gnome-terminal.desktop', 'nemo.desktop' ]</default>
+      <default>[ 'firefox.desktop', 'mintinstall.desktop', 'cinnamon-settings.desktop', 'hexchat.desktop', 'org.gnome.Terminal.desktop', 'nemo.desktop' ]</default>
       <_summary>List of desktop file IDs for favorite applications</_summary>
       <_description>
         The applications corresponding to these identifiers
@@ -459,14 +459,6 @@
       <_summary>Enable or disable the workspace OSD</_summary>
       <_description>
         Whether the name of the workspace shows up on the screen when activated or not.
-      </_description>
-    </key>
-
-    <key name="enable-looking-glass-logs" type="b">
-      <default>true</default>
-      <_summary>Enable or disable sending Looking Glass global.log output to file</_summary>
-      <_description>
-        Whether looking glass log data is written to the file: ~/.cinnamon/glass.log or not
       </_description>
     </key>
 

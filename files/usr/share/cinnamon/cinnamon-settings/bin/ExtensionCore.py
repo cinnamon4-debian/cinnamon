@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 import sys
 import os
@@ -7,8 +7,8 @@ import json
 import cgi
 import subprocess
 import gettext
-from HTMLParser import HTMLParser
-import htmlentitydefs
+from html.parser import HTMLParser
+import html.entities as entities
 
 import dbus
 import gi
@@ -32,10 +32,10 @@ ROW_SIZE = 32
 
 UNSAFE_ITEMS = ['spawn_sync', 'spawn_command_line_sync', 'GTop', 'get_file_contents_utf8_sync']
 
-curr_ver = subprocess.check_output(['cinnamon', '--version']).splitlines()[0].split(' ')[1]
+curr_ver = subprocess.check_output(['cinnamon', '--version']).decode("utf-8").splitlines()[0].split(' ')[1]
 
 def find_extension_subdir(directory):
-    largest = [0]
+    largest = ['0']
     curr_a = curr_ver.split('.')
 
     for subdir in os.listdir(directory):
@@ -47,7 +47,7 @@ def find_extension_subdir(directory):
 
         subdir_a = subdir.split(".")
 
-        if cmp(subdir_a, curr_a) <= 0 and cmp(largest, subdir_a) <= 0:
+        if subdir_a < curr_a and largest < subdir_a:
             largest = subdir_a
 
     if len(largest) == 1:
@@ -61,10 +61,10 @@ def translate(uuid, string):
     #check for a translation for this xlet
     if uuid not in translations:
         try:
-            translations[uuid] = gettext.translation(uuid, home + '/.local/share/locale').ugettext
+            translations[uuid] = gettext.translation(uuid, home + '/.local/share/locale').gettext
         except IOError:
             try:
-                translations[uuid] = gettext.translation(uuid, '/usr/share/locale').ugettext
+                translations[uuid] = gettext.translation(uuid, '/usr/share/locale').gettext
             except IOError:
                 translations[uuid] = None
 
@@ -114,15 +114,15 @@ class MyHTMLParser(HTMLParser):
         self.strings.append(data)
 
     def handle_charref(self, number):
-        codepoint = int(number[1:], 16) if number[0] in (u'x', u'X') else int(number)
-        self.strings.append(unichr(codepoint))
+        codepoint = int(number[1:], 16) if number[0] in ('x', 'X') else int(number)
+        self.strings.append(chr(codepoint))
 
     def handle_entityref(self, name):
-        codepoint = htmlentitydefs.name2codepoint[name]
-        self.strings.append(unichr(codepoint))
+        codepoint = entities.name2codepoint[name]
+        self.strings.append(chr(codepoint))
 
     def get_text(self):
-        return u''.join(self.strings)
+        return ''.join(self.strings)
 
 def sanitize_html(string):
     parser = MyHTMLParser()
@@ -396,16 +396,6 @@ class ManageSpicesPage(SettingsPage):
         toolbar.add(title_holder)
         main_box.add(toolbar)
 
-        toolbar_separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
-        main_box.add(toolbar_separator)
-        separator_context = toolbar_separator.get_style_context()
-        frame_color = frame_style.get_border_color(Gtk.StateFlags.NORMAL).to_string()
-        css_provider = Gtk.CssProvider()
-        css_provider.load_from_data('.separator { -GtkWidget-wide-separators: 0; \
-                                                   color: %s;                    \
-                                                }' % frame_color)
-        separator_context.add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-
         scw = Gtk.ScrolledWindow()
         scw.expand = True
         scw.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
@@ -593,8 +583,8 @@ class ManageSpicesPage(SettingsPage):
                 self.list_box.add(extension_row)
                 self.extension_rows.append(extension_row)
                 extension_row.set_enabled(self.spices.get_enabled(uuid))
-            except Exception, msg:
-                print "Failed to load extension %s: %s" % (uuid, msg)
+            except Exception as msg:
+                print("Failed to load extension %s: %s" % (uuid, msg))
 
         self.list_box.show_all()
 
@@ -779,16 +769,6 @@ class DownloadSpicesPage(SettingsPage):
         toolbar.add(title_holder)
         main_box.add(toolbar)
 
-        toolbar_separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
-        main_box.add(toolbar_separator)
-        separator_context = toolbar_separator.get_style_context()
-        frame_color = frame_style.get_border_color(Gtk.StateFlags.NORMAL).to_string()
-        css_provider = Gtk.CssProvider()
-        css_provider.load_from_data('.separator { -GtkWidget-wide-separators: 0; \
-                                                   color: %s;                    \
-                                                }' % frame_color)
-        separator_context.add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-
         scw = Gtk.ScrolledWindow()
         scw.expand = True
         scw.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
@@ -834,7 +814,6 @@ class DownloadSpicesPage(SettingsPage):
 
         self.update_all_button = Gtk.Button.new_from_icon_name("software-update-available-symbolic", Gtk.IconSize.MENU)
         self.update_all_button.set_size_request(50, -1)
-        self.update_all_button.set_tooltip_text(_("Update all"))
         self.update_all_button.connect('clicked', self.update_all)
         box.add(self.update_all_button)
         self.update_all_button.set_sensitive(False)
@@ -946,7 +925,13 @@ class DownloadSpicesPage(SettingsPage):
             self.extension_rows.append(row)
             self.list_box.add(row)
 
-        self.update_all_button.set_sensitive(self.spices.are_updates_available())
+        updates_available = self.spices.get_n_updates()
+        self.update_all_button.set_sensitive(updates_available)
+        if updates_available > 0:
+            msg_text = _("Update all") + ' (' + ngettext("%d update available", "%d updates available", updates_available) % updates_available  + ')'
+        else:
+            msg_text = _("No updates available")
+        self.update_all_button.set_tooltip_text(msg_text)
         self.refresh_button.set_sensitive(True)
 
     def get_more_info(self, *args):

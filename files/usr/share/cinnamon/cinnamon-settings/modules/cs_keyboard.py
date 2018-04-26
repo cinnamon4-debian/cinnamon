@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 from gi.repository import Gio, Gtk, GObject, Gdk
 import cgi
@@ -212,7 +212,7 @@ class Module:
 
     def on_module_selected(self):
         if not self.loaded:
-            print "Loading Keyboard module"
+            print("Loading Keyboard module")
 
             self.sidePage.stack = SettingsStack()
             self.sidePage.add_widget(self.sidePage.stack)
@@ -256,7 +256,7 @@ class Module:
             headingbox.pack_end(Gtk.Label.new(_("To edit a keyboard binding, click it and press the new keys, or press backspace to clear it.")), False, False, 1)
 
             paned = Gtk.Paned(orientation = Gtk.Orientation.HORIZONTAL)
-            Gtk.StyleContext.add_class(Gtk.Widget.get_style_context(paned), "wide")
+            paned.set_wide_handle(True)
 
             left_vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 2)
             right_vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 2)
@@ -351,7 +351,7 @@ class Module:
             entry_column.set_alignment(.5)
             self.entry_tree.append_column(entry_column)
 
-            self.entry_tree.set_tooltip_text("%s\n%s\n%s" % (_("Click to set a new accelerator key."), _("Press Escape or click again to cancel the operation."), _("Press Backspace to clear the existing keybinding.")))
+            self.entry_tree.set_tooltip_text(CellRendererKeybinding.TOOLTIP_TEXT)
 
             self.main_store = []
 
@@ -465,9 +465,7 @@ class Module:
             for keybinding in category.keybindings:
                 for entry in keybinding.entries:
                     found = False
-                    if accel_string.lower() == entry.lower():
-                        found = True
-                    elif accel_string.replace("<Primary>", "<Control>").lower() == entry.lower():
+                    if Gtk.accelerator_parse_with_keycode(accel_string) == Gtk.accelerator_parse_with_keycode(entry):
                         found = True
 
                     if found and keybinding.label != current_keybinding.label:

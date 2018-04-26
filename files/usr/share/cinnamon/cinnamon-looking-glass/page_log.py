@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import datetime
 import pageutils
 from gi.repository import Gtk
@@ -19,6 +21,7 @@ class LogView(Gtk.ScrolledWindow):
 
         self.textview = Gtk.TextView()
         self.textview.set_editable(False)
+        self.textview.set_left_margin(6)
         self.add(self.textview)
 
         self.textbuffer = self.textview.get_buffer()
@@ -88,7 +91,7 @@ class LogView(Gtk.ScrolledWindow):
                         self.addedMessages += 1
                     self.textview.scroll_to_mark(self.scroll_mark, 0, True, 1, 1)
             except Exception as e:
-                print e
+                print(e)
 
 class ModulePage(pageutils.WindowAndActionBars):
     def __init__(self, parent):
@@ -96,10 +99,10 @@ class ModulePage(pageutils.WindowAndActionBars):
         pageutils.WindowAndActionBars.__init__(self, self.view)
         self.parent = parent
 
-        self.addToggleButton("info", "dialog-information", "Show/Hide Messages tagged as 'info'")
-        self.addToggleButton("warning", "dialog-warning", "Show/Hide Messages tagged as 'warning'")
-        self.addToggleButton("error", "dialog-error", "Show/Hide Messages tagged as 'error'")
-        self.addToggleButton("trace", "dialog-question", "Show/Hide Messages tagged as 'trace'")
+        self.addToggleButton("info", "dialog-information-symbolic", "Show/Hide Messages tagged as 'info'")
+        self.addToggleButton("warning", "dialog-warning-symbolic", "Show/Hide Messages tagged as 'warning'")
+        self.addToggleButton("error", "dialog-error-symbolic", "Show/Hide Messages tagged as 'error'")
+        self.addToggleButton("trace", "dialog-question-symbolic", "Show/Hide Messages tagged as 'trace'")
 
     def addToggleButton(self, logType, icon, tooltip):
         button = pageutils.ImageToggleButton(icon)

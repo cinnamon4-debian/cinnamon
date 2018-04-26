@@ -12,7 +12,6 @@ const Cinnamon = imports.gi.Cinnamon;
 const Main = imports.ui.main;
 const Signals = imports.signals;
 const Extension = imports.ui.extension;
-const Mainloop = imports.mainloop;
 
 /**
  * ENUM:BindingDirection
@@ -31,7 +30,7 @@ const Mainloop = imports.mainloop;
  * Deprecated since 3.2: Binding direction is no longer meaningful. Please do not
  * use in new code.
  */
-const BindingDirection = {
+var BindingDirection = {
     IN : 1,
     OUT : 2,
     BIDIRECTIONAL : 3
@@ -144,7 +143,6 @@ var SETTINGS_TYPES = {
             "default",
             "min",
             "max",
-            "units",
             "step",
             "description"
         ]
@@ -213,15 +211,19 @@ function settings_not_initialized_error(uuid) {
 }
 
 function key_not_found_error (key_name, uuid) {
-    global.logError("Could not find setting key '" + key_name + "' for applet/desklet uuid " + uuid);
+    global.logError("Could not find setting key '" + key_name + "' for xlet " + uuid);
+}
+
+function invalidKeyValueError (key_name, uuid) {
+    global.logError(`Setting key ${key_name} for xlet ${uuid} is undefined or null`);
 }
 
 function invalid_setting_type_error (key_name, uuid, type) {
-    global.logError("Invalid setting type '" + type + "' for setting key '" + key_name + "' of applet/desklet uuid " + uuid);
+    global.logError("Invalid setting type '" + type + "' for setting key '" + key_name + "' of xlet " + uuid);
 }
 
 function options_not_supported_error(key_name, uuid, type) {
-    global.logError("Invalid request for key '" + key_name + "' of applet/desklet uuid '" + uuid + "': type '" + type + "' doesn't support options");
+    global.logError("Invalid request for key '" + key_name + "' of xlet '" + uuid + "': type '" + type + "' doesn't support options");
 }
 
 function binding_not_found_error(key_name, uuid) {
@@ -300,6 +302,10 @@ XletSettingsBase.prototype = {
             key_not_found_error(key, this.uuid);
             return false;
         }
+        if (this.settingsData[key] == null) {
+            invalidKeyValueError(key, this.uuid);
+            return false;
+        }
         if (!(this.settingsData[key].type in SETTINGS_TYPES)) {
             invalid_setting_type_error(key, this.uuid, this.settingsData[key].type);
             return false;
@@ -320,7 +326,8 @@ XletSettingsBase.prototype = {
         this.bindings[key].push(info);
 
         // add a save function for objects or arrays
-        if (typeof(this.settingsData[key].value) === "object" && !this.settingsData[key].value.save) {
+        if (this.settingsData[key].value != null
+            && typeof(this.settingsData[key].value) === "object" && !this.settingsData[key].value.save) {
             info.isObject = true;
             this.settingsData[key].value.save = Lang.bind(this, this._saveToFile);
         }
@@ -601,7 +608,7 @@ XletSettingsBase.prototype = {
         if (!configDir.query_exists(null)) configDir.make_directory_with_parents(null);
         this.file = configDir.get_child(this.instanceId + ".json");
         this.monitor = this.file.monitor_file(Gio.FileMonitorFlags.NONE, null);
-        let xletDir = this.ext_type.maps.dirs[this.uuid];
+        let xletDir = Extension.getExtension(this.uuid).dir;
         let templateFile = xletDir.get_child("settings-schema.json");
 
         // If the settings have already been installed previously we need to check if the schema
@@ -788,12 +795,11 @@ AppletSettings.prototype = {
      * @instanceId (int): instance id of the applet
      */
     _init: function (xlet, uuid, instanceId) {
-        this.ext_type = Extension.Type.APPLET;
         XletSettingsBase.prototype._init.call(this, xlet, uuid, instanceId, "Applet");
     },
 
     _get_is_multi_instance_xlet: function(uuid) {
-        return Extension.get_max_instances(uuid, this.ext_type) != 1;
+        return Extension.get_max_instances(uuid) != 1;
     },
 };
 
@@ -817,12 +823,11 @@ DeskletSettings.prototype = {
      * @instanceId (int): instance id of the desklet
      */
     _init: function (xlet, uuid, instanceId) {
-        this.ext_type = Extension.Type.DESKLET;
         XletSettingsBase.prototype._init.call(this, xlet, uuid, instanceId, "Desklet");
     },
 
     _get_is_multi_instance_xlet: function(uuid) {
-        return Extension.get_max_instances(uuid, this.ext_type) > 1;
+        return Extension.get_max_instances(uuid) > 1;
     }
 };
 
@@ -845,7 +850,6 @@ ExtensionSettings.prototype = {
      * @uuid (string): uuid of the extension
      */
     _init: function (xlet, uuid) {
-        this.ext_type = Extension.Type.EXTENSION;
         XletSettingsBase.prototype._init.call(this, xlet, uuid, null, "Extension");
     },
 

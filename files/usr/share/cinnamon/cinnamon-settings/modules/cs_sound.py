@@ -9,6 +9,8 @@ import dbus
 
 CINNAMON_SOUNDS = "org.cinnamon.sounds"
 CINNAMON_DESKTOP_SOUNDS = "org.cinnamon.desktop.sound"
+MAXIMUM_VOLUME_KEY = "maximum-volume"
+
 DECAY_STEP = .15
 
 EFFECT_LIST = [
@@ -65,16 +67,6 @@ class SoundBox(Gtk.Box):
         title_holder.add(label)
         toolbar.add(title_holder)
         main_box.add(toolbar)
-
-        toolbar_separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
-        main_box.add(toolbar_separator)
-        separator_context = toolbar_separator.get_style_context()
-        frame_color = frame_style.get_border_color(Gtk.StateFlags.NORMAL).to_string()
-        css_provider = Gtk.CssProvider()
-        css_provider.load_from_data(".separator { -GtkWidget-wide-separators: 0; \
-                                                   color: %s;                    \
-                                                }" % frame_color)
-        separator_context.add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
         scw = Gtk.ScrolledWindow()
         scw.expand = True
@@ -159,10 +151,8 @@ class Slider(SettingsWidget):
         self.slider.add_mark(val, Gtk.PositionType.TOP, "")
 
 class VolumeBar(Slider):
-    def __init__(self, normVolume, maxVolume, title=_("Volume: "), gicon=None, sizeGroup=None):
+    def __init__(self, normVolume, maxPercent, title=_("Volume: "), gicon=None, sizeGroup=None):
         self.normVolume = normVolume
-        self.maxVolume = maxVolume
-        self.maxPercent = 100*maxVolume/normVolume
         self.volume = 0
         self.isMuted = False
         self.baseTitle = title
@@ -172,7 +162,7 @@ class VolumeBar(Slider):
         self.mutedHandlerId = 0
         self.volumeHandlerId = 0
 
-        super(VolumeBar, self).__init__(title, _("Softer"), _("Louder"), 0, self.maxPercent, sizeGroup, 1, 5, 0, gicon)
+        super(VolumeBar, self).__init__(title, _("Softer"), _("Louder"), 0, maxPercent, sizeGroup, 1, 5, 0, gicon)
         self.set_spacing(0)
         self.set_border_width(2)
         self.set_margin_left(23)
@@ -188,7 +178,7 @@ class VolumeBar(Slider):
 
         self.leftBox.pack_start(self.muteSwitch, False, False, 0)
 
-        if maxVolume > normVolume:
+        if maxPercent > 100:
             self.setMark(100)
 
         self.muteSwitchHandlerId = self.muteSwitch.connect("clicked", self.toggleMute)
@@ -502,10 +492,11 @@ class Module:
     def __init__(self, content_box):
         keywords = _("sound, media, music, speakers, audio")
         self.sidePage = SidePage(_("Sound"), "cs-sound", keywords, content_box, module=self)
+        self.sound_settings = Gio.Settings(CINNAMON_DESKTOP_SOUNDS)
 
     def on_module_selected(self):
         if not self.loaded:
-            print "Loading Sound module"
+            print("Loading Sound module")
 
             self.outputDeviceList = Gtk.ListStore(str, # name
                                                   str, # device
@@ -548,7 +539,8 @@ class Module:
         sizeGroup = Gtk.SizeGroup.new(Gtk.SizeGroupMode.HORIZONTAL)
 
         # ouput volume
-        self.outVolume = VolumeBar(self.controller.get_vol_max_norm(), self.controller.get_vol_max_amplified(), sizeGroup=sizeGroup)
+        max_volume = self.sound_settings.get_int(MAXIMUM_VOLUME_KEY)
+        self.outVolume = VolumeBar(self.controller.get_vol_max_norm(), max_volume, sizeGroup=sizeGroup)
         devSettings.add_row(self.outVolume)
 
         # balance
@@ -578,7 +570,7 @@ class Module:
         sizeGroup = Gtk.SizeGroup.new(Gtk.SizeGroupMode.HORIZONTAL)
 
         # input volume
-        self.inVolume = VolumeBar(self.controller.get_vol_max_norm(), self.controller.get_vol_max_amplified(), sizeGroup=sizeGroup)
+        self.inVolume = VolumeBar(self.controller.get_vol_max_norm(), max_volume, sizeGroup=sizeGroup)
         devSettings.add_row(self.inVolume)
 
         # input level
@@ -598,19 +590,19 @@ class Module:
         self.inputStack.add_named(noInputsMessage, "noInputsMessage")
         self.inputStack.show_all()
 
-        ## Effects page
+        ## Sounds page
         page = SettingsPage()
-        self.sidePage.stack.add_titled(page, "effects", _("Sound Effects"))
+        self.sidePage.stack.add_titled(page, "sounds", _("Sounds"))
 
-        effectsVolumeSection = page.add_section(_("Effects Volume"))
-        self.effectsVolume = VolumeBar(self.controller.get_vol_max_norm(), self.controller.get_vol_max_norm())
-        effectsVolumeSection.add_row(self.effectsVolume)
+        soundsVolumeSection = page.add_section(_("Sounds Volume"))
+        self.soundsVolume = VolumeBar(self.controller.get_vol_max_norm(), 100)
+        soundsVolumeSection.add_row(self.soundsVolume)
 
-        effectsSection = SoundBox(_("Effects"))
-        page.pack_start(effectsSection, True, True, 0)
+        soundsSection = SoundBox(_("Sounds"))
+        page.pack_start(soundsSection, True, True, 0)
         sizeGroup = Gtk.SizeGroup.new(Gtk.SizeGroupMode.HORIZONTAL)
         for effect in EFFECT_LIST:
-            effectsSection.add_row(Effect(effect, sizeGroup))
+            soundsSection.add_row(Effect(effect, sizeGroup))
 
         ## Applications page
         page = SettingsPage()
@@ -634,6 +626,25 @@ class Module:
         box.pack_start(label, False, False, 0)
         noAppsMessage.pack_start(box, True, True, 0)
         self.appStack.add_named(noAppsMessage, "noAppsMessage")
+
+        ## Settings page
+        page = SettingsPage()
+        self.sidePage.stack.add_titled(page, "settings", _("Settings"))
+
+        amplificationSection = page.add_section(_("Amplification"))
+        self.maxVolume = Slider(_("Maximum volume: %d") % max_volume + "%", _("Reduced"), _("Amplified"), 1, 150, None, step=1, page=10, value=max_volume, gicon=None, iconName=None)
+        self.maxVolume.adjustment.connect("value-changed", self.onMaxVolumeChanged)
+        self.maxVolume.setMark(100)
+        amplificationSection.add_row(self.maxVolume)
+
+    def onMaxVolumeChanged(self, adjustment):
+        newValue = int(round(adjustment.get_value()))
+        self.sound_settings.set_int(MAXIMUM_VOLUME_KEY, newValue)
+        self.maxVolume.label.set_label(_("Maximum volume: %d") % newValue + "%")
+        self.outVolume.adjustment.set_upper(newValue)
+        self.outVolume.slider.clear_marks()
+        if (newValue > 100):
+            self.outVolume.setMark(100)
 
     def inializeController(self):
         self.controller = Cvc.MixerControl(name = "cinnamon")
@@ -761,13 +772,13 @@ class Module:
         stream = self.controller.lookup_stream_id(id)
 
         if stream in self.controller.get_sink_inputs():
-            self.appList[id] = VolumeBar(self.controller.get_vol_max_norm(), self.controller.get_vol_max_norm(), stream.props.name + ": ", stream.get_gicon())
+            self.appList[id] = VolumeBar(self.controller.get_vol_max_norm(), 100, stream.props.name + ": ", stream.get_gicon())
             self.appList[id].setStream(stream)
             self.appSettings.add_row(self.appList[id])
             self.appSettings.list_box.invalidate_headers()
             self.appSettings.show_all()
         elif stream == self.controller.get_event_sink_input():
-            self.effectsVolume.setStream(stream)
+            self.soundsVolume.setStream(stream)
 
         self.checkAppState()
 

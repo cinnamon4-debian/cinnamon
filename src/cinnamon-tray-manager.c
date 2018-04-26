@@ -195,27 +195,15 @@ cinnamon_tray_manager_style_changed (StWidget *theme_widget,
   CinnamonTrayManager *manager = user_data;
   StThemeNode *theme_node;
   StIconColors *icon_colors;
-  GdkColor foreground, warning, error, success;
 
   theme_node = st_widget_get_theme_node (theme_widget);
   icon_colors = st_theme_node_get_icon_colors (theme_node);
 
-  foreground.red = icon_colors->foreground.red * 0x101;
-  foreground.green = icon_colors->foreground.green * 0x101;
-  foreground.blue = icon_colors->foreground.blue * 0x101;
-  warning.red = icon_colors->warning.red * 0x101;
-  warning.green = icon_colors->warning.green * 0x101;
-  warning.blue = icon_colors->warning.blue * 0x101;
-  error.red = icon_colors->error.red * 0x101;
-  error.green = icon_colors->error.green * 0x101;
-  error.blue = icon_colors->error.blue * 0x101;
-  success.red = icon_colors->success.red * 0x101;
-  success.green = icon_colors->success.green * 0x101;
-  success.blue = icon_colors->success.blue * 0x101;
-
   na_tray_manager_set_colors (manager->priv->na_manager,
-                              &foreground, &warning,
-                              &error, &success);
+                              &icon_colors->foreground,
+                              &icon_colors->warning,
+                              &icon_colors->error,
+                              &icon_colors->success);
 }
 
 void
@@ -265,8 +253,9 @@ cinnamon_tray_manager_manage_stage (CinnamonTrayManager *manager,
 
   na_tray_manager_manage_screen (manager->priv->na_manager, screen);
 
-  g_signal_connect (theme_widget, "style-changed",
-                    G_CALLBACK (cinnamon_tray_manager_style_changed), manager);
+  g_signal_connect_object (theme_widget, "style-changed",
+                    G_CALLBACK (cinnamon_tray_manager_style_changed),
+                    manager, 0);
   cinnamon_tray_manager_style_changed (theme_widget, manager);
 }
 
@@ -321,14 +310,6 @@ na_tray_icon_added (NaTrayManager *na_manager, GtkWidget *socket,
   GtkWidget *win;
   CinnamonTrayManagerChild *child;
 
-  /* We don't need the NaTrayIcon to be composited on the window we
-   * put it in: the window is the same size as the tray icon
-   * and transparent. We can just use the default X handling of
-   * subwindows as mode of SOURCE (replace the parent with the
-   * child) and then composite the parent onto the stage.
-   */
-  na_tray_child_set_composited (NA_TRAY_CHILD (socket), FALSE);
-
   win = cinnamon_embedded_window_new (manager->priv->stage);
   gtk_container_add (GTK_CONTAINER (win), socket);
 
@@ -355,13 +336,13 @@ static void
 cinnamon_tray_manager_child_redisplay (gpointer socket_pointer, gpointer child_pointer, gpointer user_data)
 {
   CinnamonTrayManagerChild *child = child_pointer;
-  
+
   g_return_if_fail(child != NULL);
-  
+
   if (child->actor && CLUTTER_IS_ACTOR(child->actor)) {
     clutter_actor_destroy(child->actor);
   }
-  
+
   on_plug_added(socket_pointer, child->manager);
 }
 

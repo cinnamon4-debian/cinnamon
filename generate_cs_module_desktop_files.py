@@ -1,47 +1,44 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
+
+import os
+import gettext
+import glob
+import sys
+
+sys.path.append('/usr/lib/linuxmint/common')  # noqa
+import additionalfiles
 
 DOMAIN = "cinnamon"
 PATH = "/usr/share/locale"
 
-import os, gettext, sys
-sys.path.append('/usr/lib/linuxmint/common')
-import additionalfiles
-
 os.environ['LANGUAGE'] = "en_US.UTF-8"
 gettext.install(DOMAIN, PATH)
 
-
-
-
-
-
-import os
-import glob
-import polib
-import sys
-from gi.repository import GLib
-
 try:
+    sys.path.append('files/usr/share/cinnamon/cinnamon-settings')
     sys.path.append('files/usr/share/cinnamon/cinnamon-settings/modules')
     sys.path.append('files/usr/share/cinnamon/cinnamon-settings/bin')
     mod_files = glob.glob('files/usr/share/cinnamon/cinnamon-settings/modules/*.py')
     mod_files.sort()
     if len(mod_files) is 0:
-        raise Exception("No settings modules found!!")
-    for i in range(len(mod_files)):
-        mod_files[i] = mod_files[i].split('/')[-1]
-        mod_files[i] = mod_files[i].split('.')[0]
-        if mod_files[i][0:3] != "cs_":
+        print("No settings modules found!!")
+        sys.exit(1)
+
+    mod_files = [x.split('/')[-1].split('.')[0] for x in mod_files]
+
+    for mod_file in mod_files:
+        if mod_file[0:3] != "cs_":
             raise Exception("Settings modules must have a prefix of 'cs_' !!")
+
+    print(mod_files)
     modules = map(__import__, mod_files)
-except Exception, detail:
-    print detail
+except Exception as detail:
+    print(detail)
     sys.exit(1)
 
-
-for i in range(len(modules)):
+for module in modules:
     try:
-        mod = modules[i].Module(None)
+        mod = module.Module(None)
 
         if mod.category in ("admin"):
             category = "Settings;System;"
@@ -61,7 +58,7 @@ Categories=Settings;
 
         additionalfiles.generate(DOMAIN, PATH, "files/usr/share/applications/cinnamon-settings-%s.desktop" % mod.name, prefix, mod.sidePage.name, mod.comment, "", None, mod.sidePage.keywords)
 
-    except:
-        print "Failed to load module %s" % modules[i]
+    except Exception:
+        print("Failed to load module %s" % module)
         import traceback
         traceback.print_exc()
