@@ -99,7 +99,7 @@ Depends:
  python3-pampy,
  python3-pexpect,
  python3-pil,
- python3-pyinotify
+ python3-pyinotify,
  xapps-common,
  ${gir:Depends},
  ${misc:Depends},
