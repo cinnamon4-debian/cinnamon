@@ -26,7 +26,6 @@ Build-Depends:
  libgirepository1.0-dev (>= 1.29.15),
  libgl1-mesa-dev,
  libglib2.0-dev (>= 2.25.11),
- libgnome-bluetooth-dev (>= 3.1.0) [linux-any],
  libgstreamer1.0-dev,
  libgtk-3-dev (>= 3.9.12),
  libjson-glib-dev (>= 0.13.2),
@@ -108,7 +107,6 @@ Depends:
 Recommends:
  blueman,
  cinnamon-l10n (>= 3.6),
- gir1.2-gnomebluetooth-1.0 [linux-any],
  gnome-terminal | x-terminal-emulator,
  metacity-common,
 Suggests: cinnamon-doc, python-opencv
