@@ -1,3 +1,10 @@
+cinnamon (3.8.0-1~) UNRELEASED; urgency=medium
+
+  * New upstream release (3.8.0). (Closes: #856699)
+  * Refresh patches
+
+ -- Fabio Fantoni <fantonifabio@tiscali.it>  Fri, 27 Apr 2018 16:10:05 +0200
+
 cinnamon (3.6.7-8) unstable; urgency=medium
 
   * Remove gettext tweaking from py2 py3 patch
