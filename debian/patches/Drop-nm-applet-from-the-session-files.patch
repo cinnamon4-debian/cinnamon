@@ -11,8 +11,6 @@ Debian-Bug: https://bugs.debian.org/818084
  files/usr/share/cinnamon-session/sessions/cinnamon2d.session | 2 +-
  2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/files/usr/share/cinnamon-session/sessions/cinnamon.session b/files/usr/share/cinnamon-session/sessions/cinnamon.session
-index 2473039..0c17635 100644
 --- a/files/usr/share/cinnamon-session/sessions/cinnamon.session
 +++ b/files/usr/share/cinnamon-session/sessions/cinnamon.session
 @@ -1,6 +1,6 @@
@@ -23,8 +21,6 @@ index 2473039..0c17635 100644
  DesktopName=X-Cinnamon
  
  
-diff --git a/files/usr/share/cinnamon-session/sessions/cinnamon2d.session b/files/usr/share/cinnamon-session/sessions/cinnamon2d.session
-index d3f72cb..4bd05ba 100644
 --- a/files/usr/share/cinnamon-session/sessions/cinnamon2d.session
 +++ b/files/usr/share/cinnamon-session/sessions/cinnamon2d.session
 @@ -1,6 +1,6 @@

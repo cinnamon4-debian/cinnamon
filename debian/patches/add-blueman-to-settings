@@ -4,20 +4,16 @@ Subject: Add Blueman manager to the possible settings for bluetooth
 
 Forwarded: no
 Reviewed-by: maxy@debian.org
-Last-Update: 2016-09-25
+Last-Update: 2018-04-27
 ---
- files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py | 1 +
- 1 file changed, 1 insertion(+)
 
-diff --git a/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py b/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py
-index 5367579..bc8d6b0 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py
-@@ -87,6 +87,7 @@ STANDALONE_MODULES = [
-     [_("Software Sources"),              "mintsources",                  "cs-sources",         "admin",          _("ppa, repository, package, source, download")],
-     [_("Users and Groups"),              "cinnamon-settings-users",      "cs-user-accounts",   "admin",          _("user, users, account, accounts, group, groups, password")],
-     [_("Bluetooth"),                     "blueberry",                    "cs-bluetooth",       "hardware",       _("bluetooth, dongle, transfer, mobile")],
-+    [_("Blueman"),                       "blueman-manager",              "cs-bluetooth",       "hardware",       _("bluetooth, dongle, transfer, mobile")],
-     [_("Manage Services and Units"),     "systemd-manager-pkexec",       "cs-sources",         "admin",          _("systemd, units, services, systemctl, init")]
+@@ -90,6 +90,7 @@
+     [_("Package Management"),            "yumex-dnf",                           "cs-sources",         "admin",          _("update, install, repository, package, source, download")],
+     [_("Users and Groups"),              "cinnamon-settings-users",             "cs-user-accounts",   "admin",          _("user, users, account, accounts, group, groups, password")],
+     [_("Bluetooth"),                     "blueberry",                           "cs-bluetooth",       "hardware",       _("bluetooth, dongle, transfer, mobile")],
++    [_("Blueman"),                       "blueman-manager",                     "cs-bluetooth",       "hardware",       _("bluetooth, dongle, transfer, mobile")],
+     [_("Manage Services and Units"),     "systemd-manager-pkexec",              "cs-sources",         "admin",          _("systemd, units, services, systemctl, init")]
  ]
  
