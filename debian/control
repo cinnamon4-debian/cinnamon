@@ -109,7 +109,6 @@ Recommends:
  blueman,
  cinnamon-l10n (>= 3.6),
  gir1.2-gnomebluetooth-1.0 [linux-any],
- gksu,
  gnome-terminal | x-terminal-emulator,
  metacity-common,
 Suggests: cinnamon-doc, python-opencv
