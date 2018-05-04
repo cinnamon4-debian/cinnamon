@@ -81,7 +81,6 @@ Depends:
  gnome-themes-extra | gnome-themes-standard,
  gsettings-desktop-schemas (>= 0.1.7),
  iso-flags-png-320x240,
- libcanberra-pulse,
  libcinnamon-desktop4 (>= 3.8),
  libcinnamon-menu-3-0 (>= 3.8),
  libcjs0 (>= 3.8),
@@ -109,6 +108,7 @@ Recommends:
  blueman,
  cinnamon-l10n (>= 3.8),
  gnome-terminal | x-terminal-emulator,
+ libcanberra-pulse,
  metacity-common,
 Suggests: cinnamon-doc, python-opencv
 Provides: notification-daemon, x-window-manager
