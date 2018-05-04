@@ -1,4 +1,4 @@
-cinnamon (3.8.1-1~) UNRELEASED; urgency=medium
+cinnamon (3.8.1-1~1) UNRELEASED; urgency=medium
 
   [ Fabio Fantoni ]
   * New upstream release (3.8.0). (Closes: #856699)
@@ -10,8 +10,12 @@ cinnamon (3.8.1-1~) UNRELEASED; urgency=medium
   [ Maximiliano Curia ]
   * Keep pulseaudio optional, degrade libcanberra-pulse to a recommends
   * New upstream release (3.8.1).
+  * Bump Standards-Version to 4.1.4.
+  * Refresh patches
+  * Bump group breaks (3.8)
+  * Reenable always-add-default-theme.patch
 
- -- Maximiliano Curia <maxy@debian.org>  Fri, 04 May 2018 09:44:49 +0200
+ -- Maximiliano Curia <maxy@debian.org>  Fri, 04 May 2018 14:51:05 +0200
 
 cinnamon (3.6.7-8) unstable; urgency=medium
 
