@@ -1,4 +1,4 @@
-cinnamon (3.8.1-1~2) UNRELEASED; urgency=medium
+cinnamon (3.8.1-1~3) UNRELEASED; urgency=medium
 
   [ Fabio Fantoni ]
   * New upstream release (3.8.0). (Closes: #856699)
@@ -17,10 +17,11 @@ cinnamon (3.8.1-1~2) UNRELEASED; urgency=medium
   * Add cs_startup.py fixes.
     Add upstream patches:
      Startup-settings-Use-icons-in-button-box.patch
-     Add Startup-settings-Fix-blurry-icons.patch
-     Add Spices.py-Use-https-for-spices-downloads.patch
-     Add Startup-settings-Fix-using-the-wrong-variable.patch
-     Add Startup-settings-Show-delay-units-and-only-show-delay-whe.patch
+     Startup-settings-Fix-blurry-icons.patch
+     Startup-settings-Fix-using-the-wrong-variable.patch
+     Startup-settings-Show-delay-units-and-only-show-delay-whe.patch
+     Startup-settings-Fix-creation-of-autostart-files.patch
+  * Add upstream patch Spices.py-Use-https-for-spices-downloads.patch
 
  -- Maximiliano Curia <maxy@debian.org>  Fri, 04 May 2018 16:15:05 +0200
 
