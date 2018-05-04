@@ -8,14 +8,12 @@ Last-Update: 2017-01-29
  files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py
-index a27ba25..f0a8fee 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py
-@@ -328,7 +328,7 @@ class Module:
+@@ -257,7 +257,7 @@
          dirs = ("/usr/share/themes", os.path.join(os.path.expanduser("~"), ".themes"))
-         valid = walk_directories(dirs, lambda d: os.path.exists(os.path.join(d, "metacity-1")), return_directories=True)
-         valid.sort(lambda a,b: cmp(a[0].lower(), b[0].lower()))
+         valid = walk_directories(dirs, self.filter_func_gtk_dir, return_directories=True)
+         valid.sort(key=lambda a: a[0].lower())
 -        res = []
 +        res = [('Default', '/usr/share/muffin/theme')]
          for i in valid:
