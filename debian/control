@@ -60,7 +60,7 @@ Depends:
  gir1.2-clutter-1.0,
  gir1.2-cmenu-3.0 (>= 3.8),
  gir1.2-cogl-1.0,
- gir1.2-cvc-1.0,
+ gir1.2-cvc-1.0 (>= 3.8),
  gir1.2-gdkpixbuf-2.0,
  gir1.2-gkbd-3.0,
  gir1.2-glib-2.0,
@@ -75,7 +75,7 @@ Depends:
  gir1.2-polkit-1.0,
  gir1.2-soup-2.4,
  gir1.2-upowerglib-1.0,
- gir1.2-xapp-1.0 (>= 1.0.4~),
+ gir1.2-xapp-1.0 (>= 1.2),
  gkbd-capplet,
  gnome-backgrounds,
  gnome-themes-extra | gnome-themes-standard,
@@ -99,7 +99,7 @@ Depends:
  python3-pexpect,
  python3-pil,
  python3-pyinotify,
- xapps-common,
+ xapps-common (>= 1.2),
  ${gir:Depends},
  ${misc:Depends},
  ${python3:Depends},
@@ -113,7 +113,7 @@ Recommends:
 Suggests: cinnamon-doc, python-opencv
 Provides: notification-daemon, x-window-manager
 Replaces: cinnamon-common (<= 2.2.14-1)
-Breaks: cinnamon-common (<= 2.2.14-1)
+Breaks: cinnamon-common (<= 2.2.14-1), cinnamon-core (<< 3.8~)
 Description: Innovative and comfortable desktop
  Cinnamon is a desktop environment which provides advanced innovative
  features and a traditional user experience.
