@@ -1,16 +1,16 @@
-From: Debian Cinnamon Team <pkg-cinnamon-team@lists.alioth.debian.org>
-Date: Sun, 13 Mar 2016 19:07:24 +0100
-Subject: network-user-connections
+From: =?utf-8?q?Bj=C3=B6rn_Esser?= <besser82@fedoraproject.org>
+Date: Fri, 4 May 2018 09:58:48 +0200
+Subject: network: Support user connections
 
 ---
  .../applets/network@cinnamon.org/applet.js         | 32 +++++++++++++++++++---
  1 file changed, 28 insertions(+), 4 deletions(-)
 
 diff --git a/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js b/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
-index 512714e..970e1af 100644
+index 9753fe5..bfb6a45 100644
 --- a/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
 +++ b/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
-@@ -73,6 +73,11 @@ function NMNetworkMenuItem() {
+@@ -70,6 +70,11 @@ function NMNetworkMenuItem() {
      this._init.apply(this, arguments);
  }
  
@@ -22,7 +22,7 @@ index 512714e..970e1af 100644
  NMNetworkMenuItem.prototype = {
      __proto__: PopupMenu.PopupBaseMenuItem.prototype,
  
-@@ -732,12 +737,14 @@ NMDeviceWired.prototype = {
+@@ -737,12 +742,14 @@ NMDeviceWired.prototype = {
          let connection = new NM.SimpleConnection();
          connection._uuid = NM.utils_uuid_generate();
          connection.add_setting(new NM.SettingWired());
@@ -39,7 +39,7 @@ index 512714e..970e1af 100644
          return connection;
      }
  };
-@@ -987,6 +994,8 @@ NMDeviceWireless.prototype = {
+@@ -992,6 +999,8 @@ NMDeviceWireless.prototype = {
          this._overflowItem = null;
          this._networks = [ ];
  
@@ -48,7 +48,7 @@ index 512714e..970e1af 100644
          // breaking the layers with this, but cannot call
          // this.connectionValid until I have a device
          this.device = device;
-@@ -1525,12 +1534,27 @@ NMDeviceWireless.prototype = {
+@@ -1560,12 +1569,27 @@ NMDeviceWireless.prototype = {
  
          let connection = new NM.SimpleConnection();
          connection.add_setting(new NM.SettingWireless());

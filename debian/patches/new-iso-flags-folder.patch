@@ -6,9 +6,11 @@ Subject: new-iso-flags-folder
  files/usr/share/cinnamon/applets/keyboard@cinnamon.org/applet.js | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/files/usr/share/cinnamon/applets/keyboard@cinnamon.org/applet.js b/files/usr/share/cinnamon/applets/keyboard@cinnamon.org/applet.js
+index d78098d..74930bb 100644
 --- a/files/usr/share/cinnamon/applets/keyboard@cinnamon.org/applet.js
 +++ b/files/usr/share/cinnamon/applets/keyboard@cinnamon.org/applet.js
-@@ -213,7 +213,7 @@
+@@ -213,7 +213,7 @@ class CinnamonKeyboardApplet extends Applet.TextIconApplet {
              if (this.show_flags) {
                  let name = this._config.get_icon_name_for_group(i);
  
@@ -17,7 +19,7 @@ Subject: new-iso-flags-folder
  
                  if (file.query_exists(null)) {
                      actor = new EmblemedIcon(file.get_path(), this._config.get_flag_id_for_group(i), "popup-menu-icon").actor;
-@@ -262,7 +262,7 @@
+@@ -262,7 +262,7 @@ class CinnamonKeyboardApplet extends Applet.TextIconApplet {
          if (this.show_flags) {
              let name = this._config.get_current_icon_name();
  
