@@ -20,6 +20,7 @@ D_GROUP = "Desktop Entry"
 DEFAULT_ICON = "system-run"
 AUTOSTART_APPS = collections.OrderedDict()
 
+KEYFILE_FLAGS = GLib.KeyFileFlags.KEEP_COMMENTS and GLib.KeyFileFlags.KEEP_TRANSLATIONS
 
 def list_header_func(row, before, user_data):
     if before and not row.get_header():
@@ -123,9 +124,9 @@ class AutostartApp():
 
     def load(self):
         try:
-            self.key_file.load_from_file(self.app, GLib.KeyFileFlags.KEEP_COMMENTS and GLib.KeyFileFlags.KEEP_TRANSLATIONS)
-        except GLib.GError:
-            print("Failed to load %s" % self.app)
+            self.key_file.load_from_file(self.app, KEYFILE_FLAGS)
+        except GLib.GError as e:
+            print("Failed to load %s" % self.app, e)
             return
 
         self.key_file_loaded = True
@@ -207,17 +208,20 @@ class AutostartApp():
             self.app = os.path.join(self.system_position, self.basename)
             os.remove(old_app)
             self.key_file = GLib.KeyFile.new()
-            if self.key_file.load_from_file(self.app, GLib.KeyFileFlags.KEEP_COMMENTS and GLib.KeyFileFlags.KEEP_TRANSLATIONS):
+            if self.key_file.load_from_file(self.app, KEYFILE_FLAGS):
                 self.load()
             self.save_done_success()
             return False
 
-        use_path = self.path
-
-        key_file = GLib.KeyFile.new()
-
         try:
-            key_file.load_from_file(use_path, GLib.KeyFileFlags.KEEP_COMMENTS and GLib.KeyFileFlags.KEEP_TRANSLATIONS)
+            key_file = GLib.KeyFile.new()
+
+            if self.user_position == None:
+                self.user_position = os.path.join(GLib.get_user_config_dir(), "autostart")
+                self.path = os.path.join(self.user_position, self.basename)
+                key_file.load_from_file(os.path.join(self.system_position, self.basename), KEYFILE_FLAGS)
+            else:
+                key_file.load_from_file(self.path, KEYFILE_FLAGS)
         except:
             key_file.set_string(D_GROUP, GLib.KEY_FILE_DESKTOP_KEY_TYPE, "Application")
             key_file.set_string(D_GROUP, GLib.KEY_FILE_DESKTOP_KEY_EXEC, "/bin/false")
@@ -258,13 +262,6 @@ class AutostartApp():
 
         return False
 
-    def queue_save(self):
-        if self.user_position == None:
-            self.user_position = os.path.join(GLib.get_user_config_dir(), "autostart")
-            self.path = os.path.join(self.user_position, self.basename)
-
-        self.save()
-
     def update(self, info):
         changed = False
         if info["name"] != self.name:
@@ -291,12 +288,12 @@ class AutostartApp():
             changed = True
 
         if changed:
-            self.queue_save()
+            self.save()
 
     def set_enabled(self, enabled):
         self.enabled = enabled
         self.save_mask.add_item("enabled")
-        self.queue_save()
+        self.save()
 
     def remove(self):
         if not self.system_position and self.user_position:
@@ -306,13 +303,13 @@ class AutostartApp():
             self.save_mask.add_item("hidden")
             self.enabled = False
             self.save_mask.add_item("enabled")
-            self.queue_save()
+            self.save()
 
     def update_description(self):
         if self.name == "":
             self.name = _("No name")
         if self.comment == "":
-            self.comment == _("No description")
+            self.comment = _("No description")
 
     def user_equals_system(self):
         if not self.system_position:
@@ -428,24 +425,28 @@ class AutostartBox(Gtk.Box):
         box.set_halign(Gtk.Align.CENTER)
         button_holder.add(box)
 
-        self.add_button = Gtk.Button.new_with_label(_("Add"))
+        self.add_button = Gtk.Button.new_from_icon_name("list-add-symbolic", Gtk.IconSize.BUTTON)
+        self.add_button.set_tooltip_text(_("Add"))
         self.add_button.connect("clicked", self.on_add_button_clicked)
         button_group.add_widget(self.add_button)
         box.add(self.add_button)
 
-        self.edit_button = Gtk.Button.new_with_label(_("Edit"))
+        self.edit_button = Gtk.Button.new_from_icon_name("document-edit-symbolic", Gtk.IconSize.BUTTON)
+        self.edit_button.set_tooltip_text(_("Edit"))
         self.edit_button.connect("clicked", self.on_edit_button_clicked)
         button_group.add_widget(self.edit_button)
         self.edit_button.set_sensitive(False)
         box.add(self.edit_button)
 
-        self.remove_button = Gtk.Button.new_with_label(_("Remove"))
+        self.remove_button = Gtk.Button.new_from_icon_name("list-remove-symbolic", Gtk.IconSize.BUTTON)
+        self.remove_button.set_tooltip_text(_("Remove"))
         self.remove_button.connect("clicked", self.on_remove_button_clicked)
         button_group.add_widget(self.remove_button)
         self.remove_button.set_sensitive(False)
         box.add(self.remove_button)
 
-        self.run_button = Gtk.Button.new_with_label(_("Run now"))
+        self.run_button = Gtk.Button.new_from_icon_name("system-run-symbolic", Gtk.IconSize.BUTTON)
+        self.run_button.set_tooltip_text(_("Run now"))
         self.run_button.connect("clicked", self.on_run_button_clicked)
         button_group.add_widget(self.run_button)
         self.run_button.set_sensitive(False)
@@ -542,7 +543,7 @@ class AutostartBox(Gtk.Box):
                 return
 
             app = AutostartApp(filename, user_position=os.path.dirname(filename))
-            key = get_appname(app)
+            key = get_appname(filename)
             AUTOSTART_APPS[key] = app
 
             app.basename = os.path.basename(app.app)
@@ -562,7 +563,7 @@ class AutostartBox(Gtk.Box):
 
             app.save_mask.add_item("all")
 
-            app.queue_save()
+            app.save()
 
             row = AutostartRow(app)
             self.add_row(row)
@@ -595,7 +596,7 @@ class AutostartBox(Gtk.Box):
 
             app.save_mask.add_item("all")
 
-            app.queue_save()
+            app.save()
 
             row = AutostartRow(app)
             self.add_row(row)
@@ -663,15 +664,14 @@ class AutostartRow(Gtk.ListBoxRow):
         if self.app.icon:
             try:
                 if GLib.path_is_absolute(self.app.icon):
-                    shown_icon = GdkPixbuf.Pixbuf.new_from_file_at_scale(self.app.icon, 24, 24, True)
-                    img = Gtk.Image.new_from_pixbuf(shown_icon)
-                else:
-                    pixbuf = icon_theme.load_icon(self.app.icon, 24, Gtk.IconLookupFlags.FORCE_SIZE)
+                    pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(self.app.icon, 24, 24, True)
                     img = Gtk.Image.new_from_pixbuf(pixbuf)
+                else:
+                    img = Gtk.Image.new_from_icon_name(self.app.icon, Gtk.IconSize.LARGE_TOOLBAR)
             except:
-                img = Gtk.Image.new_from_gicon(Gio.ThemedIcon.new(DEFAULT_ICON), Gtk.IconSize.LARGE_TOOLBAR)
+                img = Gtk.Image.new_from_icon_name(DEFAULT_ICON, Gtk.IconSize.LARGE_TOOLBAR)
         else:
-            img = Gtk.Image.new_from_gicon(Gio.ThemedIcon.new(DEFAULT_ICON), Gtk.IconSize.LARGE_TOOLBAR)
+            img = Gtk.Image.new_from_icon_name(DEFAULT_ICON, Gtk.IconSize.LARGE_TOOLBAR)
         grid.attach(img, 0, 0, 1, 1)
 
         self.desc_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -695,15 +695,17 @@ class AutostartRow(Gtk.ListBoxRow):
         self.delay_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.delay_box.props.hexpand = False
         self.delay_box.set_margin_right(15)
-        label = Gtk.Label(_("Delay"))
-        self.delay_box.pack_start(label, False, False, 0)
-        self.delay_time_label = Gtk.Label()
         delay_time_markup = GLib.markup_escape_text(self.app.delay)
-        self.delay_time_label.set_markup(delay_time_markup)
-        self.delay_time_label.get_style_context().add_class("dim-label")
-        self.delay_box.pack_start(self.delay_time_label, False, False, 0)
+        if delay_time_markup != "0":
+            label = Gtk.Label(_("Delay"))
+            self.delay_box.pack_start(label, False, False, 0)
+            self.delay_time_label = Gtk.Label()
+            self.delay_time_label.set_text(_("%s s") % delay_time_markup)
+            self.delay_time_label.get_style_context().add_class("dim-label")
+            self.delay_box.pack_start(self.delay_time_label, False, False, 0)
         grid.attach_next_to(self.delay_box, self.desc_box, Gtk.PositionType.RIGHT, 1, 1)
         self.delay_box.set_sensitive(app.enabled)
+
 
         switch_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         switch_box.set_margin_top(5)
