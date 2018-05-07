@@ -6,9 +6,3 @@ new-iso-flags-folder.patch
 always-add-default-theme.patch
 port-libnm.patch
 network-user-connections.patch
-Startup-settings-Fix-blurry-icons.patch
-Startup-settings-Fix-using-the-wrong-variable.patch
-Startup-settings-Use-icons-in-button-box.patch
-Spices.py-Use-https-for-spices-downloads.patch
-Startup-settings-Show-delay-units-and-only-show-delay-whe.patch
-Startup-settings-Fix-creation-of-autostart-files.patch

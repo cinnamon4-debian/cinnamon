@@ -1,3 +1,10 @@
+cinnamon (3.8.2-1~) UNRELEASED; urgency=medium
+
+  * New upstream release (3.8.2).
+  * Removed 6 debian/patches applied upstream.
+
+ -- Fabio Fantoni <fantonifabio@tiscali.it>  Mon, 07 May 2018 16:23:10 +0200
+
 cinnamon (3.8.1-1) experimental; urgency=medium
 
   [ Fabio Fantoni ]
