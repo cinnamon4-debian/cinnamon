@@ -30,7 +30,7 @@ home = os.path.expanduser("~")
 locale_inst = '%s/.local/share/locale' % home
 settings_dir = '%s/.cinnamon/configs/' % home
 
-URL_SPICES_HOME = "http://cinnamon-spices.linuxmint.com"
+URL_SPICES_HOME = "https://cinnamon-spices.linuxmint.com"
 URL_MAP = {
     'applet': URL_SPICES_HOME + "/json/applets.json",
     'theme': URL_SPICES_HOME + "/json/themes.json",
@@ -67,6 +67,7 @@ class ThreadedTaskManager(GObject.GObject):
     def __init__(self, max_threads):
         super(ThreadedTaskManager, self).__init__()
         self.max_threads = max_threads
+        self.abort_status = False
         self.jobs = []
         self.threads = []
         self.lock = threading.Lock()
@@ -79,7 +80,8 @@ class ThreadedTaskManager(GObject.GObject):
         return len(self.jobs) > 0 or len(self.threads) > 0
 
     def push(self, func, callback, data):
-        self.jobs.insert(0, (func, callback, data))
+        with self.lock:
+            self.jobs.insert(0, (func, callback, data))
 
         if self.start_id == 0:
             self.start_id = GLib.idle_add(self.check_start_job)
@@ -90,28 +92,37 @@ class ThreadedTaskManager(GObject.GObject):
             if len(self.threads) == self.max_threads:
                 return
 
-            job = self.jobs.pop()
-            newthread = threading.Thread(target=self.thread_function_wrapper, args=job)
+            with self.lock:
+                job = self.jobs.pop()
+                newthread = threading.Thread(target=self.thread_function_wrapper, args=job)
+                self.threads.append(newthread)
+
             newthread.start()
-            self.threads.append(newthread)
 
             self.check_start_job()
 
     def thread_function_wrapper(self, func, callback, data):
         result = func(*data)
 
-        self.lock.acquire()
-        try:
-            self.threads.remove(threading.current_thread())
-        except:
-            pass
+        with self.lock:
+            try:
+                self.threads.remove(threading.current_thread())
+            except:
+                pass
+
+            if self.abort_status and not self.busy():
+                self.abort_status = False
 
         self.check_start_job()
 
         if callback is not None:
             ui_thread_do(callback, result)
 
-        self.lock.release()
+    def abort(self):
+        if self.busy():
+            with self.lock:
+                self.abort_status = True
+                del self.jobs[:]
 
 class Spice_Harvester(GObject.Object):
     __gsignals__ = {
@@ -129,7 +140,6 @@ class Spice_Harvester(GObject.Object):
         self.index_cache = {}
         self.meta_map = {}
         self.download_manager = ThreadedTaskManager(10)
-        self.error = None
         self._proxy = None
         self._proxy_deferred_actions = []
         self._proxy_signals = []
@@ -186,20 +196,36 @@ class Spice_Harvester(GObject.Object):
             print(e)
 
     def _on_proxy_ready (self, object, result, data=None):
-        self._proxy = Gio.DBusProxy.new_for_bus_finish(result)
-        self._proxy.connect('g-signal', self._on_signal)
+        try:
+            self._proxy = Gio.DBusProxy.new_for_bus_finish(result)
+            self._proxy.connect('g-signal', self._on_signal)
 
-        for command, args in self._proxy_deferred_actions:
-            getattr(self._proxy, command)(*args)
-        self._proxy_deferred_actions = []
+            if self._proxy.get_name_owner():
+                self.send_deferred_proxy_calls()
+            else:
+                print("org.Cinnamon proxy created, but no owner - is Cinnamon running?")
+        except GLib.Error as e:
+            print("Could not establish proxy for org.Cinnamon: %s" % e.message)
 
         self.connect_proxy('XletAddedComplete', self._update_status)
         self._update_status()
 
     def _on_signal(self, proxy, sender_name, signal_name, params):
+        if signal_name == "RunStateChanged":
+            if self._proxy.GetRunState() == 2:
+                self.send_deferred_proxy_calls()
+                return
+
         for name, callback in self._proxy_signals:
             if signal_name == name:
                 callback(*params)
+
+    def send_deferred_proxy_calls(self):
+        if self._proxy.get_name_owner() and self._proxy_deferred_actions:
+            for command, args in self._proxy_deferred_actions:
+                getattr(self._proxy, command)(*args)
+
+            self._proxy_deferred_actions = []
 
     def connect_proxy(self, name, callback):
         """ connects a callback to a dbus signal"""
@@ -214,14 +240,14 @@ class Spice_Harvester(GObject.Object):
 
     def send_proxy_signal(self, command, *args):
         """ sends a command over dbus"""
-        if self._proxy is None:
+        if self._proxy is None or not self._proxy.get_name_owner():
             self._proxy_deferred_actions.append((command, args))
         else:
             getattr(self._proxy, command)(*args)
 
     def _update_status(self, *args):
         try:
-            if self._proxy:
+            if self._proxy and self._proxy.get_name_owner():
                 self.running_uuids = self._proxy.GetRunningXletUUIDs('(s)', self.collection_type)
             else:
                 self.running_uuids = []
@@ -269,7 +295,7 @@ class Spice_Harvester(GObject.Object):
 
     # updates any progress bars with the download progress
     def _update_progress(self, count, blockSize, totalSize):
-        if self.download_manager.busy():
+        if self.download_manager.busy() and self.download_total_files > 1:
             total = self.download_total_files
             current = total - self.download_manager.get_n_jobs()
             fraction = float(current) / float(total)
@@ -332,56 +358,46 @@ class Spice_Harvester(GObject.Object):
                     print(e)
             self._directory_changed()
 
-    def _download(self, outfd, outfile, url, binary=True):
+    def _download(self, out_file, url, binary=True):
         try:
-            self._url_retrieve(url, outfd, self._update_progress, binary)
-        except KeyboardInterrupt:
+            open_args = 'wb' if binary else 'w'
+            with open(out_file, open_args) as outfd:
+                self._url_retrieve(url, outfd, self._update_progress, binary)
+        except Exception as e:
             try:
-                os.remove(outfile)
+                os.remove(out_file)
             except OSError:
                 pass
-            if self.abort_download == ABORT_ERROR:
-                self.errorMessage(_("An error occurred while trying to access the server.  Please try again in a little while."), self.error)
-            raise Exception(_("Download aborted for %s.") % url)
+            if not isinstance(e, KeyboardInterrupt) and not self.download_manager.abort_status:
+                self.errorMessage(_("An error occurred while trying to access the server. Please try again in a little while."), e)
+            self.abort()
+            return None
 
-        return outfile
+        return out_file
 
-    def _url_retrieve(self, url, f, reporthook, binary):
+    def _url_retrieve(self, url, outfd, reporthook, binary):
         #Like the one in urllib. Unlike urllib.retrieve url_retrieve
-        #can be interrupted. KeyboardInterrupt exception is rasied when
+        #can be interrupted. KeyboardInterrupt exception is raised when
         #interrupted.
         count = 0
         blockSize = 1024 * 8
         try:
-            urlobj = urlopen(url)
-            assert urlobj.getcode() == 200
-        except Exception as detail:
-            f.close()
-            self.abort_download = ABORT_ERROR
-            self.error = detail
-            raise KeyboardInterrupt
+            with urlopen(url, timeout=15) as urlobj:
+                assert urlobj.getcode() == 200
 
-        totalSize = int(urlobj.info()['content-length'])
+                totalSize = int(urlobj.info()['content-length'])
 
-        try:
-            while self.abort_download == ABORT_NONE:
-                data = urlobj.read(blockSize)
-                count += 1
-                if not data:
-                    break
-                if not binary:
-                    data = data.decode("utf-8")
-                f.write(data)
-                ui_thread_do(reporthook, count, blockSize, totalSize)
-        except KeyboardInterrupt:
-            f.close()
-            self.abort_download = ABORT_USER
-
-        if self.abort_download > ABORT_NONE:
-            raise KeyboardInterrupt
-
-        del urlobj
-        f.close()
+                while not self._is_aborted():
+                    data = urlobj.read(blockSize)
+                    count += 1
+                    if not data:
+                        break
+                    if not binary:
+                        data = data.decode("utf-8")
+                    outfd.write(data)
+                    ui_thread_do(reporthook, count, blockSize, totalSize)
+        except Exception as e:
+            raise e
 
     def _load_metadata(self):
         self.meta_map = {}
@@ -499,8 +515,8 @@ class Spice_Harvester(GObject.Object):
         download_url = URL_MAP[self.collection_type]
 
         filename = os.path.join(self.cache_folder, "index.json")
-        f = open(filename, 'w')
-        self._download(f, filename, download_url, binary=False)
+        if self._download(filename, download_url, binary=False) is None:
+            return
 
         self._load_cache()
         self._download_image_cache()
@@ -526,8 +542,7 @@ class Spice_Harvester(GObject.Object):
 
             # if the image doesn't exist, is corrupt, or may have changed we want to download it
             if not os.path.isfile(icon_path) or self._is_bad_image(icon_path) or self.old_cache[uuid]["last_edited"] != self.index_cache[uuid]["last_edited"]:
-                fstream = open(icon_path, 'w+b')
-                self.download_manager.push(self._download, self._check_download_image_cache_complete, (fstream, icon_path, download_url))
+                self.download_manager.push(self._download, self._check_download_image_cache_complete, (icon_path, download_url))
                 self.download_total_files += 1
 
         ui_thread_do(self._check_download_image_cache_complete)
@@ -578,15 +593,17 @@ class Spice_Harvester(GObject.Object):
         self._push_job(job)
 
     def _install(self, job):
+        uuid = job['uuid']
+
+        download_url = URL_SPICES_HOME + self.index_cache[uuid]['file']
+        self.current_uuid = uuid
+
+        fd, ziptempfile = tempfile.mkstemp()
+
+        if self._download(ziptempfile, download_url) is None:
+            return
+
         try:
-            uuid = job['uuid']
-
-            download_url = URL_SPICES_HOME + self.index_cache[uuid]['file']
-            self.current_uuid = uuid
-
-            fd, ziptempfile = tempfile.mkstemp()
-            f = os.fdopen(fd, 'wb')
-            self._download(f, ziptempfile, download_url)
             zip = zipfile.ZipFile(ziptempfile)
 
             tempfolder = tempfile.mkdtemp()
@@ -598,7 +615,7 @@ class Spice_Harvester(GObject.Object):
         except Exception as detail:
             if not self.abort_download:
                 self.errorMessage(_("An error occurred during the installation of %s. Please report this incident to its developer.") % uuid, str(detail))
-            return False
+            return
 
         try:
             shutil.rmtree(tempfolder)
@@ -611,6 +628,11 @@ class Spice_Harvester(GObject.Object):
         contents = os.listdir(folder)
 
         if not self.themes:
+            # ensure proper file permissions
+            for root, dirs, files in os.walk(folder):
+                for file in files:
+                    os.chmod(os.path.join(root, file), 0o755)
+
             # Install spice localization files, if any
             if 'po' in contents:
                 po_dir = os.path.join(folder, 'po')
@@ -694,10 +716,13 @@ class Spice_Harvester(GObject.Object):
         for uuid in self.updates_available:
             self.install(uuid)
 
-    def abort(self, *args):
+    def abort(self, abort_type=ABORT_USER):
         """ trigger in-progress download to halt"""
-        self.abort_download = ABORT_USER
-        return
+        self.abort_download = abort_type
+        self.download_manager.abort()
+
+    def _is_aborted(self):
+        return self.download_manager.abort_status
 
     def _ui_error_message(self, msg, detail = None):
         dialog = Gtk.MessageDialog(transient_for = self.window,
