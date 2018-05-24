@@ -1,12 +1,13 @@
-cinnamon (3.8.3-1~) UNRELEASED; urgency=medium
+cinnamon (3.8.3-1) experimental; urgency=medium
 
   [ Fabio Fantoni ]
   * Removed 6 debian/patches applied upstream.
 
   [ Maximiliano Curia ]
   * New upstream release (3.8.3).
+  * Release to experimental
 
- -- Maximiliano Curia <maxy@debian.org>  Thu, 24 May 2018 09:03:05 +0200
+ -- Maximiliano Curia <maxy@debian.org>  Thu, 24 May 2018 09:15:09 +0200
 
 cinnamon (3.8.1-1) experimental; urgency=medium
 
