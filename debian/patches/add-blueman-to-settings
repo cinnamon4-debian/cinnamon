@@ -10,10 +10,10 @@ Last-Update: 2018-04-27
  1 file changed, 1 insertion(+)
 
 diff --git a/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py b/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py
-index 972b3e8..40ab8e8 100755
+index 5170d8a..def57ec 100755
 --- a/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py
 +++ b/files/usr/share/cinnamon/cinnamon-settings/cinnamon-settings.py
-@@ -90,6 +90,7 @@ STANDALONE_MODULES = [
+@@ -89,6 +89,7 @@ STANDALONE_MODULES = [
      [_("Package Management"),            "yumex-dnf",                           "cs-sources",         "admin",          _("update, install, repository, package, source, download")],
      [_("Users and Groups"),              "cinnamon-settings-users",             "cs-user-accounts",   "admin",          _("user, users, account, accounts, group, groups, password")],
      [_("Bluetooth"),                     "blueberry",                           "cs-bluetooth",       "hardware",       _("bluetooth, dongle, transfer, mobile")],
