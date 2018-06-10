@@ -1,3 +1,10 @@
+cinnamon (3.8.4-1~) UNRELEASED; urgency=medium
+
+  * Move caribou to recommends
+  * New upstream release (3.8.4).
+
+ -- Maximiliano Curia <maxy@debian.org>  Sun, 10 Jun 2018 16:16:43 +0200
+
 cinnamon (3.8.3-1) experimental; urgency=medium
 
   [ Fabio Fantoni ]
