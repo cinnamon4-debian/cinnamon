@@ -1549,7 +1549,7 @@ NMDeviceWireless.prototype = {
                     item_aps = this._activeNetwork.accessPoints;
                 }
 
-                this._activeConnectionItem = new NMNetworkMenuItem(active_aps,
+                this._activeConnectionItem = new NMNetworkMenuItem(item_aps,
                                                                    undefined,
                                                                    { reactive: false });
             } else{
@@ -1946,11 +1946,6 @@ CinnamonNetworkApplet.prototype = {
             // already seen, not adding again
             return;
         }
-
-        if (device.state === NetworkManager.DeviceState.UNMANAGED) {
-            return;
-        }
-
         let wrapperClass = this._dtypes[device.get_device_type()];
         if (wrapperClass) {
             let wrapper = new wrapperClass(this._client, device, this._connections);
