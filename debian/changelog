@@ -1,8 +1,9 @@
-cinnamon (3.8.4-1~) UNRELEASED; urgency=medium
+cinnamon (3.8.5-1~) UNRELEASED; urgency=medium
 
   * New upstream release (3.8.4).
+  * New upstream release (3.8.5).
 
- -- Maximiliano Curia <maxy@debian.org>  Sun, 10 Jun 2018 16:16:43 +0200
+ -- Maximiliano Curia <maxy@debian.org>  Sat, 23 Jun 2018 19:15:44 +0200
 
 cinnamon (3.8.3-1) experimental; urgency=medium
 
