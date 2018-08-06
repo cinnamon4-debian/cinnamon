@@ -1,3 +1,27 @@
+cinnamon (3.8.8) tara; urgency=medium
+
+  [ Michael Webster ]
+  * network applet: Initialize CinnamonNetworkApplet._updateFrequencySeconds before using in _periodicUpdateIcon.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Tue, 17 Jul 2018 09:41:21 +0200
+
+cinnamon (3.8.7) tara; urgency=medium
+
+  [ Michael Webster ]
+  * spices: Remove support for installing/removing system-wide gsettings schemas.
+
+  [ Matthias Gerstner ]
+  * cinnamon-settings-users.py: fix symlink attack vulnerability
+
+ -- Clement Lefebvre <root@linuxmint.com>  Thu, 05 Jul 2018 11:45:59 +0200
+
+cinnamon (3.8.6) tara; urgency=medium
+
+  * Revert "network applet: Fix typo with showing access points in certain instances -"
+  * Revert "network applet: show the actual active connection's signal strength"
+
+ -- Clement Lefebvre <root@linuxmint.com>  Sun, 24 Jun 2018 17:19:57 +0200
+
 cinnamon (3.8.5) tara; urgency=medium
 
   [ David H. Gutteridge ]
