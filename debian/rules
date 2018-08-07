@@ -34,14 +34,14 @@ override_dh_auto_test:
 TH_DIR=debian/cinnamon-common/usr/share/cinnamon/thumbnails/metacity-1
 
 override_dh_install-indep:
-	dh_install --list-missing
+	dh_install
 
 	mv $(TH_DIR)/Adwaita.png $(TH_DIR)/Default.png
 
 	rm -f debian/cinnamon-common/usr/share/cinnamon/js/misc/config.js
 
 override_dh_install-arch:
-	dh_install -X.la --list-missing
+	dh_install -X.la
 
 override_dh_girepository:
 	dh_girepository -l src /usr/lib/$(DEB_HOST_MULTIARCH)/cinnamon
@@ -55,3 +55,6 @@ override_dh_python3:
 override_dh_makeshlibs:
 	dh_makeshlibs -pcinnamon -Xlibcinnamon
 	dh_makeshlibs --remaining-packages
+
+override_dh_missing:
+	dh_missing --list-missing
