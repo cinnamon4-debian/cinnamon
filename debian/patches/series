@@ -5,4 +5,3 @@ add-blueman-to-settings
 new-iso-flags-folder.patch
 always-add-default-theme.patch
 port-libnm.patch
-network-user-connections.patch

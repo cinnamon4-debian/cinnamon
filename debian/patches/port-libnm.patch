@@ -5,13 +5,13 @@ Subject: Network applet: Port to libnm
 The libnm-glib is deprecated for a long time already.
 ---
  configure.ac                                       |   3 +-
- .../applets/network@cinnamon.org/applet.js         | 299 ++++++++++-----------
+ .../applets/network@cinnamon.org/applet.js         | 323 ++++++++++-----------
  js/misc/modemManager.js                            |   4 +-
  src/Makefile.am                                    |   2 +-
- 4 files changed, 144 insertions(+), 164 deletions(-)
+ 4 files changed, 166 insertions(+), 166 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index 51401fd..a428b4a 100644
+index 4d4038d..9be4580 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -64,6 +64,7 @@ GTK_MIN_VERSION=3.12.0
@@ -32,7 +32,7 @@ index 51401fd..a428b4a 100644
  
  AM_CONDITIONAL(HAVE_NM, test "x$have_nm" = "xtrue")
 diff --git a/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js b/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
-index 3a3e1ed..8a8794f 100644
+index 0a2d378..3d60150 100644
 --- a/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
 +++ b/files/usr/share/cinnamon/applets/network@cinnamon.org/applet.js
 @@ -2,8 +2,7 @@ const Applet = imports.ui.applet;
@@ -45,7 +45,7 @@ index 3a3e1ed..8a8794f 100644
  const Signals = imports.signals;
  const St = imports.gi.St;
  const Mainloop = imports.mainloop;
-@@ -32,26 +31,14 @@ const NMAccessPointSecurity = {
+@@ -35,26 +34,14 @@ const NMAccessPointSecurity = {
  };
  
  // small optimization, to avoid using [] all the time
@@ -75,7 +75,7 @@ index 3a3e1ed..8a8794f 100644
  // shared between NMNetworkMenuItem and NMDeviceWWAN
  function signalToIcon(value) {
      if (value > 80)
-@@ -73,7 +60,7 @@ function sortAccessPoints(accessPoints) {
+@@ -76,7 +63,7 @@ function sortAccessPoints(accessPoints) {
  }
  
  function ssidToLabel(ssid) {
@@ -84,7 +84,19 @@ index 3a3e1ed..8a8794f 100644
      if (!label)
          label = _("<unknown>");
      return label;
-@@ -197,8 +184,10 @@ NMWiredSectionTitleMenuItem.prototype = {
+@@ -86,6 +73,11 @@ function NMNetworkMenuItem() {
+     this._init.apply(this, arguments);
+ }
+ 
++function default_to_private_connections(client) {
++    let perms = client.get_permission_result (NM.ClientPermission.SETTINGS_MODIFY_SYSTEM);
++    return (perms != NM.ClientPermissionResult.YES);
++}
++
+ NMNetworkMenuItem.prototype = {
+     __proto__: PopupMenu.PopupBaseMenuItem.prototype,
+ 
+@@ -200,8 +192,10 @@ NMWiredSectionTitleMenuItem.prototype = {
              this.setToggleState(device.connected);
              // if this device is not controllable, hide the switch
              this._switch.actor.visible = device.controllable;
@@ -96,16 +108,7 @@ index 3a3e1ed..8a8794f 100644
      },
  
      activate: function(event) {
-@@ -213,7 +202,7 @@ NMWiredSectionTitleMenuItem.prototype = {
- 
-         // Immediately reset the switch to false, it will be updated appropriately
-         // by state-changed signals in devices (but fixes the VPN not being in sync
--        // if the ActiveConnection object is never seen by libnm-glib)
-+        // if the ActiveConnection object is never seen by libnm)
-         this._switch.setToggleState(false);
- 
-         if (newState)
-@@ -383,7 +372,7 @@ NMDevice.prototype = {
+@@ -386,7 +380,7 @@ NMDevice.prototype = {
      },
  
      deactivate: function() {
@@ -114,7 +117,7 @@ index 3a3e1ed..8a8794f 100644
      },
  
      activate: function() {
-@@ -394,16 +383,16 @@ NMDevice.prototype = {
+@@ -397,16 +391,16 @@ NMDevice.prototype = {
          // pick the most recently used connection and connect to that
          // or if no connections ever set, create an automatic one
          if (this._connections.length > 0) {
@@ -134,7 +137,7 @@ index 3a3e1ed..8a8794f 100644
      },
  
      setActiveConnection: function(activeConnection) {
-@@ -490,25 +479,25 @@ NMDevice.prototype = {
+@@ -493,25 +487,25 @@ NMDevice.prototype = {
  
      get statusLabel(){
          switch(this.device.state) {
@@ -171,7 +174,7 @@ index 3a3e1ed..8a8794f 100644
              // This state is actually a compound of various states (generically unavailable,
              // firmware missing, carrier not available), that are exposed by different properties
              // (whose state may or may not updated when we receive state-changed).
-@@ -519,7 +508,7 @@ NMDevice.prototype = {
+@@ -522,7 +516,7 @@ NMDevice.prototype = {
                     module, which is missing */
                  return _("firmware missing");
              }
@@ -180,7 +183,7 @@ index 3a3e1ed..8a8794f 100644
                  if (!this._carrierChangedId)
                      this._carrierChangedId = this.device.connect('notify::carrier', Lang.bind(this, this._substateChanged));
                  if (!this.carrier) {
-@@ -530,7 +519,7 @@ NMDevice.prototype = {
+@@ -533,7 +527,7 @@ NMDevice.prototype = {
              /* Translators: this is for a network device that cannot be activated (for example it
                 is disabled by rfkill, or it has no coverage */
              return _("unavailable");
@@ -189,7 +192,7 @@ index 3a3e1ed..8a8794f 100644
              return _("connection failed");
          default:
              log('Device state invalid, is %d'.format(this.device.state));
-@@ -540,7 +529,7 @@ NMDevice.prototype = {
+@@ -543,7 +537,7 @@ NMDevice.prototype = {
  
      get controllable(){
          // controllable for every state except unavailable or unmanaged
@@ -198,7 +201,7 @@ index 3a3e1ed..8a8794f 100644
              return false;
  
          return true;
-@@ -572,7 +561,7 @@ NMDevice.prototype = {
+@@ -575,7 +569,7 @@ NMDevice.prototype = {
      },
  
      _shouldShowConnectionList: function() {
@@ -207,7 +210,7 @@ index 3a3e1ed..8a8794f 100644
      },
  
      _createSection: function() {
-@@ -589,7 +578,7 @@ NMDevice.prototype = {
+@@ -592,7 +586,7 @@ NMDevice.prototype = {
              for(let j = 0; j < this._connections.length; ++j) {
                  let obj = this._connections[j];
                  if (this._activeConnection &&
@@ -216,7 +219,7 @@ index 3a3e1ed..8a8794f 100644
                      continue;
                  obj.item = this._createConnectionItem(obj);
  
-@@ -607,7 +596,7 @@ NMDevice.prototype = {
+@@ -610,7 +604,7 @@ NMDevice.prototype = {
              this._autoConnectionItem.connect('activate', Lang.bind(this, function() {
                  let connection = this._createAutomaticConnection();
                  if (connection)
@@ -225,7 +228,7 @@ index 3a3e1ed..8a8794f 100644
              }));
              this.section.addMenuItem(this._autoConnectionItem);
          }
-@@ -618,14 +607,14 @@ NMDevice.prototype = {
+@@ -621,14 +615,14 @@ NMDevice.prototype = {
          let item = new PopupMenu.PopupMenuItem(obj.name);
  
          item.connect('activate', Lang.bind(this, function() {
@@ -242,7 +245,7 @@ index 3a3e1ed..8a8794f 100644
          if (active) {
              title = active._name;
          } else {
-@@ -643,11 +632,11 @@ NMDevice.prototype = {
+@@ -646,11 +640,11 @@ NMDevice.prototype = {
              return;
          }
  
@@ -256,7 +259,7 @@ index 3a3e1ed..8a8794f 100644
              this.emit('activation-failed', reason);
          }
  
-@@ -691,10 +680,10 @@ NMDevice.prototype = {
+@@ -694,10 +688,10 @@ NMDevice.prototype = {
              }
              else {
                  switch (this.device.get_device_type()) {
@@ -271,7 +274,7 @@ index 3a3e1ed..8a8794f 100644
                      default: return "";
                  }
              }
-@@ -745,13 +734,13 @@ NMDeviceWired.prototype = {
+@@ -748,15 +742,17 @@ NMDeviceWired.prototype = {
      },
  
      _createAutomaticConnection: function() {
@@ -282,15 +285,20 @@ index 3a3e1ed..8a8794f 100644
 +        let connection = new NM.SimpleConnection();
 +        connection._uuid = NM.utils_uuid_generate();
 +        connection.add_setting(new NM.SettingWired());
-+        connection.add_setting(new NM.SettingConnection({
++        let setting_conn = new NM.SettingConnection({
              uuid: connection._uuid,
              id: this._autoConnectionName,
 -            type: NetworkManager.SETTING_WIRED_SETTING_NAME,
 +            type: NM.SETTING_WIRED_SETTING_NAME,
              autoconnect: true
-         }));
+-        }));
++        });
++        setting_conn.add_permission('user', GLib.get_user_name(), null);
++        connection.add_setting(setting_conn);
          return connection;
-@@ -778,26 +767,26 @@ NMDeviceModem.prototype = {
+     }
+ };
+@@ -781,26 +777,26 @@ NMDeviceModem.prototype = {
              try {
                  is_wwan = true;
                  this.mobileDevice = new ModemManager.BroadbandModem(device.udi, device.current_capabilities);
@@ -328,7 +336,7 @@ index 3a3e1ed..8a8794f 100644
              is_wwan = true;
              // FIXME: support signal quality
          }
-@@ -845,7 +834,7 @@ NMDeviceModem.prototype = {
+@@ -848,7 +844,7 @@ NMDeviceModem.prototype = {
      },
  
      get connected() {
@@ -337,7 +345,7 @@ index 3a3e1ed..8a8794f 100644
      },
  
      destroy: function() {
-@@ -914,13 +903,13 @@ NMDeviceBluetooth.prototype = {
+@@ -917,13 +913,13 @@ NMDeviceBluetooth.prototype = {
      },
  
      _createAutomaticConnection: function() {
@@ -356,7 +364,7 @@ index 3a3e1ed..8a8794f 100644
              autoconnect: false
          }));
          return connection;
-@@ -960,7 +949,7 @@ NMDeviceVPN.prototype = {
+@@ -963,7 +959,7 @@ NMDeviceVPN.prototype = {
      },
  
      connectionValid: function(connection) {
@@ -365,7 +373,7 @@ index 3a3e1ed..8a8794f 100644
      },
  
      get empty() {
-@@ -983,7 +972,7 @@ NMDeviceVPN.prototype = {
+@@ -986,7 +982,7 @@ NMDeviceVPN.prototype = {
  
      deactivate: function() {
          if (this._activeConnection)
@@ -374,7 +382,16 @@ index 3a3e1ed..8a8794f 100644
      },
  
      statusLabel: null,
-@@ -1125,7 +1114,7 @@ NMDeviceWireless.prototype = {
+@@ -1006,6 +1002,8 @@ NMDeviceWireless.prototype = {
+         this._overflowItem = null;
+         this._networks = [ ];
+ 
++        this._client = client;
++
+         // breaking the layers with this, but cannot call
+         // this.connectionValid until I have a device
+         this.device = device;
+@@ -1128,7 +1126,7 @@ NMDeviceWireless.prototype = {
              for (let i = 0; i < bestApObj.accessPoints.length; i++) {
                  let ap = bestApObj.accessPoints[i];
                  if (ap.connection_valid(best)) {
@@ -383,7 +400,7 @@ index 3a3e1ed..8a8794f 100644
                      break;
                  }
              }
-@@ -1139,7 +1128,7 @@ NMDeviceWireless.prototype = {
+@@ -1142,7 +1140,7 @@ NMDeviceWireless.prototype = {
          if (this._networks.length > 0) {
              let connection = this._createAutomaticConnection(this._networks[0]);
              let accessPoints = sortAccessPoints(this._networks[0].accessPoints);
@@ -392,7 +409,7 @@ index 3a3e1ed..8a8794f 100644
          }
      },
  
-@@ -1226,7 +1215,7 @@ NMDeviceWireless.prototype = {
+@@ -1229,7 +1227,7 @@ NMDeviceWireless.prototype = {
      },
  
      _networkCompare: function(network, accessPoint) {
@@ -401,7 +418,7 @@ index 3a3e1ed..8a8794f 100644
              return false;
          if (network.mode != accessPoint.mode)
              return false;
-@@ -1393,7 +1382,7 @@ NMDeviceWireless.prototype = {
+@@ -1396,7 +1394,7 @@ NMDeviceWireless.prototype = {
              let accessPoints = sortAccessPoints(accessPointObj.accessPoints);
              for (let i = 0; i < accessPoints.length; i++) {
                  if (accessPoints[i].connection_valid(connection)) {
@@ -410,7 +427,7 @@ index 3a3e1ed..8a8794f 100644
                      break;
                  }
              }
-@@ -1500,8 +1489,7 @@ NMDeviceWireless.prototype = {
+@@ -1503,8 +1501,7 @@ NMDeviceWireless.prototype = {
      },
  
      _createActiveConnectionItem: function() {
@@ -420,25 +437,16 @@ index 3a3e1ed..8a8794f 100644
              if (!this._activeNetwork) {
                  if (this.device.active_access_point) {
                      let networkPos = this._findNetwork(this.device.active_access_point);
-@@ -1534,7 +1522,7 @@ NMDeviceWireless.prototype = {
-                                                                    undefined,
-                                                                    { reactive: false });
-             } else {
--                this._activeConnectionItem = new PopupMenu.PopupImageMenuItem(connection._name,
-+                this._activeConnectionItem = new PopupMenu.PopupImageMenuItem(this._activeConnection.connection._name,
-                                                                               'network-wireless-connected',
-                                                                               { reactive: false });
-             }
-@@ -1552,7 +1540,7 @@ NMDeviceWireless.prototype = {
-                 this._activeConnectionItem = new NMNetworkMenuItem(item_aps,
-                                                                    undefined,
-                                                                    { reactive: false });
--            } else{
-+            } else {
-                 this._activeConnectionItem = new PopupMenu.PopupImageMenuItem(_("Connected (private)"),
-                                                                               'network-wireless-connected',
-                                                                               { reactive: false });
-@@ -1563,25 +1551,26 @@ NMDeviceWireless.prototype = {
+@@ -1520,7 +1517,7 @@ NMDeviceWireless.prototype = {
+             if (this._activeNetwork)
+                 this._activeConnectionItem = new NMNetworkMenuItem(this._activeNetwork.accessPoints, undefined, { reactive: false });
+             else
+-                this._activeConnectionItem = new PopupMenu.PopupImageMenuItem(connection._name, 'network-wireless-connected', { reactive: false });
++                this._activeConnectionItem = new PopupMenu.PopupImageMenuItem(this._activeConnection.connection._name, 'network-wireless-connected', { reactive: false });
+         } else {
+             // We cannot read the connection (due to ACL, or API incompatibility), but we still show signal if we have it
+             if (this._activeNetwork)
+@@ -1536,25 +1533,41 @@ NMDeviceWireless.prototype = {
  
      _createAutomaticConnection: function(apObj) {
          let name;
@@ -455,14 +463,30 @@ index 3a3e1ed..8a8794f 100644
 -        connection.add_setting(new NetworkManager.SettingConnection({
 +        let connection = new NM.SimpleConnection();
 +        connection.add_setting(new NM.SettingWireless());
-+        connection.add_setting(new NM.SettingConnection({
++        let setting_conn = new NM.SettingConnection({
              id: name,
              autoconnect: true, // NetworkManager will know to ignore this if appropriate
 -            uuid: NetworkManager.utils_uuid_generate(),
 -            type: NetworkManager.SETTING_WIRELESS_SETTING_NAME
+-        }));
 +            uuid: NM.utils_uuid_generate(),
 +            type: NM.SETTING_WIRELESS_SETTING_NAME
-         }));
++        });
++        if (default_to_private_connections(this._client)) {
++            setting_conn.add_permission('user', GLib.get_user_name(), null);
++            if (apObj.security == NMAccessPointSecurity.WPA2_PSK ||
++                apObj.security == NMAccessPointSecurity.WPA_PSK) {
++                connection.add_setting(new NM.SettingWirelessSecurity({
++                    psk_flags: NM.SettingSecretFlags.AGENT_OWNED
++                }));
++            }
++            if (apObj.security == NMAccessPointSecurity.WEP) {
++                connection.add_setting(new NM.SettingWirelessSecurity({
++                    wep_key_flags: NM.SettingSecretFlags.AGENT_OWNED
++                }));
++            }
++        }
++        connection.add_setting(setting_conn);
          return connection;
      },
  
@@ -471,7 +495,7 @@ index 3a3e1ed..8a8794f 100644
          if(!apObj.accessPoints || apObj.accessPoints.length == 0) {
              // this should not happen, but I have no idea why it happens
              return;
-@@ -1605,10 +1594,10 @@ NMDeviceWireless.prototype = {
+@@ -1578,10 +1591,10 @@ NMDeviceWireless.prototype = {
                      // 802.1x-enabled APs require further configuration, so they're
                      // handled in cinnamon-settings
                      Util.spawn(['cinnamon-settings', 'network', 'connect-8021x-wifi',
@@ -484,7 +508,7 @@ index 3a3e1ed..8a8794f 100644
                  }
              }));
          }
-@@ -1711,7 +1700,16 @@ CinnamonNetworkApplet.prototype = {
+@@ -1684,7 +1697,16 @@ CinnamonNetworkApplet.prototype = {
              this._currentIconName = undefined;
              this._setIcon('network-offline');
  
@@ -502,7 +526,7 @@ index 3a3e1ed..8a8794f 100644
  
              this._statusSection = new PopupMenu.PopupMenuSection();
              this._statusItem = new PopupMenu.PopupMenuItem('', { style_class: 'popup-inactive-menu-item', reactive: false });
-@@ -1777,7 +1775,7 @@ CinnamonNetworkApplet.prototype = {
+@@ -1750,7 +1772,7 @@ CinnamonNetworkApplet.prototype = {
                  let devices = this._devices.wireless.devices;
  
                  for (let i = 0; i < devices.length; i++) {
@@ -511,7 +535,17 @@ index 3a3e1ed..8a8794f 100644
                  }
              }));
  
-@@ -1800,42 +1798,37 @@ CinnamonNetworkApplet.prototype = {
+@@ -1764,9 +1786,7 @@ CinnamonNetworkApplet.prototype = {
+             }));
+ 
+             this.menu.connect("open-state-changed", Lang.bind(this, this._updateForMenuToggle));
+-
+             this._periodicTimeoutId = 0;
+-            this._updateFrequencySeconds = DEFAULT_PERIODIC_UPDATE_FREQUENCY_SECONDS;
+ 
+             this._activeConnections = [ ];
+             this._connections = [ ];
+@@ -1775,42 +1795,36 @@ CinnamonNetworkApplet.prototype = {
  
              // Device types
              this._dtypes = { };
@@ -578,19 +612,10 @@ index 3a3e1ed..8a8794f 100644
 +            this._client.connect('connection-removed', Lang.bind(this, this._connectionRemoved));
 +
 +            this._inited = true;
-+
-         }
-         catch (e) {
-             global.logError(e);
-@@ -1946,6 +1939,7 @@ CinnamonNetworkApplet.prototype = {
-             // already seen, not adding again
-             return;
-         }
-+
-         let wrapperClass = this._dtypes[device.get_device_type()];
-         if (wrapperClass) {
-             let wrapper = new wrapperClass(this._client, device, this._connections);
-@@ -1975,7 +1969,7 @@ CinnamonNetworkApplet.prototype = {
+ 
+             this._periodicUpdateIcon();
+ 
+@@ -1953,7 +1967,7 @@ CinnamonNetworkApplet.prototype = {
  
              this._syncSectionTitle(wrapper.category);
          } else
@@ -599,7 +624,7 @@ index 3a3e1ed..8a8794f 100644
      },
  
      _deviceRemoved: function(client, device) {
-@@ -2033,24 +2027,12 @@ CinnamonNetworkApplet.prototype = {
+@@ -2011,24 +2025,12 @@ CinnamonNetworkApplet.prototype = {
                  a._inited = true;
              }
  
@@ -630,7 +655,7 @@ index 3a3e1ed..8a8794f 100644
                  }
              }
  
-@@ -2060,7 +2042,7 @@ CinnamonNetworkApplet.prototype = {
+@@ -2038,7 +2040,7 @@ CinnamonNetworkApplet.prototype = {
                  continue;
              }
  
@@ -639,7 +664,7 @@ index 3a3e1ed..8a8794f 100644
                  if (!default_ip4) {
                      // We didn't find the default IPV4 device yet..
                      if (!default_ip6) {
-@@ -2075,7 +2057,7 @@ CinnamonNetworkApplet.prototype = {
+@@ -2053,7 +2055,7 @@ CinnamonNetworkApplet.prototype = {
                      }
                  }
              }
@@ -648,7 +673,7 @@ index 3a3e1ed..8a8794f 100644
                  activating = a;
              }
  
-@@ -2087,7 +2069,7 @@ CinnamonNetworkApplet.prototype = {
+@@ -2065,7 +2067,7 @@ CinnamonNetworkApplet.prototype = {
              }
  
              if (!a._primaryDevice) {
@@ -657,7 +682,7 @@ index 3a3e1ed..8a8794f 100644
                      // find a good device to be considered primary
                      a._primaryDevice = null;
                      let devices = a.get_devices() || [ ];
-@@ -2104,7 +2086,7 @@ CinnamonNetworkApplet.prototype = {
+@@ -2082,7 +2084,7 @@ CinnamonNetworkApplet.prototype = {
                  if (a._primaryDevice)
                      a._primaryDevice.setActiveConnection(a);
  
@@ -666,16 +691,16 @@ index 3a3e1ed..8a8794f 100644
                      a._primaryDevice && a._primaryDevice._notification) {
                          a._primaryDevice._notification.destroy();
                          a._primaryDevice._notification = null;
-@@ -2118,7 +2100,7 @@ CinnamonNetworkApplet.prototype = {
-     _notifyActivated: function(activeConnection) {
-         this._removeSignalMonitor();
+@@ -2094,7 +2096,7 @@ CinnamonNetworkApplet.prototype = {
+     },
  
+     _notifyActivated: function(activeConnection) {
 -        if (activeConnection.state == NetworkManager.ActiveConnectionState.ACTIVATED &&
 +        if (activeConnection.state == NM.ActiveConnectionState.ACTIVATED &&
              activeConnection._primaryDevice && activeConnection._primaryDevice._notification) {
                  activeConnection._primaryDevice._notification.destroy();
                  activeConnection._primaryDevice._notification = null;
-@@ -2128,29 +2110,27 @@ CinnamonNetworkApplet.prototype = {
+@@ -2104,29 +2106,27 @@ CinnamonNetworkApplet.prototype = {
      },
  
      _readConnections: function() {
@@ -709,7 +734,7 @@ index 3a3e1ed..8a8794f 100644
  
          this._updateConnection(connection);
          this._connections.push(connection);
-@@ -2158,7 +2138,7 @@ CinnamonNetworkApplet.prototype = {
+@@ -2134,7 +2134,7 @@ CinnamonNetworkApplet.prototype = {
          this._updateIcon();
      },
  
@@ -718,7 +743,7 @@ index 3a3e1ed..8a8794f 100644
          let pos = this._connections.indexOf(connection);
          if (pos != -1)
              this._connections.splice(pos);
-@@ -2176,12 +2156,11 @@ CinnamonNetworkApplet.prototype = {
+@@ -2152,12 +2152,11 @@ CinnamonNetworkApplet.prototype = {
          }
  
          connection._uuid = null;
@@ -732,33 +757,33 @@ index 3a3e1ed..8a8794f 100644
          connection._type = connectionSettings.type;
  
          connection._section = this._ctypes[connection._type] || NMConnectionCategory.INVALID;
-@@ -2227,7 +2206,7 @@ CinnamonNetworkApplet.prototype = {
+@@ -2203,7 +2202,7 @@ CinnamonNetworkApplet.prototype = {
      },
  
      _syncNMState: function() {
 -        if (!this._client.manager_running) {
 +        if (!this._client.nm_running) {
              log('NetworkManager is not running, hiding...');
-             this._removeSignalMonitor();
              this.menu.close();
-@@ -2257,7 +2236,7 @@ CinnamonNetworkApplet.prototype = {
+             this.actor.hide();
+@@ -2233,7 +2232,7 @@ CinnamonNetworkApplet.prototype = {
              if (!mc) {
                  this._setIcon('network-offline');
                  this.set_applet_tooltip(_("No connection"));
 -            } else if (mc.state == NetworkManager.ActiveConnectionState.ACTIVATING) {
 +            } else if (mc.state == NM.ActiveConnectionState.ACTIVATING) {
+                 new_delay = FAST_PERIODIC_UPDATE_FREQUENCY_SECONDS;
                  switch (mc._section) {
                  case NMConnectionCategory.WWAN:
-                     this._setIcon('network-cellular-acquiring');
-@@ -2298,7 +2277,7 @@ CinnamonNetworkApplet.prototype = {
+@@ -2275,7 +2274,7 @@ CinnamonNetworkApplet.prototype = {
                              this.set_applet_tooltip(_("Connected to the wireless network"));
                          } else {
-                             this._setIcon('network-wireless-signal-' + signalToIcon(ap.get_strength()));
--                            this.set_applet_tooltip(_("Wireless connection") + ": " + ap.get_ssid() + " ("+ ap.get_strength() +"%)");
-+                            this.set_applet_tooltip(_("Wireless connection") + ": " + ssidToLabel(ap.get_ssid()) + " ("+ ap.get_strength() +"%)");
- 
-                             if (ap != this._currentAp) {
-                                 this._removeSignalMonitor();
+                             this._setIcon('network-wireless-signal-' + signalToIcon(ap.strength));
+-                            this.set_applet_tooltip(_("Wireless connection") + ": " + ap.get_ssid() + " ("+ ap.strength +"%)");
++                            this.set_applet_tooltip(_("Wireless connection") + ": " + ssidToLabel(ap.get_ssid()) + " ("+ ap.strength +"%)");
+                         }
+                     } else {
+                         log('Active connection with no primary device?');
 diff --git a/js/misc/modemManager.js b/js/misc/modemManager.js
 index 6f95ead..b7d455f 100644
 --- a/js/misc/modemManager.js
