@@ -1,10 +1,14 @@
-cinnamon (3.8.8-1~) UNRELEASED; urgency=medium
+cinnamon (3.8.8-1) unstable; urgency=medium
 
   * New upstream release (3.8.4).
   * New upstream release (3.8.5).
   * New upstream release (3.8.8).
+  * Refresh patches
+  * Update install files
+  * Use dh_missing
+  * Release to unstable
 
- -- Maximiliano Curia <maxy@debian.org>  Mon, 06 Aug 2018 18:01:03 +0200
+ -- Maximiliano Curia <maxy@debian.org>  Tue, 07 Aug 2018 14:51:47 +0200
 
 cinnamon (3.8.3-1) experimental; urgency=medium
 
