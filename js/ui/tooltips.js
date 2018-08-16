@@ -1,14 +1,17 @@
 const Lang = imports.lang;
 const Mainloop = imports.mainloop;
 const St = imports.gi.St;
+const Gio = imports.gi.Gio;
 
 const Applet = imports.ui.applet;
 const Main = imports.ui.main;
 const SignalManager = imports.misc.signalManager;
 const Tweener = imports.ui.tweener;
-const Gio = imports.gi.Gio;
+const {PanelLoc} = imports.ui.panel;
+
 const DESKTOP_SCHEMA = 'org.cinnamon.desktop.interface';
 const CURSOR_SIZE_KEY = 'cursor-size';
+
 /**
  * #TooltipBase
  * @item (Clutter.Actor): The object owning the tooltip.
@@ -50,32 +53,33 @@ const CURSOR_SIZE_KEY = 'cursor-size';
  * `true`.
  */
 function TooltipBase(item) {
-    throw new TypeError("Trying to instantiate abstract class TooltipBase");
+    this._init(item);
 }
 
 TooltipBase.prototype = {
     _init: function(item) {
-        this.signals = new SignalManager.SignalManager(this);
+        this.signals = new SignalManager.SignalManager(null);
 
-        this.signals.connect(global.stage, 'notify::key-focus', this._hide);
-        this.signals.connect(item, 'enter-event', this._onEnterEvent);
-        this.signals.connect(item, 'motion-event', this._onMotionEvent);
-        this.signals.connect(item, 'leave-event', this._hide);
-        this.signals.connect(item, 'button-press-event', this._hide);
-        this.signals.connect(item, 'button-release-event', this._hide);
-        this.signals.connect(item, 'destroy', this.destroy);
+        this.signals.connect(global.stage, 'notify::key-focus', this._hide, this);
+        this.signals.connect(item, 'enter-event', this._onEnterEvent, this);
+        this.signals.connect(item, 'motion-event', this._onMotionEvent, this);
+        this.signals.connect(item, 'leave-event', this._hide, this);
+        this.signals.connect(item, 'button-press-event', this._hide, this);
+        this.signals.connect(item, 'button-release-event', this._hide, this);
+        this.signals.connect(item, 'destroy', this.destroy, this);
         this.signals.connect(item, 'allocation-changed', function() {
             // An allocation change could mean that the actor has moved,
             // so hide, but wait until after the allocation cycle.
             Mainloop.idle_add(Lang.bind(this, function() {
-                this.hide();
+                this._hide();
             }));
-        });
+        }, this);
 
         this._showTimer = null;
         this.visible = false;
         this.item = item;
         this.preventShow = false;
+        this.mousePosition = null;
     },
 
     _onMotionEvent: function(actor, event) {
@@ -84,24 +88,42 @@ TooltipBase.prototype = {
             this._showTimer = null;
         }
 
+        if (this._hideTimer) {
+            Mainloop.source_remove(this._hideTimer);
+            this._hideTimer = null;
+        }
+
         if (!this.visible) {
-            this._showTimer = Mainloop.timeout_add(300, Lang.bind(this, this._onTimerComplete));
+            this._showTimer = Mainloop.timeout_add(300, Lang.bind(this, this._onShowTimerComplete));
             this.mousePosition = event.get_coords();
+        } else {
+            this._hideTimer = Mainloop.timeout_add(500, Lang.bind(this, this._onHideTimerComplete));
         }
     },
 
     _onEnterEvent: function(actor, event) {
         if (!this._showTimer) {
-            this._showTimer = Mainloop.timeout_add(300, Lang.bind(this, this._onTimerComplete));
+            this._showTimer = Mainloop.timeout_add(300, Lang.bind(this, this._onShowTimerComplete));
             this.mousePosition = event.get_coords();
         }
     },
 
-    _onTimerComplete: function() {
+    _onShowTimerComplete: function() {
         this._showTimer = null;
 
-        if (!this.preventShow)
+        if (!this.preventShow) {
             this.show();
+        }
+
+        return false;
+    },
+
+    _onHideTimerComplete: function() {
+        this._hideTimer = null;
+
+        if (!this.item.has_pointer) {
+            this._hide();
+        }
 
         return false;
     },
@@ -111,6 +133,12 @@ TooltipBase.prototype = {
             Mainloop.source_remove(this._showTimer);
             this._showTimer = null;
         }
+
+        if (this._hideTimer) {
+            Mainloop.source_remove(this._hideTimer);
+            this._hideTimer = null;
+        }
+
         this.hide();
     },
 
@@ -124,6 +152,12 @@ TooltipBase.prototype = {
             Mainloop.source_remove(this._showTimer);
             this._showTimer = null;
         }
+
+        if (this._hideTimer) {
+            Mainloop.source_remove(this._hideTimer);
+            this._hideTimer = null;
+        }
+
         this.signals.disconnectAllSignals();
         this._destroy();
     }
@@ -179,7 +213,7 @@ Tooltip.prototype = {
     },
 
     show: function() {
-        if (this._tooltip.get_text() == "")
+        if (this._tooltip.get_text() == "" || !this.mousePosition)
             return;
 
         let tooltipWidth = this._tooltip.get_allocation_box().x2 - this._tooltip.get_allocation_box().x1;
@@ -261,7 +295,7 @@ PanelItemTooltip.prototype = {
     },
 
     show: function() {
-        if (this._tooltip.get_text() == "" || global.menuStackLength > 0)
+        if (this._tooltip.get_text() == "" || global.menuStackLength > 0 || !this.mousePosition)
             return;
 
         let op = this._tooltip.get_opacity();
@@ -272,34 +306,39 @@ PanelItemTooltip.prototype = {
         let tooltipWidth = this._tooltip.get_allocation_box().x2 - this._tooltip.get_allocation_box().x1;
 
         let monitor = Main.layoutManager.findMonitorForActor(this._panelItem.actor);
+
         let tooltipTop = 0;
         let tooltipLeft = 0;
+        let panel = 0;
 
         switch (this.orientation) {
             case St.Side.BOTTOM:
-                tooltipTop = this.item.get_transformed_position()[1] - tooltipHeight;
+                panel = Main.panelManager.getPanel(Main.layoutManager.monitors.indexOf(monitor), PanelLoc.bottom);
+                tooltipTop = monitor.y + monitor.height - tooltipHeight - panel.actor.height;
                 tooltipLeft = this.mousePosition[0] - Math.round(tooltipWidth / 2);
                 tooltipLeft = Math.max(tooltipLeft, monitor.x);
                 tooltipLeft = Math.min(tooltipLeft, monitor.x + monitor.width - tooltipWidth);
                 break;
             case St.Side.TOP:
-                tooltipTop = this.item.get_transformed_position()[1] + this.item.get_transformed_size()[1];
+                panel = Main.panelManager.getPanel(Main.layoutManager.monitors.indexOf(monitor), PanelLoc.top);
+                tooltipTop =  monitor.y + panel.actor.height;
                 tooltipLeft = this.mousePosition[0] - Math.round(tooltipWidth / 2);
                 tooltipLeft = Math.max(tooltipLeft, monitor.x);
                 tooltipLeft = Math.min(tooltipLeft, monitor.x + monitor.width - tooltipWidth);
                 break;
             case St.Side.LEFT:
-                [tooltipLeft, tooltipTop] = this._panelItem.actor.get_transformed_position();
+                panel = Main.panelManager.getPanel(Main.layoutManager.monitors.indexOf(monitor), PanelLoc.left);
+                tooltipTop = this._panelItem.actor.get_transformed_position()[1];
                 tooltipTop = tooltipTop + Math.round((this._panelItem.actor.get_allocation_box().y2 -
                     this._panelItem.actor.get_allocation_box().y1) / 2) - Math.round(tooltipHeight / 2);
-                tooltipLeft = tooltipLeft + this._panelItem.actor.get_allocation_box().x2 -
-                    this._panelItem.actor.get_allocation_box().x1;
+                tooltipLeft = panel.actor.width;
                 break;
             case St.Side.RIGHT:
-                [tooltipLeft, tooltipTop] = this._panelItem.actor.get_transformed_position();
+                panel = Main.panelManager.getPanel(Main.layoutManager.monitors.indexOf(monitor), PanelLoc.right);
+                tooltipTop = this._panelItem.actor.get_transformed_position()[1];
                 tooltipTop = tooltipTop + Math.round((this._panelItem.actor.get_allocation_box().y2 -
                     this._panelItem.actor.get_allocation_box().y1) / 2) - Math.round(tooltipHeight / 2);
-                tooltipLeft = tooltipLeft - tooltipWidth;
+                tooltipLeft = monitor.width - tooltipWidth - panel.actor.width;
                 break;
             default:
                 break;

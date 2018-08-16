@@ -39,7 +39,7 @@ typedef struct {
   GSList *windows;
 
   /* Whether or not we need to resort the windows; this is done on demand */
-  gboolean window_sort_stale : 1;
+  guint window_sort_stale : 1;
 } CinnamonAppRunningState;
 
 /**
@@ -123,15 +123,48 @@ cinnamon_app_get_id (CinnamonApp *app)
 static MetaWindow *
 window_backed_app_get_window (CinnamonApp     *app)
 {
-  g_assert (app->entry == NULL);
   g_assert (app->running_state);
   g_assert (app->running_state->windows);
   return app->running_state->windows->data;
 }
 
 static ClutterActor *
+get_actor_for_icon_name (CinnamonApp *app,
+                         const gchar *icon_name,
+                         gint         size)
+{
+  ClutterActor *actor;
+  GIcon *icon;
+
+  icon = NULL;
+  actor = NULL;
+
+  if (g_path_is_absolute (icon_name))
+    {
+      GFile *icon_file;
+
+      icon_file = g_file_new_for_path (icon_name);
+      icon = g_file_icon_new (icon_file);
+
+      g_object_unref (icon_file);
+    }
+  else
+    {
+      icon = g_themed_icon_new (icon_name);
+    }
+
+  if (icon != NULL)
+  {
+    actor = g_object_new (ST_TYPE_ICON, "gicon", icon, "icon-size", size, NULL);
+    g_object_unref (icon);
+  }
+
+  return actor;
+}
+
+static ClutterActor *
 window_backed_app_get_icon (CinnamonApp *app,
-                            int       size)
+                            int          size)
 {
   MetaWindow *window;
   ClutterActor *actor;
@@ -139,11 +172,11 @@ window_backed_app_get_icon (CinnamonApp *app,
   CinnamonGlobal *global;
   StThemeContext *context;
 
+  actor = NULL;
+
   global = cinnamon_global_get ();
   context = st_theme_context_get_for_stage (cinnamon_global_get_stage (global));
   g_object_get (context, "scale-factor", &scale, NULL);
-
-  size *= scale;
 
   /* During a state transition from running to not-running for
    * window-backend apps, it's possible we get a request for the icon.
@@ -157,15 +190,20 @@ window_backed_app_get_icon (CinnamonApp *app,
     }
 
   window = window_backed_app_get_window (app);
+
+  size *= scale;
+
   actor = st_texture_cache_bind_pixbuf_property (st_texture_cache_get_default (),
-                                                               G_OBJECT (window),
-                                                               "icon");
+                                                 G_OBJECT (window), "icon");
   g_object_set (actor, "width", (float) size, "height", (float) size, NULL);
+
   return actor;
 }
 
 /**
  * cinnamon_app_create_icon_texture:
+ * @app: a #CinnamonApp
+ * @size: the size of the icon to create
  *
  * Look up the icon for this application, and create a #ClutterTexture
  * for it at the given size.
@@ -174,7 +212,7 @@ window_backed_app_get_icon (CinnamonApp *app,
  */
 ClutterActor *
 cinnamon_app_create_icon_texture (CinnamonApp   *app,
-                               int         size)
+                                  int            size)
 {
   GIcon *icon;
   ClutterActor *ret;
@@ -182,20 +220,78 @@ cinnamon_app_create_icon_texture (CinnamonApp   *app,
   ret = NULL;
 
   if (app->entry == NULL)
-    return window_backed_app_get_icon (app, size);
+    {
+      return window_backed_app_get_icon (app, size);
+    }
 
   icon = g_app_info_get_icon (G_APP_INFO (gmenu_tree_entry_get_app_info (app->entry)));
+
   if (icon != NULL)
-    ret = st_texture_cache_load_gicon (st_texture_cache_get_default (), NULL, icon, size);
+    {
+      ret = g_object_new (ST_TYPE_ICON, "gicon", icon, "icon-size", size, NULL);
+    }
 
   if (ret == NULL)
     {
       icon = g_themed_icon_new ("application-x-executable");
-      ret = st_texture_cache_load_gicon (st_texture_cache_get_default (), NULL, icon, size);
+      ret = g_object_new (ST_TYPE_ICON, "gicon", icon, "icon-size", size, NULL);
       g_object_unref (icon);
     }
 
   return ret;
+}
+
+/**
+ * cinnamon_app_create_icon_texture_for_window:
+ * @app: a #CinnamonApp
+ * @size: the size of the icon to create
+ * @for_window: (nullable): Optional - the backing MetaWindow to look up for.
+ *
+ * Look up the icon for this application, and create a #ClutterTexture
+ * for it at the given size.  If for_window is NULL, it bases the icon
+ * off the most-recently-used window for the app, otherwise it attempts to
+ * use for_window for determining the icon.
+ *
+ * Return value: (transfer none): A floating #ClutterActor
+ */
+ClutterActor *
+cinnamon_app_create_icon_texture_for_window (CinnamonApp   *app,
+                                             int            size,
+                                             MetaWindow    *for_window)
+{
+  MetaWindow *window;
+
+  window = NULL;
+
+  if (app->running_state != NULL)
+  {
+    const gchar *icon_name;
+
+    if (for_window != NULL)
+      {
+        if (g_slist_find (app->running_state->windows, for_window) != NULL)
+          {
+            window = for_window;
+          }
+        else
+          {
+            g_warning ("cinnamon_app_create_icon_texture: MetaWindow %p provided that does not match App %p",
+                       for_window, app);
+          }
+      }
+
+    if (window != NULL)
+      {
+        icon_name = meta_window_get_icon_name (window);
+
+        if (icon_name != NULL)
+          {
+            return get_actor_for_icon_name (app, icon_name, size);
+          }
+      }
+  }
+
+  return cinnamon_app_create_icon_texture (app, size);
 }
 
 typedef struct {
@@ -221,7 +317,7 @@ cinnamon_app_create_faded_icon_cpu (StTextureCache *cache,
   gboolean have_alpha;
   gint fade_start;
   gint fade_range;
-  guint i, j;
+  int i, j;
   guint pixbuf_byte_size;
   guint8 *orig_pixels;
   guint8 *pixels;
@@ -565,7 +661,7 @@ cinnamon_app_activate_window (CinnamonApp     *app,
         window = most_recent_transient;
 
 
-      if (!cinnamon_window_tracker_is_window_interesting (window))
+      if (!cinnamon_window_tracker_is_window_interesting (cinnamon_window_tracker_get_default (), window))
         {
           /* We won't get notify::user-time signals for uninteresting windows,
            * which means that an app's last_user_time won't get updated.
@@ -645,6 +741,9 @@ cinnamon_app_activate_full (CinnamonApp      *app,
         break;
       case CINNAMON_APP_STATE_RUNNING:
         cinnamon_app_activate_window (app, NULL, timestamp);
+        break;
+      default:
+        g_warning("cinnamon_app_activate_full: default case");
         break;
     }
 }
@@ -1079,6 +1178,7 @@ _cinnamon_app_handle_startup_sequence (CinnamonApp          *app,
 gboolean
 cinnamon_app_request_quit (CinnamonApp   *app)
 {
+  CinnamonGlobal *global;
   GSList *iter;
 
   if (cinnamon_app_get_state (app) != CINNAMON_APP_STATE_RUNNING)
@@ -1086,14 +1186,16 @@ cinnamon_app_request_quit (CinnamonApp   *app)
 
   /* TODO - check for an XSMP connection; we could probably use that */
 
+  global = cinnamon_global_get ();
+
   for (iter = app->running_state->windows; iter; iter = iter->next)
     {
       MetaWindow *win = iter->data;
 
-      if (!cinnamon_window_tracker_is_window_interesting (win))
+      if (!cinnamon_window_tracker_is_window_interesting (cinnamon_window_tracker_get_default (), win))
         continue;
 
-      meta_window_delete (win, cinnamon_global_get_current_time (cinnamon_global_get ()));
+      meta_window_delete (win, cinnamon_global_get_current_time (global));
     }
   return TRUE;
 }
@@ -1380,6 +1482,9 @@ _cinnamon_app_do_match (CinnamonApp         *app,
       case MATCH_SUBSTRING:
         *substring_results = g_slist_prepend (*substring_results, app);
         break;
+      default:
+        g_warning("cinnamon_app_do_match: default case");
+        break;
     }
 }
 
@@ -1402,11 +1507,8 @@ cinnamon_app_dispose (GObject *object)
       app->entry = NULL;
     }
 
-  if (app->running_state)
-    {
-      while (app->running_state->windows)
-        _cinnamon_app_remove_window (app, app->running_state->windows->data);
-    }
+  while (app->running_state)
+    _cinnamon_app_remove_window (app, app->running_state->windows->data);
 
   g_clear_pointer (&app->keywords, g_free);
 
@@ -1441,8 +1543,7 @@ cinnamon_app_class_init(CinnamonAppClass *klass)
                                      CINNAMON_TYPE_APP,
                                      G_SIGNAL_RUN_LAST,
                                      0,
-                                     NULL, NULL,
-                                     g_cclosure_marshal_VOID__VOID,
+                                     NULL, NULL, NULL,
                                      G_TYPE_NONE, 0);
 
   /**

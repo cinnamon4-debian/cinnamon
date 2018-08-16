@@ -1,24 +1,18 @@
 const Applet = imports.ui.applet;
 const XApp = imports.gi.XApp;
 const Lang = imports.lang;
-const Cinnamon = imports.gi.Cinnamon;
-const Clutter = imports.gi.Clutter;
 const St = imports.gi.St;
-const Gtk = imports.gi.Gtk;
 const Main = imports.ui.main;
 const PopupMenu = imports.ui.popupMenu;
 const Util = imports.misc.util;
-const Settings = imports.ui.settings;
 const Mainloop = imports.mainloop;
 const Gio = imports.gi.Gio;
 const Cairo = imports.cairo;
 
-function EmblemedIcon() {
-    this._init.apply(this, arguments);
-}
+const PANEL_EDIT_MODE_KEY = "panel-edit-mode";
 
-EmblemedIcon.prototype = {
-    _init: function(path, id, style_class) {
+class EmblemedIcon {
+    constructor(path, id, style_class) {
         this.path = path;
         this.id = id;
 
@@ -26,19 +20,19 @@ EmblemedIcon.prototype = {
 
         this.actor.connect("style-changed", Lang.bind(this, this._style_changed));
         this.actor.connect("repaint", Lang.bind(this, this._repaint));
-    },
+    }
 
-    _style_changed: function(actor) {
+    _style_changed(actor) {
         let icon_size = 0.5 + this.actor.get_theme_node().get_length("icon-size");
 
         this.actor.natural_width = this.actor.natural_height = icon_size;
-    },
+    }
 
-    _repaint: function(actor) {
+    _repaint(actor) {
         let cr = actor.get_context();
         let [w, h] = actor.get_surface_size();
 
-        cr.save()
+        cr.save();
 
         let surf = St.TextureCache.get_default().load_file_to_cairo_surface(this.path);
 
@@ -69,7 +63,7 @@ EmblemedIcon.prototype = {
 
         cr.paint();
 
-        cr.restore()
+        cr.restore();
 
         XApp.KbdLayoutController.render_cairo_subscript(cr,
                                                         true_x_offset + (true_width / 2),
@@ -79,34 +73,28 @@ EmblemedIcon.prototype = {
                                                         this.id);
 
         cr.$dispose();
-    },
+    }
 
     /* Monkey patch St.Icon functions used in js/ui/applet.js IconApplet so
        we can use its _setStyle() function for figuring out how big we should
        be
      */
-    get_icon_type: function() {
+    get_icon_type() {
         return St.IconType.FULLCOLOR;
-    },
+    }
 
-    set_icon_size: function(size) {
+    set_icon_size(size) {
         this.actor.width = this.actor.height = size;
-    },
+    }
 
-    set_style_class_name: function(name) {
+    set_style_class_name(name) {
         return;
     }
 }
 
-function LayoutMenuItem() {
-    this._init.apply(this, arguments);
-}
-
-LayoutMenuItem.prototype = {
-    __proto__: PopupMenu.PopupBaseMenuItem.prototype,
-
-    _init: function(config, id, indicator, long_name) {
-        PopupMenu.PopupBaseMenuItem.prototype._init.call(this);
+class LayoutMenuItem extends PopupMenu.PopupBaseMenuItem {
+    constructor(config, id, indicator, long_name) {
+        super();
 
         this._config = config;
         this._id = id;
@@ -114,35 +102,29 @@ LayoutMenuItem.prototype = {
         this.indicator = indicator;
         this.addActor(this.label);
         this.addActor(this.indicator);
-    },
+    }
 
-    activate: function(event) {
+    activate(event) {
         PopupMenu.PopupBaseMenuItem.prototype.activate.call(this);
         this._config.set_current_group(this._id);
     }
-};
-
-function MyApplet(metadata, orientation, panel_height, instance_id) {
-    this._init(metadata, orientation, panel_height, instance_id);
 }
 
-MyApplet.prototype = {
-    __proto__: Applet.TextIconApplet.prototype,
-
-    _init: function(metadata, orientation, panel_height, instance_id) {        
-        Applet.TextIconApplet.prototype._init.call(this, orientation, panel_height, instance_id);
+class CinnamonKeyboardApplet extends Applet.TextIconApplet {
+    constructor(metadata, orientation, panel_height, instance_id) {
+        super(orientation, panel_height, instance_id);
 
         this.setAllowedLayout(Applet.AllowedLayout.BOTH);
-        
+
         try {
             this.metadata = metadata;
             Main.systrayManager.registerRole("keyboard", metadata.uuid);
 
             this.menuManager = new PopupMenu.PopupMenuManager(this);
             this.menu = new Applet.AppletPopupMenu(this, orientation);
-            this.menuManager.addMenu(this.menu);                            
+            this.menuManager.addMenu(this.menu);
 
-            this.actor.add_style_class_name('panel-status-button');            
+            this.actor.add_style_class_name('panel-status-button');
 
             this._layoutItems = [ ];
 
@@ -155,12 +137,13 @@ MyApplet.prototype = {
             this.desktop_settings.connect("changed::keyboard-layout-show-flags", Lang.bind(this, this._syncConfig));
             this.desktop_settings.connect("changed::keyboard-layout-use-upper", Lang.bind(this, this._syncConfig));
             this.desktop_settings.connect("changed::keyboard-layout-prefer-variant-names", Lang.bind(this, this._syncConfig));
+            global.settings.connect('changed::' + PANEL_EDIT_MODE_KEY, Lang.bind(this, this._onPanelEditModeChanged));
 
             this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
             this.menu.addAction(_("Show Keyboard Layout"), Lang.bind(this, function() {
                 Main.overview.hide();
                 Util.spawn(['gkbd-keyboard-display', '-g', String(this._config.get_current_group() + 1)]);
-            }));                                
+            }));
             this.menu.addAction(_("Show Character Table"), Lang.bind(this, function() {
                 Main.overview.hide();
                 Util.spawn(['gucharmap']);
@@ -170,22 +153,39 @@ MyApplet.prototype = {
         catch (e) {
             global.logError(e);
         }
-    },
+    }
 
-    on_applet_added_to_panel: function() {
+    _onPanelEditModeChanged() {
+        if (global.settings.get_boolean(PANEL_EDIT_MODE_KEY)) {
+            if (!this.actor.visible) {
+                this.set_applet_icon_symbolic_name("input-keyboard");
+                this.actor.show();
+            }
+        }
+        else {
+            this._syncConfig();
+        }
+    }
+
+    on_applet_added_to_panel() {
         this._config = new XApp.KbdLayoutController();
 
-        this._syncConfig();
+        if (global.settings.get_boolean(PANEL_EDIT_MODE_KEY)) {
+            this._syncConfig();
+            this._onPanelEditModeChanged();
+        } else {
+            this._syncConfig();
+        }
 
         this._config.connect('layout-changed', Lang.bind(this, this._syncGroup));
         this._config.connect('config-changed', Lang.bind(this, this._syncConfig));
-    },
-    
-    on_applet_clicked: function(event) {
-        this.menu.toggle();        
-    },
+    }
 
-    _syncConfig: function() {
+    on_applet_clicked(event) {
+        this.menu.toggle();
+    }
+
+    _syncConfig() {
         for (let i = 0; i < this._layoutItems.length; i++)
             this._layoutItems[i].destroy();
 
@@ -231,7 +231,7 @@ MyApplet.prototype = {
                 }
 
                 name = this.use_upper ? name.toUpperCase() : name;
-                actor = new St.Label({ text: name })
+                actor = new St.Label({ text: name });
             }
 
             let item = new LayoutMenuItem(this._config, i, actor, groups[i]);
@@ -240,9 +240,9 @@ MyApplet.prototype = {
         }
 
         Mainloop.idle_add(Lang.bind(this, this._syncGroup));
-    },
+    }
 
-    _syncGroup: function() {
+    _syncGroup() {
         let selected = this._config.get_current_group();
 
         if (this._selectedLayout) {
@@ -267,6 +267,7 @@ MyApplet.prototype = {
             if (file.query_exists(null)) {
                 this._applet_icon = new EmblemedIcon(file.get_path(), this._config.get_current_flag_id(), "applet-icon");
                 this._applet_icon_box.set_child(this._applet_icon.actor);
+                this._applet_icon_box.show();
 
                 this._setStyle();
 
@@ -287,17 +288,16 @@ MyApplet.prototype = {
 
             name = this.use_upper ? name.toUpperCase() : name;
 
-            this.set_applet_label(name)
-            this.hide_applet_icon()
+            this.set_applet_label(name);
+            this._applet_icon_box.hide();
         }
-    },
+    }
 
-    on_applet_removed_from_panel: function() {
+    on_applet_removed_from_panel() {
         Main.systrayManager.unregisterRole("keyboard", this.metadata.uuid);
     }
 };
 
-function main(metadata, orientation, panel_height, instance_id) {  
-    let myApplet = new MyApplet(metadata, orientation, panel_height, instance_id);
-    return myApplet;      
+function main(metadata, orientation, panel_height, instance_id) {
+    return new CinnamonKeyboardApplet(metadata, orientation, panel_height, instance_id);
 }

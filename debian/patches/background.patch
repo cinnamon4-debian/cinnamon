@@ -6,11 +6,11 @@ Subject: background
  files/usr/share/cinnamon/cinnamon-settings/modules/cs_backgrounds.py | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-Index: cinnamon/files/usr/share/cinnamon/cinnamon-settings/modules/cs_backgrounds.py
-===================================================================
---- cinnamon.orig/files/usr/share/cinnamon/cinnamon-settings/modules/cs_backgrounds.py	2016-11-19 13:15:06.178283316 +0100
-+++ cinnamon/files/usr/share/cinnamon/cinnamon-settings/modules/cs_backgrounds.py	2016-11-19 13:15:06.170283097 +0100
-@@ -262,7 +262,7 @@
+diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_backgrounds.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_backgrounds.py
+index 6e279ed..ec47983 100755
+--- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_backgrounds.py
++++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_backgrounds.py
+@@ -268,7 +268,7 @@ class Module:
      def get_system_backgrounds(self):
          picture_list = []
          folder_list = []

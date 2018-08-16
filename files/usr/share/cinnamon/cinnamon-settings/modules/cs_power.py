@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 import gi
 gi.require_version('CinnamonDesktop', '3.0')
@@ -40,6 +40,8 @@ SLEEP_DELAY_OPTIONS = [
     (1800, _("30 minutes")),
     (2700, _("45 minutes")),
     (3600, _("1 hour")),
+    (7200, _("2 hours")),
+    (10800, _("3 hours")),
     (0, _("Never"))
 ]
 
@@ -83,6 +85,7 @@ def get_timestring(time_seconds):
 
 
 CSD_SCHEMA = "org.cinnamon.settings-daemon.plugins.power"
+CSM_SCHEMA = "org.cinnamon.SessionManager"
 
 class Module:
     name = "power"
@@ -97,18 +100,18 @@ class Module:
         if self.loaded:
             # self.loaded = False
             return
-        print "Loading Power module"
+        print("Loading Power module")
 
         self.up_client = UPowerGlib.Client.new()
 
         self.csd_power_proxy = Gio.DBusProxy.new_sync(
-                Gio.bus_get_sync(Gio.BusType.SESSION, None),
-                Gio.DBusProxyFlags.NONE,
-                None,
-                "org.cinnamon.SettingsDaemon",
-                "/org/cinnamon/SettingsDaemon/Power",
-                "org.cinnamon.SettingsDaemon.Power",
-                None)
+            Gio.bus_get_sync(Gio.BusType.SESSION, None),
+            Gio.DBusProxyFlags.NONE,
+            None,
+            "org.cinnamon.SettingsDaemon.Power",
+            "/org/cinnamon/SettingsDaemon/Power",
+            "org.cinnamon.SettingsDaemon.Power",
+            None)
 
         self.settings = Gio.Settings.new("org.cinnamon")
 
@@ -125,7 +128,7 @@ class Module:
 
         section = power_page.add_section(_("Power Options"))
 
-        lid_options, button_power_options, critical_options = get_available_options(self.up_client)
+        lid_options, button_power_options, critical_options, can_suspend, can_hybrid_sleep = get_available_options(self.up_client)
 
         size_group = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
 
@@ -150,9 +153,9 @@ class Module:
                 section.add_row(GSettings2ComboBox(_("When the lid is closed"), CSD_SCHEMA, "lid-close-ac-action", "lid-close-battery-action", lid_options, size_group=size_group))
 
         else:
-            section.add_row(GSettingsComboBox(_("Turn off the screen when inactive for"), CSD_SCHEMA, "sleep-display-ac", SLEEP_DELAY_OPTIONS, valtype="int", size_group=size_group))
+            section.add_row(GSettingsComboBox(_("Turn off the screen when inactive for"), CSD_SCHEMA, "sleep-display-ac", SLEEP_DELAY_OPTIONS, valtype=int, size_group=size_group))
 
-            section.add_row(GSettingsComboBox(_("Suspend when inactive for"), CSD_SCHEMA, "sleep-inactive-ac-timeout", SLEEP_DELAY_OPTIONS, valtype="int", size_group=size_group))
+            section.add_row(GSettingsComboBox(_("Suspend when inactive for"), CSD_SCHEMA, "sleep-inactive-ac-timeout", SLEEP_DELAY_OPTIONS, valtype=int, size_group=size_group))
 
             if self.has_lid:
                 section.add_row(GSettingsComboBox(_("When the lid is closed"), CSD_SCHEMA, "lid-close-ac-action", lid_options, size_group=size_group))
@@ -166,8 +169,13 @@ class Module:
         if self.has_lid:
             section.add_row(GSettingsSwitch(_("Perform lid-closed action even with external monitors attached"), CSD_SCHEMA, "lid-close-suspend-with-external-monitor"))
 
-        if self.has_battery and UPowerGlib.MAJOR_VERSION == 0 and UPowerGlib.MINOR_VERSION < 99:
+        if self.has_battery and UPowerGlib.MAJOR_VERSION == 0 and UPowerGlib.MINOR_VERSION <= 99:
             section.add_row(GSettingsComboBox(_("When the battery is critically low"), CSD_SCHEMA, "critical-battery-action", critical_options, size_group=size_group))
+
+        if can_suspend and can_hybrid_sleep:
+            switch = GSettingsSwitch(_("Enable Hybrid Sleep"), CSM_SCHEMA, "prefer-hybrid-sleep")
+            switch.set_tooltip_text(_("Replaces Suspend with Hybrid Sleep"))
+            section.add_row(switch)
 
         # Batteries
 
@@ -178,44 +186,20 @@ class Module:
         self.build_battery_page()
         self.csd_power_proxy.connect("g-properties-changed", self.build_battery_page)
 
-        primary_output = None
-        try:
-            screen = CinnamonDesktop.RRScreen.new(Gdk.Screen.get_default())
-            outputs = CinnamonDesktop.RRScreen.list_outputs(screen)
-            for output in outputs:
-                if (output.is_connected() and output.is_laptop()):
-                    try:
-                        # Try to get the backlight info, if it fails just move on (we used to rely on output.get_backlight_min() and output.get_backlight_max() but these aren't reliable)
-                        output.get_backlight()
-                        primary_output = output
-                        break
-                    except:
-                        pass
-        except Exception, detail:
-            print "Failed to query backlight information in cs_power module: %s" % detail
-
-        if primary_output is None:
-            if self.show_battery_page:
-                self.sidePage.add_widget(self.sidePage.stack)
-                self.sidePage.stack.add_titled(power_page, "power", _("Power"))
-                self.sidePage.stack.add_titled(self.battery_page, "batteries", _("Batteries"))
-            else:
-
-                self.sidePage.add_widget(power_page)
-            return
-
         proxy = Gio.DBusProxy.new_sync(
-                Gio.bus_get_sync(Gio.BusType.SESSION, None),
-                Gio.DBusProxyFlags.NONE,
-                None,
-                "org.cinnamon.SettingsDaemon",
-                "/org/cinnamon/SettingsDaemon/Power",
-                "org.cinnamon.SettingsDaemon.Power.Screen",
-                None)
+            Gio.bus_get_sync(Gio.BusType.SESSION, None),
+            Gio.DBusProxyFlags.NONE,
+            None,
+            "org.cinnamon.SettingsDaemon.Power",
+            "/org/cinnamon/SettingsDaemon/Power",
+            "org.cinnamon.SettingsDaemon.Power.Screen",
+            None)
 
         try:
             brightness = proxy.GetPercentage()
-        except:
+        except GLib.Error as e:
+            print("Power module brightness page not available: %s" % e.message)
+
             if self.show_battery_page:
                 self.sidePage.add_widget(self.sidePage.stack)
                 self.sidePage.stack.add_titled(power_page, "power", _("Power"))
@@ -234,13 +218,29 @@ class Module:
             size_group = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
 
             section = page.add_section(_("Screen brightness"))
-            section.add_row(BrightnessSlider(section, proxy))
+            section.add_row(BrightnessSlider(section, proxy, _("Screen brightness")))
 
             section.add_row(GSettingsSwitch(_("On battery, dim screen when inactive"), CSD_SCHEMA, "idle-dim-battery"))
 
-            section.add_reveal_row(GSettingsComboBox(_("Brightness level when inactive"), CSD_SCHEMA, "idle-brightness", IDLE_BRIGHTNESS_OPTIONS, valtype="int", size_group=size_group), CSD_SCHEMA, "idle-dim-battery")
+            section.add_reveal_row(GSettingsComboBox(_("Brightness level when inactive"), CSD_SCHEMA, "idle-brightness", IDLE_BRIGHTNESS_OPTIONS, valtype=int, size_group=size_group), CSD_SCHEMA, "idle-dim-battery")
 
-            section.add_reveal_row(GSettingsComboBox(_("Dim screen after inactive for"), CSD_SCHEMA, "idle-dim-time", IDLE_DELAY_OPTIONS, valtype="int", size_group=size_group), CSD_SCHEMA, "idle-dim-battery")
+            section.add_reveal_row(GSettingsComboBox(_("Dim screen after inactive for"), CSD_SCHEMA, "idle-dim-time", IDLE_DELAY_OPTIONS, valtype=int, size_group=size_group), CSD_SCHEMA, "idle-dim-battery")
+
+            proxy = Gio.DBusProxy.new_sync(Gio.bus_get_sync(Gio.BusType.SESSION, None),
+                                           Gio.DBusProxyFlags.NONE,
+                                           None,
+                                           "org.cinnamon.SettingsDaemon.Power",
+                                           "/org/cinnamon/SettingsDaemon/Power",
+                                           "org.cinnamon.SettingsDaemon.Power.Keyboard",
+                                           None)
+
+            try:
+                brightness = proxy.GetPercentage()
+            except GLib.Error as e:
+                print("Power module no keyboard backlight: %s" % e.message)
+            else:
+                section = page.add_section(_("Keyboard backlight"))
+                section.add_row(BrightnessSlider(section, proxy, _("Backlight brightness")))
 
     def build_battery_page(self, *args):
 
@@ -506,20 +506,22 @@ class Module:
 def get_available_options(up_client):
     can_suspend = False
     can_hibernate = False
+    can_hybrid_sleep = False
 
     try:
         connection = Gio.bus_get_sync(Gio.BusType.SYSTEM, None)
         proxy = Gio.DBusProxy.new_sync(
-                connection,
-                Gio.DBusProxyFlags.NONE,
-                None,
-                "org.freedesktop.login1",
-                "/org/freedesktop/login1",
-                "org.freedesktop.login1.Manager",
-                None)
+            connection,
+            Gio.DBusProxyFlags.NONE,
+            None,
+            "org.freedesktop.login1",
+            "/org/freedesktop/login1",
+            "org.freedesktop.login1.Manager",
+            None)
 
         can_suspend = proxy.CanSuspend() == "yes"
         can_hibernate = proxy.CanHibernate() == "yes"
+        can_hybrid_sleep = proxy.CanHybridSleep() == "yes"
     except:
         pass
 
@@ -527,6 +529,7 @@ def get_available_options(up_client):
     try:
         can_suspend = can_suspend or up_client.get_can_suspend()
         can_hibernate = can_hibernate or up_client.get_can_hibernate()
+        can_hybrid_sleep = can_hibernate or up_client.get_can_hybrid_sleep()
     except:
         pass
 
@@ -538,6 +541,7 @@ def get_available_options(up_client):
 
     lid_options = [
         ("suspend", _("Suspend")),
+        ("shutdown", _("Shutdown immediately")),
         ("hibernate", _("Hibernate")),
         ("nothing", _("Do nothing"))
     ]
@@ -552,6 +556,7 @@ def get_available_options(up_client):
     ]
 
     critical_options = [
+        ("shutdown", _("Shutdown immediately")),
         ("hibernate", _("Hibernate")),
         ("nothing", _("Do nothing"))
     ]
@@ -564,12 +569,12 @@ def get_available_options(up_client):
         for options in lid_options, button_power_options, critical_options:
             remove(options, "hibernate")
 
-    return lid_options, button_power_options, critical_options
+    return lid_options, button_power_options, critical_options, can_suspend, can_hybrid_sleep
 
 class BrightnessSlider(SettingsWidget):
     step = 5
 
-    def __init__(self, section, proxy):
+    def __init__(self, section, proxy, label):
         super(BrightnessSlider, self).__init__()
         self.set_orientation(Gtk.Orientation.VERTICAL)
         self.set_spacing(0)
@@ -580,7 +585,7 @@ class BrightnessSlider(SettingsWidget):
 
         hbox = Gtk.Box()
 
-        self.label = Gtk.Label.new(_("Screen brightness"))
+        self.label = Gtk.Label.new(label)
         self.label.set_halign(Gtk.Align.CENTER)
 
         self.min_label= Gtk.Label()

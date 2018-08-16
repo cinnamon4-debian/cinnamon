@@ -2,7 +2,6 @@
 
 const Clutter = imports.gi.Clutter;
 const Lang = imports.lang;
-const Meta = imports.gi.Meta;
 const Cinnamon = imports.gi.Cinnamon;
 const St = imports.gi.St;
 const Signals = imports.signals;
@@ -11,15 +10,15 @@ const Main = imports.ui.main;
 const Tweener = imports.ui.tweener;
 const Workspace = imports.ui.workspace;
 
-const WORKSPACE_SWITCH_TIME = 0.25;
+var WORKSPACE_SWITCH_TIME = 0.25;
 
-const SwipeScrollDirection = {
+var SwipeScrollDirection = {
     NONE: 0,
     HORIZONTAL: 1,
     VERTICAL: 2
 };
 
-const SwipeScrollResult = {
+var SwipeScrollResult = {
     CANCEL: 0,
     SWIPE: 1,
     CLICK: 2
@@ -74,8 +73,8 @@ WorkspacesView.prototype = {
         // as an Overview member.
         let overviewShowingId = Main.overview.connect('showing', Lang.bind(this, function() {
             Main.overview.disconnect(overviewShowingId);
-            let activeWorkspaceIndex = global.screen.get_active_workspace_index();
-            this._workspaces[activeWorkspaceIndex].zoomToOverview();
+            let workspaceIndex = global.screen.get_active_workspace_index();
+            this._workspaces[workspaceIndex].zoomToOverview();
         }));
 
         this._scrollAdjustment = new St.Adjustment({ value: activeWorkspaceIndex,
@@ -254,7 +253,7 @@ WorkspacesView.prototype = {
     _workspacesChanged: function() {
         let removedCount = 0;
         this._workspaces.slice().forEach(function(workspace, i) {
-            let metaWorkspace = global.screen.get_workspace_by_index(i-removedCount);
+            let metaWorkspace = global.screen.get_workspace_by_index(i - removedCount);
             if (workspace.metaWorkspace != metaWorkspace) {
                 Tweener.removeTweens(workspace.actor);
                 workspace.destroy();
@@ -266,7 +265,7 @@ WorkspacesView.prototype = {
         while (global.screen.n_workspaces > this._workspaces.length) {
             let lastWs = global.screen.get_workspace_by_index(this._workspaces.length);
             let workspace = new Workspace.Workspace(lastWs, this);
-            this._workspaces.push(workspace)
+            this._workspaces.push(workspace);
             this.actor.add_actor(workspace.actor);
         }
         this._animating = false;
@@ -334,8 +333,8 @@ WorkspacesView.prototype = {
             stackIndices[stack[i].get_meta_window().get_stable_sequence()] = i;
         }
 
-        for (let i = 0; i < this._workspaces.length; i++)
-            this._workspaces[i].syncStacking(stackIndices);
+        for (let j = 0; j < this._workspaces.length; j++)
+            this._workspaces[j].syncStacking(stackIndices);
     },
 
     // sync the workspaces' positions to the value of the scroll adjustment

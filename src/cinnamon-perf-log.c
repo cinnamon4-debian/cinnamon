@@ -266,7 +266,7 @@ define_event (CinnamonPerfLog *perf_log,
 
   if (g_hash_table_lookup (perf_log->events_by_name, name) != NULL)
     {
-      g_warning ("Duplicate event event for '%s'\n", name);
+      g_warning ("Duplicate event for '%s'\n", name);
       return NULL;
     }
 
@@ -349,7 +349,7 @@ record_event (CinnamonPerfLog   *perf_log,
   total_bytes = sizeof (gint32) + sizeof (gint16) + bytes_len;
   if (G_UNLIKELY (bytes_len > BLOCK_SIZE || total_bytes > BLOCK_SIZE))
     {
-      g_warning ("Discarding oversize event '%s'\n", event->name);
+      g_warning ("Discarding oversized event '%s'\n", event->name);
       return;
     }
 
@@ -631,7 +631,7 @@ cinnamon_perf_log_collect_statistics (CinnamonPerfLog *perf_log)
 {
   gint64 event_time = get_time ();
   gint64 collection_time;
-  int i;
+  guint i;
 
   if (!perf_log->enabled)
     return;
@@ -676,6 +676,9 @@ cinnamon_perf_log_collect_statistics (CinnamonPerfLog *perf_log)
               statistic->last_value.x = statistic->current_value.x;
               statistic->recorded = TRUE;
             }
+          break;
+        default:
+          g_warning("cinnamon_perf_log_collect_statistics: default case");
           break;
         }
     }
@@ -824,7 +827,7 @@ cinnamon_perf_log_dump_events (CinnamonPerfLog   *perf_log,
                             GError        **error)
 {
   GString *output;
-  int i;
+  guint i;
 
   output = g_string_new (NULL);
   g_string_append (output, "[ ");

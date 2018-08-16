@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 import platform
 import subprocess
@@ -26,7 +26,7 @@ def getProcessOut(command):
         if not line:
             break
         if line != '':
-            lines.append(line)
+            lines.append(line.decode('utf-8'))
     timer.cancel()
     return lines
 
@@ -87,17 +87,21 @@ def createSystemInfos():
     infos = []
     arch = platform.machine().replace("_", "-")
     (memsize, memunit) = procInfos['mem_total'].split(" ")
-    processorName = procInfos['cpu_name'].replace("(R)", u"\u00A9").replace("(TM)", u"\u2122")
+    processorName = procInfos['cpu_name'].replace("(R)", "\u00A9").replace("(TM)", "\u2122")
     if 'cpu_cores' in procInfos:
-        processorName = processorName + u" \u00D7 " + procInfos['cpu_cores']
+        processorName = processorName + " \u00D7 " + procInfos['cpu_cores']
 
     if os.path.exists("/etc/linuxmint/info"):
         args = shlex.split("awk -F \"=\" '/GRUB_TITLE/ {print $2}' /etc/linuxmint/info")
-        title = subprocess.check_output(args).rstrip("\n")
+        title = subprocess.check_output(args).decode('utf-8').rstrip("\n")
         infos.append((_("Operating System"), title))
     elif os.path.exists("/etc/arch-release"):
         contents = open("/etc/arch-release", 'r').readline().split()
         title = ' '.join(contents[:2]) or "Arch Linux"
+        infos.append((_("Operating System"), title))
+    elif os.path.exists("/etc/manjaro-release"):
+        contents = open("/etc/manjaro-release", 'r').readline().split()
+        title = ' '.join(contents[:2]) or "Manjaro Linux"
         infos.append((_("Operating System"), title))
     else:
         s = '%s (%s)' % (' '.join(platform.linux_distribution()), arch)
@@ -139,7 +143,7 @@ class Module:
 
     def on_module_selected(self):
         if not self.loaded:
-            print "Loading Info module"
+            print("Loading Info module")
 
             infos = createSystemInfos()
 
@@ -155,6 +159,7 @@ class Module:
                 widget.pack_start(labelKey, False, False, 0)
                 labelKey.get_style_context().add_class("dim-label")
                 labelValue = Gtk.Label.new(value)
+                labelValue.set_selectable(True)
                 widget.pack_end(labelValue, False, False, 0)
                 settings.add_row(widget)
 

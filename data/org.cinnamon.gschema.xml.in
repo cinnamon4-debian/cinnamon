@@ -21,15 +21,31 @@
         override version check
       </_description>
     </key>
-    
+
+    <key name="extension-cache-updated" type="i">
+      <default>0</default>
+      <summary>Timestamp of last cache refresh</summary>
+      <description>
+        The timestamp of the last time the index cache was updated from the spices website
+      </description>
+    </key>
+
     <key name="enabled-applets" type="as">
-      <default>['panel1:left:0:menu@cinnamon.org', 'panel1:left:1:show-desktop@cinnamon.org', 'panel1:left:2:panel-launchers@cinnamon.org', 'panel1:left:3:window-list@cinnamon.org', 'panel1:right:0:notifications@cinnamon.org', 'panel1:right:1:user@cinnamon.org', 'panel1:right:2:removable-drives@cinnamon.org', 'panel1:right:3:keyboard@cinnamon.org', 'panel1:right:4:bluetooth@cinnamon.org', 'panel1:right:5:network@cinnamon.org', 'panel1:right:6:sound@cinnamon.org', 'panel1:right:7:power@cinnamon.org', 'panel1:right:8:systray@cinnamon.org', 'panel1:right:9:calendar@cinnamon.org', 'panel1:right:10:windows-quick-list@cinnamon.org']</default>
+      <default>['panel1:right:0:systray@cinnamon.org', 'panel1:left:0:menu@cinnamon.org', 'panel1:left:1:show-desktop@cinnamon.org', 'panel1:left:2:panel-launchers@cinnamon.org', 'panel1:left:3:window-list@cinnamon.org', 'panel1:right:1:keyboard@cinnamon.org', 'panel1:right:2:notifications@cinnamon.org', 'panel1:right:3:removable-drives@cinnamon.org', 'panel1:right:4:user@cinnamon.org', 'panel1:right:5:network@cinnamon.org', 'panel1:right:6:bluetooth@cinnamon.org', 'panel1:right:7:power@cinnamon.org', 'panel1:right:8:calendar@cinnamon.org', 'panel1:right:9:sound@cinnamon.org']</default>
       <_summary>Uuids of applets to enable</_summary>
       <_description>
         Cinnamon applets have a uuid property; this key lists applets
         which should be loaded. Append ! in front of uuid to override version
         check.
       </_description>
+    </key>
+
+    <key name="applet-cache-updated" type="i">
+      <default>0</default>
+      <summary>Timestamp of last cache refresh</summary>
+      <description>
+        The timestamp of the last time the index cache was updated from the spices website
+      </description>
     </key>
 
     <key name="next-applet-id" type="i">
@@ -52,7 +68,15 @@
         which should be loaded. uuids should be put in the form uuid:id:x:y, where id is used to distinguish between multiple instances of the same desklet. Append ! in front of uuid to override version check.
       </_description>
     </key>
-    
+
+    <key name="desklet-cache-updated" type="i">
+      <default>0</default>
+      <summary>Timestamp of last cache refresh</summary>
+      <description>
+        The timestamp of the last time the index cache was updated from the spices website
+      </description>
+    </key>
+
     <key name="enabled-search-providers" type="as">
       <default>[]</default>
       <_summary>Uuids of search providers to enable</_summary>
@@ -193,7 +217,7 @@
     </key>
     
     <key type="i" name="desktop-effects-close-time">
-      <default>175</default>
+      <default>120</default>
       <_summary>Duration of the effect (in milliseconds)</_summary>
       <_description>
        Duration of the effect (in milliseconds)    
@@ -217,7 +241,7 @@
     </key>
     
     <key type="i" name="desktop-effects-map-time">
-      <default>175</default>
+      <default>100</default>
       <_summary>Duration of the effect (in milliseconds)</_summary>
       <_description>
        Duration of the effect (in milliseconds)    
@@ -242,7 +266,7 @@
     </key>
     
     <key type="i" name="desktop-effects-minimize-time">
-      <default>200</default>
+      <default>160</default>
       <_summary>Duration of the effect (in milliseconds)</_summary>
       <_description>
        Duration of the effect (in milliseconds)    
@@ -359,9 +383,15 @@
     </key>
 
     <key name="overview-corner" type="as">
-      <default>['expo:false:false:0', 'scale:false:false:0', 'scale:false:false:0', 'desktop:false:false:0']</default>
-      <_summary>Properties of overview corners</_summary>
-      <_description>Properties of overview corners, in the form functionality:hover:icon. The order in which properties are displayed is top left, top right, bottom left, bottom right.</_description>
+      <default>["DEPRECATED"]</default>
+      <_summary>Obsolete - unused</_summary>
+      <_description>Obsolete - unused</_description>
+    </key>
+
+    <key name="hotcorner-layout" type="as">
+      <default>['expo:false:0', 'scale:false:0', 'scale:false:0', 'desktop:false:0']</default>
+      <_summary>Properties of hotcorners</_summary>
+      <_description>Properties of hotcorners, in the form functionality:hover-enabled:hover-delay. The order in which properties are displayed is top left, top right, bottom left, bottom right.</_description>
     </key>
 
     <key name="panel-launchers" type="as">
@@ -382,7 +412,7 @@
     </key>
 
     <key name="favorite-apps" type="as">
-      <default>[ 'firefox.desktop', 'mintinstall.desktop', 'cinnamon-settings.desktop', 'hexchat.desktop', 'gnome-terminal.desktop', 'nemo.desktop' ]</default>
+      <default>[ 'firefox.desktop', 'mintinstall.desktop', 'cinnamon-settings.desktop', 'hexchat.desktop', 'org.gnome.Terminal.desktop', 'nemo.desktop' ]</default>
       <_summary>List of desktop file IDs for favorite applications</_summary>
       <_description>
         The applications corresponding to these identifiers
@@ -429,14 +459,6 @@
       <_summary>Enable or disable the workspace OSD</_summary>
       <_description>
         Whether the name of the workspace shows up on the screen when activated or not.
-      </_description>
-    </key>
-
-    <key name="enable-looking-glass-logs" type="b">
-      <default>true</default>
-      <_summary>Enable or disable sending Looking Glass global.log output to file</_summary>
-      <_description>
-        Whether looking glass log data is written to the file: ~/.cinnamon/glass.log or not
       </_description>
     </key>
 
@@ -502,10 +524,20 @@
       <_summary>Enforce displaying the alt-tab switcher on the primary monitor instead of the active one</_summary>
     </key>
 
+    <key type="b" name="alttab-minimized-aware">
+    <default>false</default>
+      <summary>Move minimized windows to the end of the appSwitcher</summary>
+    </key>
+
     <key type="i" name="alttab-switcher-delay">
       <default>100</default>
       <_summary>Duration of the effect (in milliseconds)</_summary>
       <_description>Duration of the effect (in milliseconds)</_description>
+    </key>
+
+    <key type="b" name="alttab-switcher-show-all-workspaces">
+      <default>false</default>
+      <_summary>Show all windows from all workspaces</_summary>
     </key>
 
     <key name="bring-windows-to-current-workspace" type="b">
@@ -631,12 +663,20 @@
        The name of the theme
       </_description>
     </key>
+
+    <key name="theme-cache-updated" type="i">
+      <default>0</default>
+      <summary>Timestamp of last cache refresh</summary>
+      <description>
+        The timestamp of the last time the index cache was updated from the spices website
+      </description>
+    </key>
   </schema>
- 
+
   <schema id="org.cinnamon.keyboard" path="/org/cinnamon/keyboard/"
           gettext-domain="@GETTEXT_PACKAGE@">
     <key name="keyboard-type" type="s">
-      <default>'touch'</default>
+      <default>'tablet'</default>
       <_summary>Which keyboard to use</_summary>
       <_description>
         The type of keyboard to use.
@@ -649,8 +689,21 @@
         Can be:  on-demand: display the keyboard only at user demand, either when the applet is clicked, or a keyboard shortcut is used.  accessible: display the keyboard any time an input field becomes the desktop keyboard focus.
       </_description>
     </key>
+    <key name="keyboard-size" type="i">
+      <default>3</default>
+      <_summary>The size of the keyboard. Set this value to X for the keyboard to take 1/x of the screen.</_summary>
+      <_description>
+        The size of the keyboard. Set this value to X for the keyboard to take 1/x of the screen.
+      </_description>
+    </key>
+    <key name="keyboard-position" type="s">
+      <default>'top'</default>
+      <_summary>Keyboard position</_summary>
+      <_description>
+        Keyboard position.
+      </_description>
+    </key>
   </schema>
-    
   <schema id="org.cinnamon.recorder" path="/org/cinnamon/recorder/"
           gettext-domain="@GETTEXT_PACKAGE@">
     <key name="framerate" type="i">

@@ -6,7 +6,7 @@ imports.gi.versions.Gdk = '3.0';
 imports.gi.versions.GdkPixbuf = '2.0';
 imports.gi.versions.Gtk = '3.0';
 
-const Clutter = imports.gi.Clutter;;
+const Clutter = imports.gi.Clutter;
 const Gettext = imports.gettext;
 const GLib = imports.gi.GLib;
 const Gtk = imports.gi.Gtk;
@@ -34,6 +34,9 @@ function _patchContainerClass(containerClass) {
     // method. We conveniently, but somewhat dubiously, take the
     // this opportunity to make it do something more useful.
     containerClass.prototype.add = function(actor, props) {
+        if (actor === undefined) {
+            return false;
+        }
         this.add_actor(actor);
         if (props)
             this.child_set(actor, props);
@@ -41,13 +44,51 @@ function _patchContainerClass(containerClass) {
 }
 
 function init() {
+    const readOnlyError = function(property) {
+        global.logError(`The ${property} object is read-only.`);
+    };
     // Add some bindings to the global JS namespace; (gjs keeps the web
     // browser convention of having that namespace be called 'window'.)
-    window.global = Cinnamon.Global.get();
-
-    window._ = Gettext.gettext;
-    window.C_ = Gettext.pgettext;
-    window.ngettext = Gettext.ngettext;
+    Object.defineProperty(window, 'global', {
+        get: function() {
+            return Cinnamon.Global.get();
+        },
+        set: function() {
+            readOnlyError('global');
+        },
+        configurable: false,
+        enumerable: false
+    });
+    Object.defineProperty(window, '_', {
+        get: function() {
+            return Gettext.gettext;
+        },
+        set: function() {
+            readOnlyError('gettext');
+        },
+        configurable: false,
+        enumerable: false
+    });
+    Object.defineProperty(window, 'C_', {
+        get: function() {
+            return Gettext.pgettext;
+        },
+        set: function() {
+            readOnlyError('pgettext');
+        },
+        configurable: false,
+        enumerable: false
+    });
+    Object.defineProperty(window, 'ngettext', {
+        get: function() {
+            return Gettext.ngettext;
+        },
+        set: function() {
+            readOnlyError('ngettext');
+        },
+        configurable: false,
+        enumerable: false
+    });
 
     // Set the default direction for St widgets (this needs to be done before any use of St)
     if (Gtk.Widget.get_default_direction() == Gtk.TextDirection.RTL) {
@@ -65,10 +106,14 @@ function init() {
     let origToString = Object.prototype.toString;
     Object.prototype.toString = function() {
         let base = origToString.call(this);
-        if ('actor' in this && this.actor instanceof Clutter.Actor)
-            return base.replace(/\]$/, ' delegate for ' + this.actor.toString().substring(1));
-        else
+        try {
+            if ('actor' in this && this.actor instanceof Clutter.Actor)
+                return base.replace(/\]$/, ' delegate for ' + this.actor.toString().substring(1));
+            else
+                return base;
+        } catch(e) {
             return base;
+        }
     };
 
     // Work around https://bugzilla.mozilla.org/show_bug.cgi?id=508783
@@ -84,7 +129,7 @@ function init() {
     }
 
     // OK, now things are initialized enough that we can import cinnamon JS
-    const Format = imports.misc.format;
+    const Format = imports.format;
     const Tweener = imports.ui.tweener;
 
     Tweener.init();

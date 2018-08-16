@@ -40,6 +40,7 @@
 #include "st-texture-cache.h"
 #include "st-theme-context.h"
 #include "st-theme-node-transition.h"
+#include "st-theme-node-private.h"
 
 #include "st-widget-accessible.h"
 
@@ -59,14 +60,13 @@ struct _StWidgetPrivate
 
   StThemeNodeTransition *transition_animation;
 
-  gboolean      is_stylable : 1;
-  gboolean      is_style_dirty : 1;
-  gboolean      draw_bg_color : 1;
-  gboolean      draw_border_internal : 1;
-  gboolean      track_hover : 1;
-  gboolean      hover : 1;
-  gboolean      can_focus : 1;
-  gboolean      important : 1;
+  guint      is_style_dirty : 1;
+  guint      draw_bg_color : 1;
+  guint      draw_border_internal : 1;
+  guint      track_hover : 1;
+  guint      hover : 1;
+  guint      can_focus : 1;
+  guint      important : 1;
 
   StTextDirection   direction;
 
@@ -103,7 +103,6 @@ enum
   PROP_PSEUDO_CLASS,
   PROP_STYLE_CLASS,
   PROP_STYLE,
-  PROP_STYLABLE,
   PROP_TRACK_HOVER,
   PROP_HOVER,
   PROP_CAN_FOCUS,
@@ -125,9 +124,7 @@ static guint signals[LAST_SIGNAL] = { 0, };
 
 gfloat st_slow_down_factor = 1.0;
 
-G_DEFINE_TYPE (StWidget, st_widget, CLUTTER_TYPE_ACTOR);
-
-#define ST_WIDGET_GET_PRIVATE(obj)    (G_TYPE_INSTANCE_GET_PRIVATE ((obj), ST_TYPE_WIDGET, StWidgetPrivate))
+G_DEFINE_TYPE_WITH_PRIVATE (StWidget, st_widget, CLUTTER_TYPE_ACTOR);
 
 static void st_widget_recompute_style (StWidget    *widget,
                                        StThemeNode *old_theme_node);
@@ -161,14 +158,6 @@ st_widget_set_property (GObject      *gobject,
 
     case PROP_STYLE:
       st_widget_set_style (actor, g_value_get_string (value));
-      break;
-
-    case PROP_STYLABLE:
-      if (actor->priv->is_stylable != g_value_get_boolean (value))
-        {
-          actor->priv->is_stylable = g_value_get_boolean (value);
-          clutter_actor_queue_relayout ((ClutterActor *) gobject);
-        }
       break;
 
     case PROP_TRACK_HOVER:
@@ -232,10 +221,6 @@ st_widget_get_property (GObject    *gobject,
       g_value_set_string (value, priv->inline_style);
       break;
 
-    case PROP_STYLABLE:
-      g_value_set_boolean (value, priv->is_stylable);
-      break;
-
     case PROP_TRACK_HOVER:
       g_value_set_boolean (value, priv->track_hover);
       break;
@@ -287,25 +272,12 @@ st_widget_dispose (GObject *gobject)
   StWidget *actor = ST_WIDGET (gobject);
   StWidgetPrivate *priv = ST_WIDGET (actor)->priv;
 
-  if (priv->theme)
-    {
-      g_object_unref (priv->theme);
-      priv->theme = NULL;
-    }
-
-  if (priv->theme_node)
-    {
-      g_object_unref (priv->theme_node);
-      priv->theme_node = NULL;
-    }
+  g_clear_pointer (&priv->theme, g_object_unref);
+  g_clear_pointer (&priv->theme_node, g_object_unref);
 
   st_widget_remove_transition (actor);
 
-  if (priv->label_actor)
-    {
-      g_object_unref (priv->label_actor);
-      priv->label_actor = NULL;
-    }
+  g_clear_pointer (&priv->label_actor, g_object_unref);
 
   g_clear_object (&priv->prev_first_child);
   g_clear_object (&priv->prev_last_child);
@@ -410,7 +382,7 @@ st_widget_paint_background (StWidget *widget)
                                     &allocation,
                                     opacity);
   else
-    st_theme_node_paint (theme_node, &allocation, opacity);
+    st_theme_node_paint (theme_node, cogl_get_draw_framebuffer (), &allocation, opacity);
 
   // ClutterEffect *effect = clutter_actor_get_effect (actor, "background-effect");
 
@@ -496,12 +468,6 @@ notify_children_of_style_change (ClutterActor *self)
 static void
 st_widget_real_style_changed (StWidget *self)
 {
-  StWidgetPrivate *priv = ST_WIDGET (self)->priv;
-
-  /* application has request this widget is not stylable */
-  if (!priv->is_stylable)
-    return;
-
   clutter_actor_queue_redraw ((ClutterActor *) self);
 
   notify_children_of_style_change ((ClutterActor *) self);
@@ -520,7 +486,7 @@ st_widget_style_changed (StWidget *widget)
     }
 
   /* update the style only if we are mapped */
-  if (CLUTTER_ACTOR_IS_MAPPED (CLUTTER_ACTOR (widget)))
+  if (clutter_actor_is_mapped (CLUTTER_ACTOR (widget)))
     st_widget_recompute_style (widget, old_theme_node);
 
   if (old_theme_node)
@@ -606,9 +572,9 @@ st_widget_get_theme_node (StWidget *widget)
        * requiring separate style sheets.
        */
       if (st_widget_get_direction (widget) == ST_TEXT_DIRECTION_RTL)
-        direction_pseudo_class = "rtl";
+        direction_pseudo_class = (char *)"rtl";
       else
-        direction_pseudo_class = "ltr";
+        direction_pseudo_class = (char *)"ltr";
 
       if (priv->pseudo_class)
         pseudo_class = g_strconcat(priv->pseudo_class, " ",
@@ -727,7 +693,7 @@ st_widget_key_press_event (ClutterActor    *actor,
       (event->keyval == CLUTTER_KEY_F10 &&
        (event->modifier_state & CLUTTER_SHIFT_MASK)))
     {
-      g_signal_emit (actor, signals[POPUP_MENU], 0);
+      st_widget_popup_menu (ST_WIDGET (actor));
       return TRUE;
     }
 
@@ -777,6 +743,9 @@ st_widget_get_paint_volume (ClutterActor *self, ClutterPaintVolume *volume)
         {
           const ClutterPaintVolume *child_volume;
 
+          if (!clutter_actor_is_visible (child))
+            continue;
+
           child_volume = clutter_actor_get_transformed_paint_volume (child, self);
           if (!child_volume)
             return FALSE;
@@ -798,7 +767,7 @@ st_widget_real_get_focus_chain (StWidget *widget)
        child != NULL;
        child = clutter_actor_get_next_sibling (child))
     {
-      if (CLUTTER_ACTOR_IS_VISIBLE (child))
+      if (clutter_actor_is_visible (child))
         focus_chain = g_list_prepend (focus_chain, child);
     }
 
@@ -811,8 +780,6 @@ st_widget_class_init (StWidgetClass *klass)
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   ClutterActorClass *actor_class = CLUTTER_ACTOR_CLASS (klass);
   GParamSpec *pspec;
-
-  g_type_class_add_private (klass, sizeof (StWidgetPrivate));
 
   gobject_class->set_property = st_widget_set_property;
   gobject_class->get_property = st_widget_get_property;
@@ -894,20 +861,6 @@ st_widget_class_init (StWidgetClass *klass)
                                                         "Theme override",
                                                         ST_TYPE_THEME,
                                                         ST_PARAM_READWRITE));
-
-  /**
-   * StWidget:stylable:
-   *
-   * Enable or disable styling of the widget
-   */
-  pspec = g_param_spec_boolean ("stylable",
-                                "Stylable",
-                                "Whether the table should be styled",
-                                TRUE,
-                                ST_PARAM_READWRITE);
-  g_object_class_install_property (gobject_class,
-                                   PROP_STYLABLE,
-                                   pspec);
 
   /**
    * StWidget:track-hover:
@@ -1569,8 +1522,7 @@ st_widget_init (StWidget *actor)
 {
   StWidgetPrivate *priv;
 
-  actor->priv = priv = ST_WIDGET_GET_PRIVATE (actor);
-  priv->is_stylable = TRUE;
+  actor->priv = priv = st_widget_get_instance_private (actor);
   priv->transition_animation = NULL;
   priv->local_state_set = atk_state_set_new ();
 
@@ -1601,6 +1553,8 @@ st_widget_recompute_style (StWidget    *widget,
       widget->priv->is_style_dirty = FALSE;
       return;
     }
+
+  _st_theme_node_apply_margins (new_theme_node, CLUTTER_ACTOR (widget));
 
   if (!old_theme_node ||
       !st_theme_node_geometry_equal (old_theme_node, new_theme_node))
@@ -1742,6 +1696,8 @@ st_widget_set_track_hover (StWidget *widget,
 
       if (priv->track_hover)
         st_widget_sync_hover (widget);
+      else
+        st_widget_set_hover (widget, FALSE);
     }
 }
 
@@ -1809,7 +1765,7 @@ st_widget_sync_hover (StWidget *widget)
   ClutterDeviceManager *device_manager;
   ClutterInputDevice *pointer;
   ClutterActor *pointer_actor;
-  
+
   if (widget->priv->track_hover) {
     device_manager = clutter_device_manager_get_default ();
     pointer = clutter_device_manager_get_core_device (device_manager,
@@ -1881,6 +1837,18 @@ st_widget_get_can_focus (StWidget *widget)
 
   return widget->priv->can_focus;
 }
+/**
+ * st_widget_popup_menu:
+ * @self: A #StWidget
+ *
+ * Asks the widget to pop-up a context menu.
+ */
+void
+st_widget_popup_menu (StWidget *self)
+{
+  g_signal_emit (self, signals[POPUP_MENU], 0);
+}
+
 
 /* filter @children to contain only only actors that overlap @rbox
  * when moving in @direction. (Assuming no transformations.)
@@ -1934,6 +1902,8 @@ filter_by_position (GList            *children,
             continue;
           break;
 
+        case GTK_DIR_TAB_BACKWARD:
+        case GTK_DIR_TAB_FORWARD:
         default:
           g_return_val_if_reached (NULL);
         }
@@ -1992,6 +1962,9 @@ sort_by_position (gconstpointer  a,
     case GTK_DIR_RIGHT:
       cmp = ax - bx;
       break;
+
+    case GTK_DIR_TAB_BACKWARD:
+    case GTK_DIR_TAB_FORWARD:
     default:
       g_return_val_if_reached (0);
     }
@@ -2017,6 +1990,8 @@ sort_by_position (gconstpointer  a,
     case GTK_DIR_RIGHT:
       fmid = (int)(sort_data->box.y1 + sort_data->box.y2) / 2;
       return abs (ay - fmid) - abs (by - fmid);
+    case GTK_DIR_TAB_BACKWARD:
+    case GTK_DIR_TAB_FORWARD:
     default:
       g_return_val_if_reached (0);
     }
@@ -2124,6 +2099,8 @@ st_widget_real_navigate_focus (StWidget         *widget,
             case GTK_DIR_RIGHT:
               sort_data.box.x2 = sort_data.box.x1;
               break;
+            case GTK_DIR_TAB_BACKWARD:
+            case GTK_DIR_TAB_FORWARD:
             default:
               g_warn_if_reached ();
             }
@@ -2317,7 +2294,7 @@ st_set_slow_down_factor (gfloat factor)
  * Returns: the global factor applied to all animation durations
  */
 gfloat
-st_get_slow_down_factor ()
+st_get_slow_down_factor (void)
 {
   return st_slow_down_factor;
 }
@@ -2536,8 +2513,6 @@ st_widget_remove_accessible_state (StWidget *widget,
 
 /* GObject */
 
-static void st_widget_accessible_class_init (StWidgetAccessibleClass *klass);
-static void st_widget_accessible_init       (StWidgetAccessible *widget);
 static void st_widget_accessible_dispose    (GObject *gobject);
 
 /* AtkObject */
@@ -2561,12 +2536,6 @@ static void check_pseudo_class     (StWidgetAccessible *self,
 static void check_labels           (StWidgetAccessible *self,
                                     StWidget *widget);
 
-G_DEFINE_TYPE (StWidgetAccessible, st_widget_accessible, CALLY_TYPE_ACTOR)
-
-#define ST_WIDGET_ACCESSIBLE_GET_PRIVATE(obj) \
-  (G_TYPE_INSTANCE_GET_PRIVATE ((obj), ST_TYPE_WIDGET_ACCESSIBLE, \
-                                StWidgetAccessiblePrivate))
-
 struct _StWidgetAccessiblePrivate
 {
   /* Cached values (used to avoid extra notifications) */
@@ -2579,6 +2548,7 @@ struct _StWidgetAccessiblePrivate
   AtkObject *current_label;
 };
 
+G_DEFINE_TYPE_WITH_PRIVATE (StWidgetAccessible, st_widget_accessible, CALLY_TYPE_ACTOR)
 
 static AtkObject *
 st_widget_get_accessible (ClutterActor *actor)
@@ -2695,14 +2665,12 @@ st_widget_accessible_class_init (StWidgetAccessibleClass *klass)
   atk_class->initialize = st_widget_accessible_initialize;
   atk_class->get_role = st_widget_accessible_get_role;
   atk_class->get_name = st_widget_accessible_get_name;
-
-  g_type_class_add_private (gobject_class, sizeof (StWidgetAccessiblePrivate));
 }
 
 static void
 st_widget_accessible_init (StWidgetAccessible *self)
 {
-  StWidgetAccessiblePrivate *priv = ST_WIDGET_ACCESSIBLE_GET_PRIVATE (self);
+  StWidgetAccessiblePrivate *priv = st_widget_accessible_get_instance_private (self);
 
   self->priv = priv;
 }
@@ -2956,7 +2924,7 @@ check_labels (StWidgetAccessible *widget_accessible,
  *
  * Gets a list of the focusable children of @widget, in "Tab"
  * order. By default, this returns all visible
- * (as in CLUTTER_ACTOR_IS_VISIBLE()) children of @widget.
+ * (as in clutter_actor_is_visible()) children of @widget.
  *
  * Returns: (element-type Clutter.Actor) (transfer container):
  *   @widget's focusable children
@@ -2989,7 +2957,7 @@ st_widget_destroy_children (StWidget *widget)
  * @widget: An #StWidget
  * @actor: A #ClutterActor
  * @pos: An #int
- * 
+ *
  *
  * A simple compatibility wrapper around clutter_actor_set_child_at_index.
  *

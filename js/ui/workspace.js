@@ -29,7 +29,7 @@ const SCROLL_SCALE_AMOUNT = 50;
 const LIGHTBOX_FADE_TIME = 0.1;
 const CLOSE_BUTTON_FADE_TIME = 0.1;
 
-const BUTTON_LAYOUT_SCHEMA = 'org.cinnamon.muffin';
+const BUTTON_LAYOUT_SCHEMA = 'org.cinnamon.desktop.wm.preferences';
 const BUTTON_LAYOUT_KEY = 'button-layout';
 
 const DEMANDS_ATTENTION_CLASS_NAME = "window-list-item-demands-attention";
@@ -62,10 +62,16 @@ function _clamp(value, min, max) {
 
 
 function ScaledPoint(x, y, scaleX, scaleY) {
-    [this.x, this.y, this.scaleX, this.scaleY] = arguments;
+    this._init(x, y, scaleX, scaleY);
 }
 
 ScaledPoint.prototype = {
+    _init: function(x, y, scaleX, scaleY) {
+        this.x = x;
+        this.y = y;
+        this.scaleX = scaleX;
+        this.scaleY = scaleY;
+    },
     getPosition : function() {
         return [this.x, this.y];
     },
@@ -75,11 +81,13 @@ ScaledPoint.prototype = {
     },
 
     setPosition : function(x, y) {
-        [this.x, this.y] = arguments;
+        this.x = x;
+        this.y = y;
     },
 
     setScale : function(scaleX, scaleY) {
-        [this.scaleX, this.scaleY] = arguments;
+        this.scaleX = scaleX;
+        this.scaleY = scaleY;
     },
 
     interpPosition : function(other, step) {
@@ -170,6 +178,7 @@ WindowClone.prototype = {
 
         this._windowIsZooming = false;
         this._zooming = false;
+        this._zoomStep = 0;
         this._selected = false;
     },
 
@@ -260,7 +269,7 @@ WindowClone.prototype = {
 
     scrollZoom: function (direction) {
         if (direction === Clutter.ScrollDirection.UP) {
-            if (this._zoomStep == undefined)
+            if (this._zoomStep == 0)
                 this._zoomStart();
             if (this._zoomStep < 100) {
                 this._zoomStep += SCROLL_SCALE_AMOUNT;
@@ -360,7 +369,7 @@ WindowClone.prototype = {
         this._zoomGlobalPosition = undefined;
         this._zoomGlobalScale    = undefined;
         this._zoomTargetPosition = undefined;
-        this._zoomStep           = undefined;
+        this._zoomStep           = 0;
     },
 
     _onButtonPress: function(actor, event) {
@@ -416,7 +425,7 @@ WindowOverlay.prototype = {
         let app = tracker.get_window_app(metaWindow);
         let icon = null;
         if (app) {
-            icon = app.create_icon_texture(WINDOWOVERLAY_ICON_SIZE);
+            icon = app.create_icon_texture_for_window(WINDOWOVERLAY_ICON_SIZE, metaWindow);
         }
         if (!icon) {
             icon = new St.Icon({ icon_name: 'application-default-icon',
@@ -933,7 +942,7 @@ WorkspaceMonitor.prototype = {
         let [x, y, width, height] = this._getSlotGeometry(slot);
 
         let rect = metaWindow.get_outer_rect();
-        let buttonOuterHeight, captionHeight;
+        let buttonOuterHeight, captionIconHeight;
         let buttonOuterWidth = 0;
 
         if (this._windows.length) {
@@ -1048,7 +1057,7 @@ WorkspaceMonitor.prototype = {
             return minimizedDiff || stackIndices[a.metaWindow.get_stable_sequence()] - stackIndices[b.metaWindow.get_stable_sequence()];
         });
 
-        let clones = clones.slice().reverse();
+        clones = clones.slice().reverse();
         let below = this._dropRect;
         for (let i = 0; i < clones.length; i++) {
             let clone = clones[i];

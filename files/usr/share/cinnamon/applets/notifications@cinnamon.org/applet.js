@@ -5,22 +5,17 @@ const Gtk = imports.gi.Gtk;
 const Gio = imports.gi.Gio;
 const PopupMenu = imports.ui.popupMenu;
 const St = imports.gi.St;
-const Clutter = imports.gi.Clutter;
 const Mainloop = imports.mainloop;
-const MessageTray = imports.ui.messageTray;
 const Urgency = imports.ui.messageTray.Urgency;
 const NotificationDestroyedReason = imports.ui.messageTray.NotificationDestroyedReason;
 const Settings = imports.ui.settings;
+const Gettext = imports.gettext.domain("cinnamon-applets");
 
-function MyApplet(metadata, orientation, panel_height, instanceId) {
-    this._init(metadata, orientation, panel_height, instanceId);
-}
+const PANEL_EDIT_MODE_KEY = "panel-edit-mode";
 
-MyApplet.prototype = {
-    __proto__: Applet.TextIconApplet.prototype,
-
-    _init: function(metadata, orientation, panel_height, instanceId) {
-        Applet.TextIconApplet.prototype._init.call(this, orientation, panel_height, instanceId);
+class CinnamonNotificationsApplet extends Applet.TextIconApplet {
+    constructor(metadata, orientation, panel_height, instanceId) {
+        super(orientation, panel_height, instanceId);
 
         this.setAllowedLayout(Applet.AllowedLayout.BOTH);
 
@@ -38,14 +33,14 @@ MyApplet.prototype = {
 
         // Events
         Main.messageTray.connect('notify-applet-update', Lang.bind(this, this._notification_added));
-        global.settings.connect('changed::panel-edit-mode', Lang.bind(this, this.on_panel_edit_mode_changed));
+        global.settings.connect('changed::' + PANEL_EDIT_MODE_KEY, Lang.bind(this, this._on_panel_edit_mode_changed));
 
         // States
         this._blinking = false;
         this._blink_toggle = false;
-    },
+    }
 
-    _display: function() {
+    _display() {
         // Always start the applet empty, void of any notifications.
         this.set_applet_icon_symbolic_name("empty-notif");
         this.set_applet_tooltip(_("Notifications"));
@@ -96,25 +91,15 @@ MyApplet.prototype = {
         this._crit_icon = new St.Icon({icon_name: 'critical-notif', icon_type: St.IconType.SYMBOLIC, reactive: true, track_hover: true, style_class: 'system-status-icon' });
         this._alt_crit_icon = new St.Icon({icon_name: 'alt-critical-notif', icon_type: St.IconType.SYMBOLIC, reactive: true, track_hover: true, style_class: 'system-status-icon' });
 
-        this.update_list();
-    },
+        this._on_panel_edit_mode_changed();
+    }
 
-    _notification_added: function (mtray, notification) {	// Notification event handler.
+    _notification_added (mtray, notification) {	// Notification event handler.
         // Ignore transient notifications?
         if (this.ignoreTransientNotifications && notification.isTransient) {
+            notification.destroy();
             return;
         }
-
-        if (notification.enter_id > 0) {
-            notification.actor.disconnect(notification.enter_id);
-            notification.enter_id = 0;
-        }
-        if (notification.leave_id > 0) {
-            notification.actor.disconnect(notification.leave_id);
-            notification.leave_id = 0;
-        }
-
-        notification.actor.opacity = (notification._table.get_theme_node().get_length('opacity') / global.ui_scale) || 255;
 
         notification.actor.unparent();
         let existing_index = this.notifications.indexOf(notification);
@@ -137,7 +122,7 @@ MyApplet.prototype = {
         this.notifications.push(notification);
         // Steal the notication panel.
         notification.expand();
-        this._notificationbin.add(notification.actor)
+        this._notificationbin.add(notification.actor);
         notification.actor._parent_container = this._notificationbin;
         notification.actor.add_style_class_name('notification-applet-padding');
         // Register for destruction.
@@ -146,9 +131,9 @@ MyApplet.prototype = {
         notification._timeLabel.show();
 
         this.update_list();
-    },
+    }
 
-    _item_clicked: function(notification, destroyed) {
+    _item_clicked(notification, destroyed) {
         let i = this.notifications.indexOf(notification);
         if (i != -1) {
             this.notifications.splice(i, 1);
@@ -157,16 +142,15 @@ MyApplet.prototype = {
             }
         }
         this.update_list();
-    },
+    }
 
-    update_list: function () {
+    update_list () {
         try {
             let count = this.notifications.length;
             if (count > 0) {	// There are notifications.
                 this.actor.show();
                 this.clear_action.actor.show();
                 this.set_applet_label(count.toString());
-                this.hide_applet_label(false);
                 // Find max urgency and derive list icon.
                 let max_urgency = -1;
                 for (let i = 0; i < count; i++) {
@@ -194,7 +178,6 @@ MyApplet.prototype = {
             } else {	// There are no notifications.
                 this._blinking = false;
                 this.set_applet_label('');
-                this.hide_applet_label(true);
                 this.set_applet_icon_symbolic_name("empty-notif");
                 this.clear_action.actor.hide();
                 if (!this.showEmptyTray) {
@@ -207,9 +190,9 @@ MyApplet.prototype = {
         catch (e) {
             global.logError(e);
         }
-    },
+    }
 
-    _clear_all: function() {
+    _clear_all() {
         let count = this.notifications.length;
         if (count > 0) {
             for (let i = count-1; i >=0; i--) {
@@ -219,24 +202,29 @@ MyApplet.prototype = {
         }
         this.notifications = [];
         this.update_list();
-    },
+    }
 
-    _show_hide_tray: function() {	// Show or hide the notification tray.
+    _show_hide_tray() {	// Show or hide the notification tray.
         if (this.notifications.length || this.showEmptyTray) {
             this.actor.show();
         } else {
             this.actor.hide();
         }
-    },
+    }
 
-    on_panel_edit_mode_changed: function () {
-    },
+    _on_panel_edit_mode_changed () {
+        if (global.settings.get_boolean(PANEL_EDIT_MODE_KEY)) {
+            this.actor.show();
+        } else {
+            this.update_list();
+        }
+    }
 
-    on_applet_added_to_panel: function() {
+    on_applet_added_to_panel() {
         this.on_orientation_changed(this._orientation);
-    },
+    }
 
-    on_orientation_changed: function (orientation) {
+    on_orientation_changed (orientation) {
         this._orientation = orientation;
 
         if (this.menu) {
@@ -245,26 +233,25 @@ MyApplet.prototype = {
         this.menu = new Applet.AppletPopupMenu(this, orientation);
         this.menuManager.addMenu(this.menu);
         this._display();
-    },
+    }
 
-    on_applet_clicked: function(event) {
+    on_applet_clicked(event) {
         this._update_timestamp();
         this.menu.toggle();
-    },
+    }
 
-    _update_timestamp: function () {
-        let dateFormat = _("%l:%M %p");
-        let actors = this._notificationbin.get_children();
-        if (actors) {
-            for (let i = 0; i < actors.length; i++) {
-                let notification = actors[i]._delegate;
+    _update_timestamp() {
+        let len = this.notifications.length;
+        if (len > 0) {
+            for (let i = 0; i < len; i++) {
+                let notification = this.notifications[i];
                 let orig_time = notification._timestamp;
                 notification._timeLabel.clutter_text.set_markup(timeify(orig_time));
             }
         }
-    },
+    }
 
-    critical_blink: function () {
+    critical_blink () {
         if (!this._blinking)
             return;
         if (this._blink_toggle) {
@@ -275,11 +262,10 @@ MyApplet.prototype = {
         this._blink_toggle = !this._blink_toggle;
         Mainloop.timeout_add_seconds(1, Lang.bind(this, this.critical_blink));
     }
-};
+}
 
 function main(metadata, orientation, panel_height, instanceId) {
-    let myApplet = new MyApplet(metadata, orientation, panel_height, instanceId);
-    return myApplet;
+    return new CinnamonNotificationsApplet(metadata, orientation, panel_height, instanceId);
 }
 
 function stringify(count) {
@@ -312,18 +298,17 @@ function timeify(orig_time) {
         str = orig_time.toLocaleFormat('%r');
     }
     switch (true) {
-        case (diff <= 15):
-            str += _(" (Just now)");
+        case (diff <= 15): {
+            str += " (" + _("just now") + ")";
             break;
-        case (diff > 15 && diff <= 59):
-            str += _(" (%s seconds ago)").format(diff.toString());
+        } case (diff > 15 && diff <= 59): {
+            str += " (" + Gettext.ngettext("%d second ago", "%d seconds ago", diff).format(diff) + ")";
             break;
-        case (diff > 59 && diff <= 119):
-            str += _(" (%s minute ago)").format(Math.floor(diff / 60).toString());
+        } case (diff > 59 && diff <= 3540): {
+            let diff_minutes = Math.floor(diff / 60);
+            str += " (" + Gettext.ngettext("%d minute ago", "%d minutes ago", diff_minutes).format(diff_minutes) + ")";
             break;
-        case (diff > 119 && diff <= 3540):
-            str += _(" (%s minutes ago)").format(Math.floor(diff / 60).toString());
-            break;
+        }
     }
     return str;
 }

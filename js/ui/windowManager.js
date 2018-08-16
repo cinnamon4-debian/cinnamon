@@ -562,7 +562,7 @@ WindowManager.prototype = {
     },
 
     _killWindowEffects: function (cinnamonwm, actor) {
-        for(let i in this._effects){
+        for(let i in this.effects){
             this._endWindowEffect(cinnamonwm, i, actor);
         }
     },
@@ -676,7 +676,7 @@ WindowManager.prototype = {
             this._checkDimming(actor.get_meta_window().get_transient_for());
         }
 
-        if (actor.get_meta_window()._cinnamonwm_has_origin === true) {
+        if (actor.get_meta_window()._cinnamonwm_has_origin && actor.get_meta_window()._cinnamonwm_has_origin === true) {
             Main.soundManager.play('minimize');
             try {
                 this._startWindowEffect(cinnamonwm, "unminimize", actor, null, "minimize")
@@ -725,9 +725,13 @@ WindowManager.prototype = {
 
     _switchWorkspace : function(cinnamonwm, from, to, direction) {
         if (!this._shouldAnimate()) {
+            this.showWorkspaceOSD();
             cinnamonwm.completed_switch_workspace();
             return;
         }
+
+        Main.soundManager.play('switch');
+        this.showWorkspaceOSD();
 
         let windows = global.get_window_actors();
 
@@ -953,7 +957,6 @@ WindowManager.prototype = {
         if (workspace != global.screen.get_active_workspace()) {
             window.change_workspace(workspace);
             workspace.activate_with_focus(window, global.get_current_time());
-            this.showWorkspaceOSD();
         }
     },
 
@@ -968,12 +971,10 @@ WindowManager.prototype = {
     moveToWorkspace: function(workspace, direction_hint) {
         let active = global.screen.get_active_workspace();
         if (workspace != active) {
-            Main.soundManager.play('switch');
             if (direction_hint)
                 workspace.activate_with_direction_hint(direction_hint, global.get_current_time());
             else
                 workspace.activate(global.get_current_time());
-            this.showWorkspaceOSD();
         }
     },
 

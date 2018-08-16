@@ -10,7 +10,8 @@
  */
 
 const GLib = imports.gi.GLib;
-
+const GObject = imports.gi.GObject;
+const Gir = imports.gi.GIRepository;
 const Main = imports.ui.main;
 
 // http://daringfireball.net/2010/07/improved_regex_for_matching_urls
@@ -77,7 +78,15 @@ function spawn(argv) {
 }
 
 let subprocess_id = 0;
-let subprocess_callbacks = {};
+var subprocess_callbacks = {};
+/**
+ * spawn_async:
+ * @args: an array containing all arguments of the command to be run
+ * @callback: the callback to run when the command has completed
+ *
+ * Asynchronously Runs the command passed to @args. When the command is complete, the callback will
+ * be called with the contents of stdout from the command passed as the only argument.
+ */
 function spawn_async(args, callback) {
     subprocess_id++;
     subprocess_callbacks[subprocess_id] = callback;
@@ -107,15 +116,22 @@ function spawnCommandLine(command_line) {
 /**
  * trySpawn:
  * @argv: an argv array
+ * @doNotReap: whether to set the DO_NOT_REAP_CHILD flag
  *
  * Runs @argv in the background. If launching @argv fails,
  * this will throw an error.
  */
-function trySpawn(argv)
+function trySpawn(argv, doNotReap)
 {
-    let [success, pid]  = GLib.spawn_async(null, argv, null,
-                     GLib.SpawnFlags.SEARCH_PATH | GLib.SpawnFlags.STDOUT_TO_DEV_NULL  | GLib.SpawnFlags.STDERR_TO_DEV_NULL,
-                     null, null);
+    let spawn_flags = GLib.SpawnFlags.SEARCH_PATH
+                      | GLib.SpawnFlags.STDOUT_TO_DEV_NULL
+                      | GLib.SpawnFlags.STDERR_TO_DEV_NULL;
+
+    if (doNotReap) {
+        spawn_flags |= GLib.SpawnFlags.DO_NOT_REAP_CHILD;
+    }
+
+    let [success, pid] = GLib.spawn_async(null, argv, null, spawn_flags, null);
     return pid;
 }
 
@@ -133,6 +149,37 @@ function trySpawnCommandLine(command_line) {
     pid = trySpawn(argv);
 
     return pid;
+}
+
+/**
+ * spawnCommandLineAsync:
+ * @command_line: a command line
+ * @callback (function): called on success
+ * @errback (function): called on error
+ *
+ * Runs @command_line in the background. If the process exits without
+ * error, a callback will be called, or an error callback will be
+ * called if one is provided.
+ */
+function spawnCommandLineAsync(command_line, callback, errback) {
+    let pid;
+
+    let [success, argv] = GLib.shell_parse_argv(command_line);
+    pid = trySpawn(argv, true);
+
+    GLib.child_watch_add(GLib.PRIORITY_DEFAULT, pid, function(pid, status) {
+        GLib.spawn_close_pid(pid);
+
+        if (status !== 0) {
+            if (typeof errback === 'function') {
+                errback();
+            }
+        } else {
+            if (typeof callback === 'function') {
+                callback();
+            }
+        }
+    });
 }
 
 function _handleSpawnError(command, err) {
@@ -158,7 +205,7 @@ function killall(processName) {
         // whatever...
 
         let argv = ['pkill', '-f', '^([^ ]*/)?' + processName + '($| )'];
-        GLib.spawn_sync(null, argv, null, GLib.SpawnFlags.SEARCH_PATH, null, null);
+        GLib.spawn_sync(null, argv, null, GLib.SpawnFlags.SEARCH_PATH, null);
         // It might be useful to return success/failure, but we'd need
         // a wrapper around WIFEXITED and WEXITSTATUS. Since none of
         // the current callers care, we don't bother.
@@ -311,4 +358,79 @@ function latinise(string){
         string = string.replace(_LATINISE_REGEX[i], i);
     }
     return string;
+}
+
+/**
+ * queryCollection:
+ * @collection (array): an array of objects to query
+ * @query (object): key-value pairs to find in the collection
+ * @indexOnly (boolean): defaults to false, returns only the matching
+ * object's index if true.
+ *
+ * Returns (object|null): the matched object, or null if no object
+ * in the collection matches all conditions of the query.
+ */
+function queryCollection(collection, query, indexOnly = false) {
+    let queryKeys = Object.keys(query);
+    for (let i = 0; i < collection.length; i++) {
+        let matches = 0;
+        for (let z = 0; z < queryKeys.length; z++) {
+            if (collection[i][queryKeys[z]] === query[queryKeys[z]]) {
+                matches += 1;
+            }
+        }
+        if (matches === queryKeys.length) {
+            return indexOnly ? i : collection[i];
+        }
+    }
+    return indexOnly ? -1 : null;
+}
+
+const READWRITE = GObject.ParamFlags.READABLE | GObject.ParamFlags.WRITABLE;
+
+// Based on https://gist.github.com/ptomato/c4245c77d375022a43c5
+function _getWritablePropertyNamesForObjectInfo(info) {
+    let propertyNames = [];
+    let propertyCount = Gir.object_info_get_n_properties(info);
+    for(let i = 0; i < propertyCount; i++) {
+        let propertyInfo = Gir.object_info_get_property(info, i);
+        let flags = Gir.property_info_get_flags(propertyInfo);
+        if ((flags & READWRITE) == READWRITE) {
+            propertyNames.push(propertyInfo.get_name());
+
+        }
+    }
+    return propertyNames;
+}
+
+/**
+ * getGObjectPropertyValues:
+ * @object (GObject.Object): GObject to inspect
+ *
+ * Returns (object): JS representation of the passed GObject
+ */
+function getGObjectPropertyValues(obj, r = 0) {
+    let repository = Gir.Repository.get_default();
+    let baseInfo = repository.find_by_gtype(obj.constructor.$gtype);
+    let propertyNames = [];
+    for (let info = baseInfo; info !== null; info = Gir.object_info_get_parent(info)) {
+        propertyNames = propertyNames.concat(_getWritablePropertyNamesForObjectInfo(info));
+    }
+    if (r > 0 && propertyNames.length === 0) {
+        return obj.toString();
+    }
+    let jsRepresentation = {};
+    for (let i = 0; i < propertyNames.length; i++) {
+        try {
+            let value = obj[propertyNames[i]];
+            if ((value instanceof GObject.Object) && r < 4) {
+                value = getGObjectPropertyValues(value, r + 1);
+            }
+            jsRepresentation[propertyNames[i]] = value;
+        } catch (e) {
+            /* Error: Can't convert non-null pointer to JS value */
+            jsRepresentation[propertyNames[i]] = '<non-null pointer>';
+        }
+    }
+    return jsRepresentation;
 }

@@ -20,7 +20,6 @@
 #include "cinnamon-window-tracker-private.h"
 #include "cinnamon-app-private.h"
 #include "cinnamon-global.h"
-#include "cinnamon-marshal.h"
 #include "st.h"
 
 /* This file includes modified code from
@@ -117,20 +116,20 @@ cinnamon_window_tracker_class_init (CinnamonWindowTrackerClass *klass)
                                    CINNAMON_TYPE_WINDOW_TRACKER,
                                    G_SIGNAL_RUN_LAST,
                                    0,
-                                   NULL, NULL,
-                                   g_cclosure_marshal_VOID__BOXED,
+                                   NULL, NULL, NULL,
                                    G_TYPE_NONE, 1, CINNAMON_TYPE_STARTUP_SEQUENCE);
   signals[TRACKED_WINDOWS_CHANGED] = g_signal_new ("tracked-windows-changed",
                                                    CINNAMON_TYPE_WINDOW_TRACKER,
                                                    G_SIGNAL_RUN_LAST,
                                                    0,
-                                                   NULL, NULL,
-                                                   g_cclosure_marshal_VOID__VOID,
+                                                   NULL, NULL, NULL,
                                                    G_TYPE_NONE, 0);
 }
 
 /**
  * cinnamon_window_tracker_is_window_interesting:
+ * @tracker: the CinnamonWindowTracker
+ * @window: a #MetaWindow
  *
  * The CinnamonWindowTracker associates certain kinds of windows with
  * applications; however, others we don't want to
@@ -142,10 +141,10 @@ cinnamon_window_tracker_class_init (CinnamonWindowTrackerClass *klass)
  * exclude other window types like tooltip explicitly, though generally
  * most of these should be override-redirect.
  *
- * Returns: %TRUE iff a window is "interesting"
+ * Returns: %TRUE if a window is "interesting"
  */
 gboolean
-cinnamon_window_tracker_is_window_interesting (MetaWindow *window)
+cinnamon_window_tracker_is_window_interesting (CinnamonWindowTracker *tracker, MetaWindow *window)
 {
   if (meta_window_is_override_redirect (window)
       || meta_window_is_skip_taskbar (window))
@@ -175,6 +174,9 @@ cinnamon_window_tracker_is_window_interesting (MetaWindow *window)
       case META_WINDOW_TOOLBAR:
       case META_WINDOW_UTILITY:
         break;
+      default:
+        g_warning("cinnamon_window_tracker_is_window_interesting: default reached");
+      break;
     }
 
   return TRUE;
@@ -257,6 +259,40 @@ get_app_from_window_wmclass (MetaWindow  *window)
     return g_object_ref (app);
 
   return NULL;
+}
+
+/**
+ * get_app_from_gapplication_id:
+ * @monitor: a #CinnamonWindowTracker
+ * @window: a #MetaWindow
+ *
+ * Looks only at the given window, and attempts to determine
+ * an application based on _GTK_APPLICATION_ID.  If one can't be determined,
+ * return %NULL.
+ *
+ * Return value: (transfer full): A newly-referenced #CinnamonApp, or %NULL
+ */
+static CinnamonApp *
+get_app_from_gapplication_id (MetaWindow  *window)
+{
+  CinnamonApp *app;
+  CinnamonAppSystem *appsys;
+  const char *id;
+  char *desktop_file;
+
+  appsys = cinnamon_app_system_get_default ();
+
+  id = meta_window_get_gtk_application_id (window);
+  if (!id)
+    return NULL;
+
+  desktop_file = g_strconcat (id, ".desktop", NULL);
+  app = cinnamon_app_system_lookup_app (appsys, desktop_file);
+  if (app)
+    g_object_ref (app);
+
+  g_free (desktop_file);
+  return app;
 }
 
 /**
@@ -372,6 +408,13 @@ get_app_for_window (CinnamonWindowTracker    *tracker,
   if (meta_window_is_remote (window))
     return _cinnamon_app_new_for_window (window);
 
+  /* Check if the window has a GApplication ID attached; this is
+   * canonical if it does
+   */
+  result = get_app_from_gapplication_id (window);
+  if (result != NULL)
+    return result;
+
   /* Check if the app's WM_CLASS specifies an app; this is
    * canonical if it does.
    */
@@ -435,6 +478,19 @@ update_focus_app (CinnamonWindowTracker *self)
   new_focus_app = new_focus_win ? cinnamon_window_tracker_get_window_app (self, new_focus_win) : NULL;
 
   set_focus_app (self, new_focus_app);
+  g_clear_object (&new_focus_app);
+}
+
+static void
+tracked_window_changed (CinnamonWindowTracker *self,
+                        MetaWindow         *window)
+{
+  /* It's simplest to just treat this as a remove + add. */
+  disassociate_window (self, window);
+  track_window (self, window);
+  /* also just recalculate the focused app, in case it was the focused
+     window that changed */
+  update_focus_app (self);
 }
 
 static void
@@ -443,13 +499,16 @@ on_wm_class_changed (MetaWindow  *window,
                      gpointer     user_data)
 {
   CinnamonWindowTracker *self = CINNAMON_WINDOW_TRACKER (user_data);
+  tracked_window_changed (self, window);
+}
 
-  /* It's simplest to just treat this as a remove + add. */
-  disassociate_window (self, window);
-  track_window (self, window);
-  /* also just recaulcuate the focused app, in case it was the focused
-     window that changed */
-  update_focus_app (self);
+static void
+on_gtk_application_id_changed (MetaWindow  *window,
+                               GParamSpec  *pspec,
+                               gpointer     user_data)
+{
+  CinnamonWindowTracker *self = CINNAMON_WINDOW_TRACKER (user_data);
+  tracked_window_changed (self, window);
 }
 
 static void
@@ -458,7 +517,7 @@ track_window (CinnamonWindowTracker *self,
 {
   CinnamonApp *app;
 
-  if (!cinnamon_window_tracker_is_window_interesting (window))
+  if (!cinnamon_window_tracker_is_window_interesting (self, window))
     return;
 
   app = get_app_for_window (self, window);
@@ -469,6 +528,7 @@ track_window (CinnamonWindowTracker *self,
   g_hash_table_insert (self->window_to_app, window, app);
 
   g_signal_connect (window, "notify::wm-class", G_CALLBACK (on_wm_class_changed), self);
+  g_signal_connect (window, "notify::gtk-application-id", G_CALLBACK (on_gtk_application_id_changed), self);
 
   _cinnamon_app_add_window (app, window);
 
@@ -499,10 +559,11 @@ disassociate_window (CinnamonWindowTracker   *self,
 
   g_hash_table_remove (self->window_to_app, window);
 
-  if (cinnamon_window_tracker_is_window_interesting (window))
+  if (cinnamon_window_tracker_is_window_interesting (self, window))
     {
       _cinnamon_app_remove_window (app, window);
       g_signal_handlers_disconnect_by_func (window, G_CALLBACK(on_wm_class_changed), self);
+      g_signal_handlers_disconnect_by_func (window, G_CALLBACK (on_gtk_application_id_changed), self);
     }
 
   g_signal_emit (self, signals[TRACKED_WINDOWS_CHANGED], 0);
@@ -854,11 +915,11 @@ cinnamon_startup_sequence_create_icon (CinnamonStartupSequence *sequence, guint 
   icon_name = sn_startup_sequence_get_icon_name ((SnStartupSequence*)sequence);
   if (!icon_name)
     {
-      texture = clutter_texture_new ();
-
       gint scale;
       CinnamonGlobal *global;
       StThemeContext *context;
+
+      texture = clutter_texture_new ();
 
       global = cinnamon_global_get ();
       context = st_theme_context_get_for_stage (cinnamon_global_get_stage (global));
@@ -869,8 +930,7 @@ cinnamon_startup_sequence_create_icon (CinnamonStartupSequence *sequence, guint 
     }
 
   themed = g_themed_icon_new (icon_name);
-  texture = st_texture_cache_load_gicon (st_texture_cache_get_default (),
-                                         NULL, themed, size);
+  texture = g_object_new (ST_TYPE_ICON, "gicon", themed, "icon-size", size, NULL);
   g_object_unref (G_OBJECT (themed));
   return texture;
 }
@@ -882,7 +942,7 @@ cinnamon_startup_sequence_create_icon (CinnamonStartupSequence *sequence, guint 
  * Return Value: (transfer none): The global #CinnamonWindowTracker instance
  */
 CinnamonWindowTracker *
-cinnamon_window_tracker_get_default ()
+cinnamon_window_tracker_get_default (void)
 {
   static CinnamonWindowTracker *instance;
 

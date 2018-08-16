@@ -13,13 +13,14 @@ public_icons = \
 	hicolor_actions_scalable_pan-up-symbolic.svg \
     hicolor_actions_scalable_caps-lock-symbolic.svg \
     hicolor_actions_scalable_caps-lock-off-symbolic.svg \
+    hicolor_actions_scalable_list-edit-symbolic.svg \
     hicolor_actions_scalable_num-lock-symbolic.svg \
     hicolor_actions_scalable_num-lock-off-symbolic.svg \
 	hicolor_apps_scalable_cinnamon-panel-launcher.svg \
-	hicolor_categories_16x16_cs-desklets.svg \
-	hicolor_categories_16x16_cs-backgrounds.svg \
+    hicolor_apps_scalable_removable-drives.svg \
 	hicolor_categories_scalable_cs-applets.svg \
 	hicolor_categories_scalable_cs-backgrounds.svg \
+	hicolor_categories_scalable_cs-backgrounds-symbolic.svg \
 	hicolor_categories_scalable_cs-bluetooth.svg \
 	hicolor_categories_scalable_cs-cat-admin.svg \
 	hicolor_categories_scalable_cs-cat-appearance.svg \
@@ -29,6 +30,7 @@ public_icons = \
 	hicolor_categories_scalable_cs-date-time.svg \
 	hicolor_categories_scalable_cs-default-applications.svg \
 	hicolor_categories_scalable_cs-desklets.svg \
+	hicolor_categories_scalable_cs-desklets-symbolic.svg \
 	hicolor_categories_scalable_cs-desktop-effects.svg \
 	hicolor_categories_scalable_cs-desktop.svg \
 	hicolor_categories_scalable_cs-details.svg \
@@ -47,6 +49,7 @@ public_icons = \
 	hicolor_categories_scalable_cs-network.svg \
 	hicolor_categories_scalable_cs-notifications.svg \
 	hicolor_categories_scalable_cs-overview.svg \
+	hicolor_categories_scalable_cs-online-accounts.svg \
 	hicolor_categories_scalable_cs-panel.svg \
 	hicolor_categories_scalable_cs-power.svg \
 	hicolor_categories_scalable_cs-printer.svg \

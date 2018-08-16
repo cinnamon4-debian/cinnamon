@@ -293,11 +293,11 @@ st_background_effect_paint_target (ClutterOffscreenEffect *effect)
 
   if ((self->bg_texture != NULL) && (self->opacity == 0xff))
     {
+      CoglOffscreen *vertical_FBO;
       cogl_push_source (self->pipeline2);
       cogl_rectangle (0.0f, 0.0f, (self->fg_width_i), (self->fg_height_i));
       cogl_pop_source ();
 
-      CoglOffscreen *vertical_FBO;
       vertical_FBO = cogl_offscreen_new_to_texture (self->bg_sub_texture);
       cogl_push_framebuffer ((CoglFramebuffer*)vertical_FBO);
       cogl_push_source (self->pipeline0);
@@ -403,6 +403,7 @@ st_background_effect_set_property (GObject      *gobject,
                                    GParamSpec   *pspec)
 {
   StBackgroundEffect *self = ST_BACKGROUND_EFFECT (gobject);
+  GFile *file;
 
   switch (prop_id)
     {
@@ -421,7 +422,7 @@ st_background_effect_set_property (GObject      *gobject,
           break;
         }
 
-      GFile *file = g_file_new_for_path (g_strdup (self->bumpmap_location));
+      file = g_file_new_for_path (g_strdup (self->bumpmap_location));
       if (g_file_query_exists (file, NULL))
         {
           self->bg_bumpmap = st_cogl_texture_new_from_file_wrapper (self->bumpmap_location,
@@ -502,6 +503,7 @@ static void
 st_background_effect_init (StBackgroundEffect *self)
 {
   CoglContext *ctx;
+  CoglSnippet *snippet;
   StBackgroundEffectClass *klass = ST_BACKGROUND_EFFECT_GET_CLASS (self);
 
   if (G_UNLIKELY (klass->base_pipeline == NULL))
@@ -517,7 +519,6 @@ st_background_effect_init (StBackgroundEffect *self)
   self->pipeline3 = cogl_pipeline_copy (klass->base_pipeline);
   self->pipeline4 = cogl_pipeline_copy (klass->base_pipeline);
 
-  CoglSnippet *snippet;
   snippet = cogl_snippet_new (COGL_SNIPPET_HOOK_TEXTURE_LOOKUP,
                               box_blur_glsl_declarations,
                               NULL);

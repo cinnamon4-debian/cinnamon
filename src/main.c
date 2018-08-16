@@ -24,7 +24,6 @@
 #include "cinnamon-global.h"
 #include "cinnamon-global-private.h"
 #include "cinnamon-perf-log.h"
-#include "cinnamon-js.h"
 #include "st.h"
 
 extern GType gnome_cinnamon_plugin_get_type (void);
@@ -51,11 +50,13 @@ cinnamon_dbus_acquire_name (GDBusProxy *bus,
                                                        &error)))
     {
       g_printerr ("failed to acquire %s: %s\n", name, error->message);
+      g_clear_error (&error);
       if (!fatal)
         return;
       exit (1);
     }
   g_variant_get (request_name_variant, "(u)", request_name_result);
+  g_variant_unref (request_name_variant);
 }
 
 static void
@@ -205,7 +206,7 @@ cinnamon_perf_log_init (void)
                                    "i");
   cinnamon_perf_log_define_statistic (perf_log,
                                    "malloc.usedSize",
-                                   "Amount of malloc'ed memory currently in use",
+                                   "Amount of allocated memory currently in use",
                                    "i");
 
   cinnamon_perf_log_add_statistics_callback (perf_log,
@@ -248,7 +249,7 @@ center_pointer_on_screen ()
   Display *dpy;
   Window root_window;
   Screen *screen;
-  
+
   dpy = XOpenDisplay(0);
   root_window = XRootWindow(dpy, 0);
   XSelectInput(dpy, root_window, KeyReleaseMask);
@@ -309,9 +310,6 @@ main (int argc, char **argv)
   cinnamon_perf_log_init ();
 
   g_irepository_prepend_search_path (CINNAMON_PKGLIBDIR);
-#if HAVE_BLUETOOTH
-  g_irepository_prepend_search_path (BLUETOOTH_DIR);
-#endif
 
   /* Disable debug spew from various libraries */
   g_log_set_handler ("Cvc", G_LOG_LEVEL_DEBUG,

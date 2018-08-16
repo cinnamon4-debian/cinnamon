@@ -182,6 +182,8 @@ double st_theme_node_get_padding       (StThemeNode  *node,
 
 double st_theme_node_get_horizontal_padding (StThemeNode *node);
 double st_theme_node_get_vertical_padding   (StThemeNode *node);
+double st_theme_node_get_margin       (StThemeNode  *node,
+                                       StSide        side);
 
 int    st_theme_node_get_width         (StThemeNode  *node);
 int    st_theme_node_get_height        (StThemeNode  *node);
@@ -240,8 +242,11 @@ gboolean st_theme_node_geometry_equal (StThemeNode *node,
                                        StThemeNode *other);
 gboolean st_theme_node_paint_equal    (StThemeNode *node,
                                        StThemeNode *other);
-
+/**
+ * st_theme_node_paint: (skip)
+ */
 void st_theme_node_paint (StThemeNode            *node,
+                          CoglFramebuffer        *framebuffer,
                           const ClutterActorBox  *box,
                           guint8                  paint_opacity);
 

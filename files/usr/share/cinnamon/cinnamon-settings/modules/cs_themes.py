@@ -1,10 +1,10 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 from gi.repository.Gtk import SizeGroup, SizeGroupMode
 
 from GSettingsWidgets import *
-from CinnamonGtkSettings import GtkSettingsSwitch
-from ExtensionCore import ExtensionSidePage
+from ExtensionCore import DownloadSpicesPage
+from Spices import Spice_Harvester
 
 import glob
 
@@ -19,12 +19,15 @@ class Module:
     def __init__(self, content_box):
         self.keywords = _("themes, style")
         self.icon = "cs-themes"
+        self.window = None
         sidePage = SidePage(_("Themes"), self.icon, self.keywords, content_box, module=self)
         self.sidePage = sidePage
 
     def on_module_selected(self):
         if not self.loaded:
-            print "Loading Themes module"
+            print("Loading Themes module")
+
+            self.spices = Spice_Harvester('theme', self.window)
 
             self.sidePage.stack = SettingsStack()
             self.sidePage.add_widget(self.sidePage.stack)
@@ -57,13 +60,10 @@ class Module:
             settings.add_row(widget)
 
             widget = self.make_group(_("Desktop"), self.cinnamon_chooser)
-            center_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            button = Gtk.LinkButton()
-            button.set_label(_("Add/remove desktop themes..."))
-            button.connect("activate-link", self.add_remove_cinnamon_themes)
-            center_box.pack_end(button, False, False, 0)
-            widget.pack_start(center_box, False, False, 0)
             settings.add_row(widget)
+
+            page = DownloadSpicesPage(self, 'theme', self.spices, self.window)
+            self.sidePage.stack.add_titled(page, 'download', _("Add/Remove"))
 
             page = SettingsPage()
             self.sidePage.stack.add_titled(page, "options", _("Settings"))
@@ -74,13 +74,6 @@ class Module:
             settings.add_row(widget)
 
             widget = GSettingsSwitch(_("Show icons on buttons"), "org.cinnamon.settings-daemon.plugins.xsettings", "buttons-have-icons")
-            settings.add_row(widget)
-
-            dark_text = _("Use a dark theme variant when available in certain applications")
-            dark_italic = _("(Applications must be restarted for this change to take effect)")
-
-            widget = GtkSettingsSwitch("%s\n<i><small>%s</small></i>" % (dark_text, dark_italic),
-                                       "gtk-application-prefer-dark-theme")
             settings.add_row(widget)
 
             self.builder = self.sidePage.builder
@@ -95,9 +88,13 @@ class Module:
             for path in [os.path.expanduser("~/.themes"), "/usr/share/themes", os.path.expanduser("~/.icons"), "/usr/share/icons"]:
                 if os.path.exists(path):
                     file_obj = Gio.File.new_for_path(path)
-                    file_monitor = file_obj.monitor_directory(Gio.FileMonitorFlags.SEND_MOVED, None)
-                    file_monitor.connect("changed", self.on_file_changed)
-                    self.monitors.append(file_monitor)
+                    try:
+                        file_monitor = file_obj.monitor_directory(Gio.FileMonitorFlags.SEND_MOVED, None)
+                        file_monitor.connect("changed", self.on_file_changed)
+                        self.monitors.append(file_monitor)
+                    except Exception as e:
+                        # File monitors can fail when the OS runs out of file handles
+                        print(e)
 
             self.refresh()
 
@@ -122,7 +119,6 @@ class Module:
             callback = chooser[3]
             payload = (chooser_obj, path_suffix, themes, callback)
             self.refresh_chooser(payload)
-            # thread.start_new_thread(self.refresh_chooser, (payload,))
 
     def refresh_chooser(self, payload):
         (chooser, path_suffix, themes, callback) = payload
@@ -148,8 +144,8 @@ class Module:
                 theme_path = theme[1]
                 try:
                     for path in ["%s/%s/%s/thumbnail.png" % (theme_path, theme_name, path_suffix),
-                             "/usr/share/cinnamon/thumbnails/%s/%s.png" % (path_suffix, theme_name),
-                             "/usr/share/cinnamon/thumbnails/%s/unknown.png" % path_suffix]:
+                                 "/usr/share/cinnamon/thumbnails/%s/%s.png" % (path_suffix, theme_name),
+                                 "/usr/share/cinnamon/thumbnails/%s/unknown.png" % path_suffix]:
                         if os.path.exists(path):
                             chooser.add_picture(path, callback, title=theme_name, id=theme_name)
                             break
@@ -157,7 +153,6 @@ class Module:
                     chooser.add_picture("/usr/share/cinnamon/thumbnails/%s/unknown.png" % path_suffix, callback, title=theme_name, id=theme_name)
                 GLib.timeout_add(5, self.increment_progress, (chooser, inc))
         GLib.timeout_add(500, self.hide_progress, chooser)
-        # thread.exit()
 
     def increment_progress(self, payload):
         (chooser, inc) = payload
@@ -168,7 +163,7 @@ class Module:
         chooser.reset_loading_progress()
 
     def _setParentRef(self, window):
-        pass
+        self.window = window
 
     def make_group(self, group_label, widget, add_widget_to_size_group=True):
         self.size_groups = getattr(self, "size_groups", [Gtk.SizeGroup.new(Gtk.SizeGroupMode.HORIZONTAL) for x in range(2)])
@@ -210,27 +205,13 @@ class Module:
                 chooser.set_picture_from_file("/usr/share/cinnamon/thumbnails/%s/unknown.png" % path_suffix)
         return chooser
 
-    def add_remove_cinnamon_themes(self, widget):
-        window = Gtk.Window()
-        box = Gtk.VBox()
-        window.add(box)
-        window.set_title(_("Desktop themes"))
-        window.set_default_size(720, 480)
-        window.set_border_width(6)
-        window.set_position(Gtk.WindowPosition.CENTER)
-        page = ExtensionSidePage(self.name, self.icon, self.keywords, box, "theme", None)
-        page.load(window=window)
-        box.pack_start(page.vbox, True, True, 6)
-        window.show_all()
-        return True
-
     def _on_icon_theme_selected(self, path, theme):
         try:
             self.settings.set_string("icon-theme", theme)
             self.icon_chooser.set_button_label(theme)
             self.icon_chooser.set_tooltip_text(theme)
-        except Exception, detail:
-            print detail
+        except Exception as detail:
+            print(detail)
         return True
 
     def _on_metacity_theme_selected(self, path, theme):
@@ -238,8 +219,8 @@ class Module:
             self.wm_settings.set_string("theme", theme)
             self.metacity_chooser.set_button_label(theme)
             self.metacity_chooser.set_tooltip_text(theme)
-        except Exception, detail:
-            print detail
+        except Exception as detail:
+            print(detail)
         return True
 
     def _on_gtk_theme_selected(self, path, theme):
@@ -247,8 +228,8 @@ class Module:
             self.settings.set_string("gtk-theme", theme)
             self.theme_chooser.set_button_label(theme)
             self.theme_chooser.set_tooltip_text(theme)
-        except Exception, detail:
-            print detail
+        except Exception as detail:
+            print(detail)
         return True
 
     def _on_cursor_theme_selected(self, path, theme):
@@ -256,8 +237,10 @@ class Module:
             self.settings.set_string("cursor-theme", theme)
             self.cursor_chooser.set_button_label(theme)
             self.cursor_chooser.set_tooltip_text(theme)
-        except Exception, detail:
-            print detail
+        except Exception as detail:
+            print(detail)
+
+        self.update_cursor_theme_link(path, theme)
         return True
 
     def _on_cinnamon_theme_selected(self, path, theme):
@@ -265,15 +248,15 @@ class Module:
             self.cinnamon_settings.set_string("name", theme)
             self.cinnamon_chooser.set_button_label(theme)
             self.cinnamon_chooser.set_tooltip_text(theme)
-        except Exception, detail:
-            print detail
+        except Exception as detail:
+            print(detail)
         return True
 
     def _load_gtk_themes(self):
         """ Only shows themes that have variations for gtk+-3 and gtk+-2 """
         dirs = ("/usr/share/themes", os.path.join(os.path.expanduser("~"), ".themes"))
         valid = walk_directories(dirs, self.filter_func_gtk_dir, return_directories=True)
-        valid.sort(lambda a,b: cmp(a[0].lower(), b[0].lower()))
+        valid.sort(key=lambda a: a[0].lower())
         res = []
         for i in valid:
             for j in res:
@@ -310,7 +293,7 @@ class Module:
                 except Exception as e:
                     print (e)
 
-        valid.sort(lambda a,b: cmp(a[0].lower(), b[0].lower()))
+        valid.sort(key=lambda a: a[0].lower())
         res = []
         for i in valid:
             for j in res:
@@ -325,7 +308,7 @@ class Module:
     def _load_cursor_themes(self):
         dirs = ("/usr/share/icons", os.path.join(os.path.expanduser("~"), ".icons"))
         valid = walk_directories(dirs, lambda d: os.path.isdir(d) and os.path.exists(os.path.join(d, "cursors")), return_directories=True)
-        valid.sort(lambda a,b: cmp(a[0].lower(), b[0].lower()))
+        valid.sort(key=lambda a: a[0].lower())
         res = []
         for i in valid:
             for j in res:
@@ -339,8 +322,8 @@ class Module:
 
     def _load_metacity_themes(self):
         dirs = ("/usr/share/themes", os.path.join(os.path.expanduser("~"), ".themes"))
-        valid = walk_directories(dirs, lambda d: os.path.exists(os.path.join(d, "metacity-1")), return_directories=True)
-        valid.sort(lambda a,b: cmp(a[0].lower(), b[0].lower()))
+        valid = walk_directories(dirs, lambda d: os.path.exists(os.path.join(d, "metacity-1/metacity-theme-3.xml")), return_directories=True)
+        valid.sort(key=lambda a: a[0].lower())
         res = []
         for i in valid:
             for j in res:
@@ -355,7 +338,7 @@ class Module:
     def _load_cinnamon_themes(self):
         dirs = ("/usr/share/themes", os.path.join(os.path.expanduser("~"), ".themes"))
         valid = walk_directories(dirs, lambda d: os.path.exists(os.path.join(d, "cinnamon")), return_directories=True)
-        valid.sort(lambda a,b: cmp(a[0].lower(), b[0].lower()))
+        valid.sort(key=lambda a: a[0].lower())
         res = []
         for i in valid:
             for j in res:
@@ -366,3 +349,20 @@ class Module:
                         res.remove(j)
             res.append((i[0], i[1]))
         return res
+
+    def update_cursor_theme_link(self, path, name):
+        default_dir = os.path.join(os.path.expanduser("~"), ".icons", "default")
+        index_path = os.path.join(default_dir, "index.theme")
+
+        try:
+            os.makedirs(default_dir)
+        except os.error as e:
+            pass
+
+        if os.path.exists(index_path):
+            os.unlink(index_path)
+
+        contents = "[icon theme]\nInherits=%s\n" % name
+
+        with open(index_path, "w") as f:
+            f.write(contents)

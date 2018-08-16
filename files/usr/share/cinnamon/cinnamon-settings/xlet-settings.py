@@ -2,12 +2,15 @@
 
 import gi
 gi.require_version('Gtk', '3.0')
+gi.require_version('XApp', '1.0')
 import sys
-sys.path.append('/usr/share/cinnamon/cinnamon-settings/bin')
+
+import config
+sys.path.append(config.currentPath + "/bin")
 import gettext
 import json
 from JsonSettingsWidgets import *
-from gi.repository import Gtk, Gio
+from gi.repository import Gtk, Gio, XApp
 
 # i18n
 gettext.install("cinnamon", "/usr/share/locale")
@@ -35,7 +38,8 @@ XLET_SETTINGS_WIDGETS = {
     "tween"             :   "JSONSettingsTweenChooser",
     "effect"            :   "JSONSettingsEffectChooser",
     "datechooser"       :   "JSONSettingsDateChooser",
-    "keybinding"        :   "JSONSettingsKeybinding"
+    "keybinding"        :   "JSONSettingsKeybinding",
+    "list"              :   "JSONSettingsList"
 }
 
 class XLETSettingsButton(Button):
@@ -80,6 +84,7 @@ class MainWindow(object):
         self.type = xlet_type
         self.uuid = uuid
         self.selected_instance = None
+        self.gsettings = Gio.Settings.new("org.cinnamon")
 
         self.load_xlet_data()
         self.build_window()
@@ -117,10 +122,10 @@ class MainWindow(object):
             self.xlet_meta = json.loads(raw_data)
         else:
             print("Could not find %s metadata for uuid %s - are you sure it's installed correctly?" % (self.type, self.uuid))
-            self.quit()
+            quit()
 
     def build_window(self):
-        self.window = Gtk.Window()
+        self.window = XApp.GtkWindow()
         self.window.set_default_size(800, 600)
         main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.window.add(main_box)
@@ -196,15 +201,39 @@ class MainWindow(object):
     def load_instances(self):
         self.instance_info = []
         path = "%s/.cinnamon/configs/%s" % (home, self.uuid)
-        instances = sorted(os.listdir(path))
+        instances = 0
+        dir_items = sorted(os.listdir(path))
+        try:
+            multi_instance = int(self.xlet_meta["max-instances"]) != 1
+        except (KeyError, ValueError):
+            multi_instance = False
 
-        if len(instances) < 2:
-            self.prev_button.set_no_show_all(True)
-            self.next_button.set_no_show_all(True)
+        for item in dir_items:
+            # ignore anything that isn't json
+            if item[-5:] != ".json":
+                continue
 
-        for instance in instances:
-            instance_id = instance[0:-5]
-            settings = JSONSettingsHandler(os.path.join(path, instance), self.notify_dbus)
+            instance_id = item[0:-5]
+            if not multi_instance and instance_id != self.uuid:
+                continue # for single instance the file name should be [uuid].json
+
+            if multi_instance:
+                try:
+                    int(instance_id)
+                except:
+                    continue # multi-instance should have file names of the form [instance-id].json
+
+                instance_exists = False
+                enabled = self.gsettings.get_strv('enabled-%ss' % self.type)
+                for deninition in enabled:
+                    if uuid in deninition and instance_id in deninition.split(':'):
+                        instance_exists = True
+                        break
+
+                if not instance_exists:
+                    continue
+
+            settings = JSONSettingsHandler(os.path.join(path, item), self.notify_dbus)
             settings.instance_id = instance_id
             instance_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
             self.instance_stack.add_named(instance_box, instance_id)
@@ -216,10 +245,10 @@ class MainWindow(object):
             first_key = next(iter(settings_map.values()))
 
             try:
-                for setting in settings_map.keys():
+                for setting in settings_map:
                     if setting == "__md5__":
                         continue
-                    for key in settings_map[setting].keys():
+                    for key in settings_map[setting]:
                         if key in ("description", "tooltip", "units"):
                             try:
                                 settings_map[setting][key] = translate(self.uuid, settings_map[setting][key])
@@ -228,13 +257,17 @@ class MainWindow(object):
                         elif key in "options":
                             new_opt_data = collections.OrderedDict()
                             opt_data = settings_map[setting][key]
-                            for option in opt_data.keys():
+                            for option in opt_data:
                                 if opt_data[option] == "custom":
                                     continue
                                 new_opt_data[translate(self.uuid, option)] = opt_data[option]
                             settings_map[setting][key] = new_opt_data
+                        elif key in "columns":
+                            columns_data = settings_map[setting][key]
+                            for column in columns_data:
+                                column["title"] = translate(self.uuid, column["title"])
             finally:
-                # if a layout is not expicitly defined, generate the settings
+                # if a layout is not explicitly defined, generate the settings
                 # widgets based on the order they occur
                 if first_key["type"] == "layout":
                     self.build_with_layout(settings_map, info, instance_box, first_key)
@@ -245,6 +278,12 @@ class MainWindow(object):
                     self.selected_instance = info
                     if "stack" in info:
                         self.stack_switcher.set_stack(info["stack"])
+
+            instances += 1
+
+        if instances < 2:
+            self.prev_button.set_no_show_all(True)
+            self.next_button.set_no_show_all(True)
 
     def build_with_layout(self, settings_map, info, box, first_key):
         layout = first_key
@@ -260,18 +299,27 @@ class MainWindow(object):
             page_stack.add_titled(page, page_key, translate(self.uuid, page_def["title"]))
             for section_key in page_def["sections"]:
                 section_def = layout[section_key]
-                section = page.add_section(translate(self.uuid, section_def["title"]))
+                if 'dependency' in section_def:
+                    revealer = JSONSettingsRevealer(info['settings'], section_def['dependency'])
+                    section = page.add_reveal_section(translate(self.uuid, section_def["title"]), revealer=revealer)
+                else:
+                    section = page.add_section(translate(self.uuid, section_def["title"]))
                 for key in section_def["keys"]:
                     item = settings_map[key]
                     settings_type = item["type"]
                     if settings_type == "button":
                         widget = XLETSettingsButton(item, self.uuid, info["id"])
-                        section.add_row(widget)
                     elif settings_type == "label":
                         widget = Text(translate(self.uuid, item["description"]))
-                        section.add_row(widget)
                     elif settings_type in XLET_SETTINGS_WIDGETS:
                         widget = globals()[XLET_SETTINGS_WIDGETS[settings_type]](key, info["settings"], item)
+                    else:
+                        continue
+
+                    if 'dependency' in item:
+                        revealer = JSONSettingsRevealer(info['settings'], item['dependency'])
+                        section.add_reveal_row(widget, revealer=revealer)
+                    else:
                         section.add_row(widget)
 
     def build_from_order(self, settings_map, info, box, first_key):
@@ -280,24 +328,37 @@ class MainWindow(object):
 
         # if the first key is not of type 'header' or type 'section' we need to make a new section
         if first_key["type"] not in ("header", "section"):
-            section = page.add_section("Settings for %s" % self.uuid)
+            section = page.add_section(_("Settings for %s") % self.uuid)
 
         for key, item in settings_map.items():
             if key == "__md5__":
                 continue
-            if "type" in item.keys():
+            if "type" in item:
                 settings_type = item["type"]
                 if settings_type in ("header", "section"):
-                    section = page.add_section(translate(self.uuid, item["description"]))
-                elif settings_type == "button":
+                    if 'dependency' in item:
+                        revealer = JSONSettingsRevealer(info['settings'], item['dependency'])
+                        section = page.add_reveal_section(translate(self.uuid, item["description"]), revealer=revealer)
+                    else:
+                        section = page.add_section(translate(self.uuid, item["description"]))
+                    continue
+
+                if settings_type == "button":
                     widget = XLETSettingsButton(item, self.uuid, info["id"])
-                    section.add_row(widget)
                 elif settings_type == "label":
                     widget = Text(translate(self.uuid, item["description"]))
-                    section.add_row(widget)
                 elif settings_type in XLET_SETTINGS_WIDGETS:
                     widget = globals()[XLET_SETTINGS_WIDGETS[settings_type]](key, info["settings"], item)
+                else:
+                    continue
+
+                if 'dependency' in item:
+                    revealer = JSONSettingsRevealer(info['settings'], item['dependency'])
+                    section.add_reveal_row(widget, revealer=revealer)
+                else:
                     section.add_row(widget)
+
+
 
     def notify_dbus(self, handler, key, value):
         proxy.updateSetting('(ssss)', self.uuid, handler.instance_id, key, json.dumps(value))
@@ -335,8 +396,8 @@ class MainWindow(object):
         dialog = Gtk.FileChooserDialog(_("Select or enter file to export to"),
                                        None,
                                        Gtk.FileChooserAction.SAVE,
-                                      (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-                                       Gtk.STOCK_SAVE, Gtk.ResponseType.ACCEPT))
+                                       (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                                        Gtk.STOCK_SAVE, Gtk.ResponseType.ACCEPT))
         dialog.set_do_overwrite_confirmation(True)
         filter_text = Gtk.FileFilter()
         filter_text.add_pattern("*.json")
@@ -357,8 +418,8 @@ class MainWindow(object):
         dialog = Gtk.FileChooserDialog(_("Select a JSON file to import"),
                                        None,
                                        Gtk.FileChooserAction.OPEN,
-                                      (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-                                       Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+                                       (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                                        Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
         filter_text = Gtk.FileFilter()
         filter_text.add_pattern("*.json")
         filter_text.set_name(_("JSON files"))

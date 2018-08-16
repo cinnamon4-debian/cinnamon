@@ -13,6 +13,10 @@ const MessageTray = imports.ui.messageTray;
 const Params = imports.misc.params;
 const Mainloop = imports.mainloop;
 
+// don't automatically clear these apps' notifications on window focus
+// lowercase only
+const AUTOCLEAR_BLACKLIST = ['chromium', 'firefox', 'google chrome'];
+
 let nextNotificationId = 1;
 
 // Should really be defined in Gio.js
@@ -161,10 +165,10 @@ NotificationDaemon.prototype = {
             switch (hints.urgency) {
                 case Urgency.LOW:
                 case Urgency.NORMAL:
-                    stockIcon = 'gtk-dialog-info';
+                    stockIcon = 'dialog-information';
                     break;
                 case Urgency.CRITICAL:
-                    stockIcon = 'gtk-dialog-error';
+                    stockIcon = 'dialog-error';
                     break;
             }
             return new St.Icon({ icon_name: stockIcon,
@@ -207,7 +211,7 @@ NotificationDaemon.prototype = {
         if (ndata && ndata.notification)
             return ndata.notification.source;
 
-        let isForTransientNotification = (ndata && ndata.hints['transient'] == true);
+        let isForTransientNotification = (ndata && ndata.hints.maybeGet('transient') == true);
 
         // We don't want to override a persistent notification
         // with a transient one from the same sender, so we
@@ -255,10 +259,14 @@ NotificationDaemon.prototype = {
          this._startExpire();
     },
     _expireNotification: function() {
-         let ndata = this._expireNotifications[0];
-         ndata.notification.destroy(MessageTray.NotificationDestroyedReason.EXPIRED);
-         this._expireTimer = 0;
-         return false;
+        let ndata = this._expireNotifications[0];
+
+        if (ndata) {
+            ndata.notification.destroy(MessageTray.NotificationDestroyedReason.EXPIRED);
+        }
+
+        this._expireTimer = 0;
+        return false;
     },
  
     // Sends a notification to the notification daemon. Returns the id allocated to the notification.
@@ -457,7 +465,7 @@ NotificationDaemon.prototype = {
         }
 
         if (actions.length) {
-            notification.setUseActionIcons(hints['action-icons'] == true);
+            notification.setUseActionIcons(hints.maybeGet('action-icons') == true);
             for (let i = 0; i < actions.length - 1; i += 2) {
                 if (actions[i] == 'default')
                     notification.connect('clicked', Lang.bind(this,
@@ -479,10 +487,10 @@ NotificationDaemon.prototype = {
                 notification.setUrgency(MessageTray.Urgency.CRITICAL);
                 break;
         }
-        notification.setResident(hints.resident == true);
+        notification.setResident(hints.maybeGet('resident') == true);
         // 'transient' is a reserved keyword in JS, so we have to retrieve the value
         // of the 'transient' hint with hints['transient'] rather than hints.transient
-        notification.setTransient(hints['transient'] == true);
+        notification.setTransient(hints.maybeGet('transient') == true);
 
         let sourceIconActor = source.useNotificationIcon ? this._iconForNotificationData(icon, hints, source.ICON_SIZE) : null;
         source.processNotification(notification, sourceIconActor);
@@ -524,6 +532,10 @@ NotificationDaemon.prototype = {
     _onFocusAppChanged: function() {
         let tracker = Cinnamon.WindowTracker.get_default();
         if (!tracker.focus_app)
+            return;
+
+        let name = tracker.focus_app.get_name();
+        if (name && AUTOCLEAR_BLACKLIST.includes(name.toLowerCase()))
             return;
 
         for (let i = 0; i < this._sources.length; i++) {
@@ -593,7 +605,7 @@ Source.prototype = {
     _onNameVanished: function() {
         // Destroy the notification source when its sender is removed from DBus.
         // Only do so if this.app is set to avoid removing "notify-send" sources, senders
-        // of which аre removed from DBus immediately.
+        // of which are removed from DBus immediately.
         // Sender being removed from DBus would normally result in a tray icon being removed,
         // so allow the code path that handles the tray icon being removed to handle that case.
         if (!this.trayIcon && this.app)
@@ -606,11 +618,7 @@ Source.prototype = {
         if (!this.app && icon)
             this._setSummaryIcon(icon);
 
-        let tracker = Cinnamon.WindowTracker.get_default();
-        if (notification.resident && this.app && tracker.focus_app == this.app)
-            this.pushNotification(notification);
-        else
-            this.notify(notification);
+        this.notify(notification);
     },
 
     handleSummaryClick: function() {

@@ -29,8 +29,6 @@
 #include "st-theme-context.h"
 #include "st-theme-node-private.h"
 
-static void st_theme_node_init               (StThemeNode          *node);
-static void st_theme_node_class_init         (StThemeNodeClass     *klass);
 static void st_theme_node_dispose           (GObject                 *object);
 static void st_theme_node_finalize           (GObject                 *object);
 
@@ -61,10 +59,29 @@ st_theme_node_class_init (StThemeNodeClass *klass)
 }
 
 static void
+maybe_free_properties (StThemeNode *node)
+{
+  if (node->properties)
+    {
+      g_free (node->properties);
+      node->properties = NULL;
+      node->n_properties = 0;
+    }
+
+  if (node->inline_properties)
+    {
+      /* This destroys the list, not just the head of the list */
+      cr_declaration_destroy (node->inline_properties);
+      node->inline_properties = NULL;
+    }
+}
+
+static void
 on_custom_stylesheets_changed (StTheme *theme,
                                gpointer data)
 {
   StThemeNode *node = data;
+  maybe_free_properties (node);
   node->properties_computed = FALSE;
 }
 
@@ -96,7 +113,7 @@ st_theme_node_dispose (GObject *gobject)
     {
       g_object_unref (node->border_image);
       node->border_image = NULL;
-    } 
+    }
 
   if (node->icon_colors)
     {
@@ -117,18 +134,7 @@ st_theme_node_finalize (GObject *object)
   g_strfreev (node->pseudo_classes);
   g_free (node->inline_style);
 
-  if (node->properties)
-    {
-      g_free (node->properties);
-      node->properties = NULL;
-      node->n_properties = 0;
-    }
-
-  if (node->inline_properties)
-    {
-      /* This destroys the list, not just the head of the list */
-      cr_declaration_destroy (node->inline_properties);
-    }
+  maybe_free_properties (node);
 
   if (node->font_desc)
     {
@@ -588,6 +594,9 @@ get_color_from_rgba_term (CRTerm       *term,
         case 3:
           a = value;
           break;
+        default:
+          g_warning("get_color_from_rgba_term: hit default case");
+          break;
         }
 
       arg = arg->next;
@@ -850,12 +859,14 @@ get_length_from_term (StThemeNode *node,
 
   double multiplier = 1.0;
   int scale_factor;
+  double resolution;
 
   g_object_get (node->context, "scale-factor", &scale_factor, NULL);
 
   if (term->type != TERM_NUMBER)
     {
-      g_warning ("Ignoring length property that isn't a number");
+      g_warning ("Ignoring length property that isn't a number at line %d, col %d",
+                 term->location.line, term->location.column);
       return VALUE_NOT_FOUND;
     }
 
@@ -944,9 +955,10 @@ get_length_from_term (StThemeNode *node,
     case NB_NUM_TYPE:
       g_warning ("Ignoring invalid type of number of length property");
       return VALUE_NOT_FOUND;
+    default:
+      g_warning("get_length_from_term: default case");
+      break;
     }
-
-  double resolution;
 
   switch (type)
     {
@@ -975,7 +987,7 @@ get_length_from_term (StThemeNode *node,
           }
         else
           {
-            double resolution = clutter_backend_get_resolution (clutter_get_default_backend ());
+            resolution = clutter_backend_get_resolution (clutter_get_default_backend ());
             *length = num->val * multiplier * (resolution / 72.) * font_size;
           }
       }
@@ -1492,6 +1504,88 @@ do_padding_property (StThemeNode   *node,
 }
 
 static void
+do_margin_property_term (StThemeNode *node,
+                         CRTerm      *term,
+                         gboolean     left,
+                         gboolean     right,
+                         gboolean     top,
+                         gboolean     bottom)
+{
+  int value;
+
+  if (get_length_from_term_int (node, term, FALSE, &value) != VALUE_FOUND)
+    return;
+
+  if (left)
+    node->margin[ST_SIDE_LEFT] = value;
+  if (right)
+    node->margin[ST_SIDE_RIGHT] = value;
+  if (top)
+    node->margin[ST_SIDE_TOP] = value;
+  if (bottom)
+    node->margin[ST_SIDE_BOTTOM] = value;
+}
+
+static void
+do_margin_property (StThemeNode   *node,
+                    CRDeclaration *decl)
+{
+  const char *property_name = decl->property->stryng->str + 6; /* Skip 'margin' */
+
+  if (strcmp (property_name, "") == 0)
+    {
+      /* Slight deviation ... if we don't understand some of the terms and understand others,
+       * then we set the ones we understand and ignore the others instead of ignoring the
+       * whole thing
+       */
+      if (decl->value == NULL) /* 0 values */
+        return;
+      else if (decl->value->next == NULL) /* 1 value */
+        {
+          do_margin_property_term (node, decl->value, TRUE, TRUE, TRUE, TRUE); /* left/right/top/bottom */
+          return;
+        }
+      else if (decl->value->next->next == NULL) /* 2 values */
+        {
+          do_margin_property_term (node, decl->value,       FALSE, FALSE, TRUE,  TRUE);  /* top/bottom */
+          do_margin_property_term (node, decl->value->next, TRUE, TRUE,   FALSE, FALSE); /* left/right */
+        }
+      else if (decl->value->next->next->next == NULL) /* 3 values */
+        {
+          do_margin_property_term (node, decl->value,             FALSE, FALSE, TRUE,  FALSE); /* top */
+          do_margin_property_term (node, decl->value->next,       TRUE,  TRUE,  FALSE, FALSE); /* left/right */
+          do_margin_property_term (node, decl->value->next->next, FALSE, FALSE, FALSE, TRUE);  /* bottom */
+        }
+      else if (decl->value->next->next->next->next == NULL) /* 4 values */
+        {
+          do_margin_property_term (node, decl->value,                   FALSE, FALSE, TRUE,  FALSE); /* top */
+          do_margin_property_term (node, decl->value->next,             FALSE, TRUE,  FALSE, FALSE); /* right */
+          do_margin_property_term (node, decl->value->next->next,       FALSE, FALSE, FALSE, TRUE);  /* bottom */
+          do_margin_property_term (node, decl->value->next->next->next, TRUE,  FALSE, FALSE, FALSE); /* left */
+        }
+      else
+        {
+          g_warning ("Too many values for margin property");
+          return;
+        }
+    }
+  else
+    {
+      if (decl->value == NULL || decl->value->next != NULL)
+        return;
+
+      if (strcmp (property_name, "-left") == 0)
+        do_margin_property_term (node, decl->value, TRUE,  FALSE, FALSE, FALSE);
+      else if (strcmp (property_name, "-right") == 0)
+        do_margin_property_term (node, decl->value, FALSE, TRUE,  FALSE, FALSE);
+      else if (strcmp (property_name, "-top") == 0)
+        do_margin_property_term (node, decl->value, FALSE, FALSE, TRUE,  FALSE);
+      else if (strcmp (property_name, "-bottom") == 0)
+        do_margin_property_term (node, decl->value, FALSE, FALSE, FALSE, TRUE);
+    }
+}
+
+static void
 do_size_property (StThemeNode   *node,
                   CRDeclaration *decl,
                   int           *node_value)
@@ -1538,6 +1632,8 @@ _st_theme_node_ensure_geometry (StThemeNode *node)
         do_outline_property (node, decl);
       else if (g_str_has_prefix (property_name, "padding"))
         do_padding_property (node, decl);
+      else if (g_str_has_prefix (property_name, "margin"))
+        do_margin_property (node, decl);
       else if (strcmp (property_name, "width") == 0)
         do_size_property (node, decl, &node->width);
       else if (strcmp (property_name, "height") == 0)
@@ -1767,15 +1863,21 @@ _st_theme_node_ensure_background (StThemeNode *node)
               else if (term->type == TERM_URI)
                 {
                   CRStyleSheet *base_stylesheet;
+                  GFile *file;
 
                   if (decl->parent_statement != NULL)
                     base_stylesheet = decl->parent_statement->parent_sheet;
                   else
                     base_stylesheet = NULL;
 
-                  node->background_image = _st_theme_resolve_url (node->theme,
-                                                                  base_stylesheet,
-                                                                  term->content.str->stryng->str);
+                   file = _st_theme_resolve_url (node->theme,
+                                                 base_stylesheet,
+                                                 term->content.str->stryng->str);
+                   if (file)
+                     {
+                       node->background_image = g_file_get_path (file);
+                       g_object_unref (file);
+                     }
                 }
             }
         }
@@ -1872,6 +1974,7 @@ _st_theme_node_ensure_background (StThemeNode *node)
           if (decl->value->type == TERM_URI)
             {
               CRStyleSheet *base_stylesheet;
+              GFile *file;
 
               if (decl->parent_statement != NULL)
                 base_stylesheet = decl->parent_statement->parent_sheet;
@@ -1879,9 +1982,15 @@ _st_theme_node_ensure_background (StThemeNode *node)
                 base_stylesheet = NULL;
 
               g_free (node->background_image);
-              node->background_image = _st_theme_resolve_url (node->theme,
-                                                              base_stylesheet,
-                                                              decl->value->content.str->stryng->str);
+              file = _st_theme_resolve_url (node->theme,
+                                            base_stylesheet,
+                                            decl->value->content.str->stryng->str);
+
+              if (file)
+                {
+                  node->background_image = g_file_get_path (file);
+                  g_object_unref (file);
+                }
             }
           else if (term_is_inherit (decl->value))
             {
@@ -1902,6 +2011,7 @@ _st_theme_node_ensure_background (StThemeNode *node)
           if (decl->value->type == TERM_URI)
             {
               CRStyleSheet *base_stylesheet;
+              GFile *file;
 
               if (decl->parent_statement != NULL)
                 base_stylesheet = decl->parent_statement->parent_sheet;
@@ -1909,10 +2019,14 @@ _st_theme_node_ensure_background (StThemeNode *node)
                 base_stylesheet = NULL;
 
               g_free (node->background_bumpmap);
-              node->background_bumpmap = _st_theme_resolve_url (node->theme,
-                                                                base_stylesheet,
-                                                                decl->value->content.str->stryng->str);
-              
+              file = _st_theme_resolve_url (node->theme,
+                                            base_stylesheet,
+                                            decl->value->content.str->stryng->str);
+              if (file)
+                {
+                  node->background_bumpmap = g_file_get_path (file);
+                  g_object_unref (file);
+                }
             }
           else if (term_is_inherit (decl->value))
             {
@@ -2116,6 +2230,18 @@ st_theme_node_get_padding (StThemeNode *node,
   return node->padding[side];
 }
 
+double
+st_theme_node_get_margin (StThemeNode *node,
+                          StSide side)
+{
+  g_return_val_if_fail (ST_IS_THEME_NODE (node), 0.);
+  g_return_val_if_fail (side >= ST_SIDE_TOP && side <= ST_SIDE_LEFT, 0.);
+
+  _st_theme_node_ensure_geometry (node);
+
+  return node->margin[side];
+}
+
 /**
  * st_theme_node_get_transition_duration:
  * @node: an #StThemeNode
@@ -2288,7 +2414,7 @@ font_family_from_terms (CRTerm *term,
           if (term->the_operator == NO_OP)
             g_string_append (family_string, " ");
           else
-            g_string_append (family_string, ", ");
+            g_string_append (family_string, ",");
         }
       else
         {
@@ -2745,7 +2871,7 @@ st_theme_node_get_border_image (StThemeNode *node)
           CRStyleSheet *base_stylesheet;
           int borders[4];
           int n_borders = 0;
-          int i;
+          int j;
 
           const char *url;
           int border_top;
@@ -2753,6 +2879,7 @@ st_theme_node_get_border_image (StThemeNode *node)
           int border_bottom;
           int border_left;
 
+          GFile *file;
           char *filename;
 
           /* Support border-image: none; to suppress a previously specified border image */
@@ -2775,7 +2902,7 @@ st_theme_node_get_border_image (StThemeNode *node)
           /* Followed by 0 to 4 numbers or percentages. *Not lengths*. The interpretation
            * of a number is supposed to be pixels if the image is pixel based, otherwise CSS pixels.
            */
-          for (i = 0; i < 4; i++)
+          for (j = 0; j < 4; j++)
             {
               if (term == NULL)
                 break;
@@ -2832,7 +2959,13 @@ st_theme_node_get_border_image (StThemeNode *node)
           else
             base_stylesheet = NULL;
 
-          filename = _st_theme_resolve_url (node->theme, base_stylesheet, url);
+          file = _st_theme_resolve_url (node->theme, base_stylesheet, url);
+          if (file)
+            {
+              filename = g_file_get_path (file);
+              g_object_unref (file);
+            }
+
           if (filename == NULL)
             goto next_property;
 
@@ -2888,6 +3021,21 @@ st_theme_node_get_vertical_padding (StThemeNode *node)
 
   return padding;
 }
+
+void
+_st_theme_node_apply_margins (StThemeNode *node,
+                              ClutterActor *actor)
+{
+  g_return_if_fail (ST_IS_THEME_NODE (node));
+
+  _st_theme_node_ensure_geometry (node);
+
+  clutter_actor_set_margin_left (actor, st_theme_node_get_margin(node, ST_SIDE_LEFT));
+  clutter_actor_set_margin_right (actor, st_theme_node_get_margin(node, ST_SIDE_RIGHT));
+  clutter_actor_set_margin_top (actor, st_theme_node_get_margin(node, ST_SIDE_TOP));
+  clutter_actor_set_margin_bottom (actor, st_theme_node_get_margin(node, ST_SIDE_BOTTOM));
+}
+
 
 static GetFromTermResult
 parse_shadow_property (StThemeNode       *node,
@@ -2959,6 +3107,9 @@ parse_shadow_property (StThemeNode       *node,
                       g_warning ("Negative spread values are "
                                  "not allowed");
                   *spread = value;
+                  break;
+                default:
+                  g_warning("parse_shadow_property: default case");
                   break;
                 }
               continue;
@@ -3336,6 +3487,9 @@ st_theme_node_get_icon_colors (StThemeNode *node)
             case SUCCESS:
               node->icon_colors->success = color;
               break;
+            default:
+              g_warning("st_theme_node_get_icon_colors: default case");
+              break;
             }
         }
     }
@@ -3707,6 +3861,17 @@ st_theme_node_paint_equal (StThemeNode *node,
 
   if (g_strcmp0 (node->background_image, other->background_image) != 0)
     return FALSE;
+
+  if (node->background_image)
+    {
+      if (node->background_position_set != other->background_position_set)
+        return FALSE;
+
+      if (node->background_position_set &&
+         (node->background_position_x != other->background_position_x ||
+          node->background_position_y != other->background_position_y))
+        return FALSE;
+    }
 
   _st_theme_node_ensure_geometry (node);
   _st_theme_node_ensure_geometry (other);

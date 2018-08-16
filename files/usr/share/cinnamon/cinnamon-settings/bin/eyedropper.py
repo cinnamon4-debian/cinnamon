@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk, GObject, GdkPixbuf
@@ -48,8 +50,8 @@ class EyeDropper(Gtk.HBox):
         picker_cursor = Gdk.Cursor(screen.get_display(), Gdk.CursorType.CROSSHAIR);
 
         grab_status = self.device.grab(window, Gdk.GrabOwnership.APPLICATION, False,
-                                  Gdk.EventMask.BUTTON_RELEASE_MASK | Gdk.EventMask.BUTTON_PRESS_MASK | Gdk.EventMask.POINTER_MOTION_MASK,
-                                  picker_cursor, self.time)
+                                       Gdk.EventMask.BUTTON_RELEASE_MASK | Gdk.EventMask.BUTTON_PRESS_MASK | Gdk.EventMask.POINTER_MOTION_MASK,
+                                       picker_cursor, self.time)
 
         if grab_status != Gdk.GrabStatus.SUCCESS:
             return

@@ -99,140 +99,18 @@ _st_actor_get_preferred_height (ClutterActor *actor,
   clutter_actor_get_preferred_height (actor, for_width, min_height_p, natural_height_p);
 }
 
-/**
- * _st_allocate_fill:
- * @parent: the parent #StWidget
- * @child: the child (not necessarily an #StWidget)
- * @childbox: total space that could be allocated to @child
- * @x_alignment: horizontal alignment within @childbox
- * @y_alignment: vertical alignment within @childbox
- * @x_fill: whether or not to fill @childbox horizontally
- * @y_fill: whether or not to fill @childbox vertically
- *
- * Given @childbox, containing the initial allocation of @child, this
- * adjusts the horizontal allocation if @x_fill is %FALSE, and the
- * vertical allocation if @y_fill is %FALSE, by:
- *
- *     - reducing the allocation if it is larger than @child's natural
- *       size.
- *
- *     - adjusting the position of the child within the allocation
- *       according to @x_alignment/@y_alignment (and flipping
- *       @x_alignment if @parent has %ST_TEXT_DIRECTION_RTL)
- *
- * If @x_fill and @y_fill are both %TRUE, or if @child's natural size
- * is larger than the initial allocation in @childbox, then @childbox
- * will be unchanged.
- *
- * If you are allocating children with _st_allocate_fill(), you should
- * determine their preferred sizes using
- * _st_actor_get_preferred_width() and
- * _st_actor_get_preferred_height(), not with the corresponding
- * Clutter methods.
- */
-void
-_st_allocate_fill (StWidget        *parent,
-                   ClutterActor    *child,
-                   ClutterActorBox *childbox,
-                   StAlign          x_alignment,
-                   StAlign          y_alignment,
-                   gboolean         x_fill,
-                   gboolean         y_fill)
-{
-  gfloat natural_width, natural_height;
-  gfloat min_width, min_height;
-  gfloat child_width, child_height;
-  gfloat available_width, available_height;
-  ClutterRequestMode request;
-  gdouble x_align, y_align;
-
-  available_width  = childbox->x2 - childbox->x1;
-  available_height = childbox->y2 - childbox->y1;
-
-  if (available_width < 0)
-    {
-      available_width = 0;
-      childbox->x2 = childbox->x1;
-    }
-
-  if (available_height < 0)
-    {
-      available_height = 0;
-      childbox->y2 = childbox->y1;
-    }
-
-  /* If we are filling both horizontally and vertically then we don't
-   * need to do anything else.
-   */
-  if (x_fill && y_fill)
-    return;
-
-  _st_get_align_factors (parent, x_alignment, y_alignment,
-                         &x_align, &y_align);
-
-  /* The following is based on clutter_actor_get_preferred_size(), but
-   * modified to cope with the fact that the available size may be
-   * less than the preferred size.
-   */
-  request = clutter_actor_get_request_mode (child);
-
-  if (request == CLUTTER_REQUEST_HEIGHT_FOR_WIDTH)
-    {
-      clutter_actor_get_preferred_width (child, -1,
-                                         &min_width,
-                                         &natural_width);
-
-      child_width = CLAMP (natural_width, min_width, available_width);
-
-      clutter_actor_get_preferred_height (child, child_width,
-                                          &min_height,
-                                          &natural_height);
-
-      child_height = CLAMP (natural_height, min_height, available_height);
-    }
-  else
-    {
-      clutter_actor_get_preferred_height (child, -1,
-                                          &min_height,
-                                          &natural_height);
-
-      child_height = CLAMP (natural_height, min_height, available_height);
-
-      clutter_actor_get_preferred_width (child, child_height,
-                                         &min_width,
-                                         &natural_width);
-
-      child_width = CLAMP (natural_width, min_width, available_width);
-    }
-
-  if (!x_fill)
-    {
-      childbox->x1 += (int)((available_width - child_width) * x_align);
-      childbox->x2 = childbox->x1 + (int) child_width;
-    }
-
-  if (!y_fill)
-    {
-      childbox->y1 += (int)((available_height - child_height) * y_align);
-      childbox->y2 = childbox->y1 + (int) child_height;
-    }
-}
 
 /**
  * _st_get_align_factors:
- * @widget: an #StWidget
  * @x_align: an #StAlign
  * @y_align: an #StAlign
  * @x_align_out: (out) (allow-none): @x_align as a #gdouble
  * @y_align_out: (out) (allow-none): @y_align as a #gdouble
  *
- * Converts @x_align and @y_align to #gdouble values. If @widget has
- * %ST_TEXT_DIRECTION_RTL, the @x_align_out value will be flipped
- * relative to @x_align.
+ * Converts @x_align and @y_align to #gdouble values.
  */
 void
-_st_get_align_factors (StWidget *widget,
-                       StAlign   x_align,
+_st_get_align_factors (StAlign   x_align,
                        StAlign   y_align,
                        gdouble  *x_align_out,
                        gdouble  *y_align_out)
@@ -257,9 +135,6 @@ _st_get_align_factors (StWidget *widget,
           g_warn_if_reached ();
           break;
         }
-
-      if (st_widget_get_direction (widget) == ST_TEXT_DIRECTION_RTL)
-        *x_align_out = 1.0 - *x_align_out;
     }
 
   if (y_align_out)
@@ -300,7 +175,7 @@ _st_set_text_from_style (ClutterText *text,
 
   ClutterColor color;
   StTextDecoration decoration;
-  PangoAttrList *attribs;
+  PangoAttrList *attribs = NULL;
   const PangoFontDescription *font;
   gchar *font_string;
   StTextAlign align;
@@ -313,26 +188,31 @@ _st_set_text_from_style (ClutterText *text,
   clutter_text_set_font_name (text, font_string);
   g_free (font_string);
 
-  attribs = pango_attr_list_new ();
-
   decoration = st_theme_node_get_text_decoration (theme_node);
-  if (decoration & ST_TEXT_DECORATION_UNDERLINE)
+
+  if (decoration)
     {
-      PangoAttribute *underline = pango_attr_underline_new (PANGO_UNDERLINE_SINGLE);
-      pango_attr_list_insert (attribs, underline);
+      attribs = pango_attr_list_new ();
+
+      if (decoration & ST_TEXT_DECORATION_UNDERLINE)
+        {
+          PangoAttribute *underline = pango_attr_underline_new (PANGO_UNDERLINE_SINGLE);
+          pango_attr_list_insert (attribs, underline);
+        }
+      if (decoration & ST_TEXT_DECORATION_LINE_THROUGH)
+        {
+          PangoAttribute *strikethrough = pango_attr_strikethrough_new (TRUE);
+          pango_attr_list_insert (attribs, strikethrough);
+        }
+      /* Pango doesn't have an equivalent attribute for _OVERLINE, and we deliberately
+       * skip BLINK (for now...)
+       */
     }
-  if (decoration & ST_TEXT_DECORATION_LINE_THROUGH)
-    {
-      PangoAttribute *strikethrough = pango_attr_strikethrough_new (TRUE);
-      pango_attr_list_insert (attribs, strikethrough);
-    }
-  /* Pango doesn't have an equivalent attribute for _OVERLINE, and we deliberately
-   * skip BLINK (for now...)
-   */
 
   clutter_text_set_attributes (text, attribs);
 
-  pango_attr_list_unref (attribs);
+  if (attribs)
+    pango_attr_list_unref (attribs);
 
   align = st_theme_node_get_text_align (theme_node);
   if(align == ST_TEXT_ALIGN_JUSTIFY) {
@@ -345,46 +225,40 @@ _st_set_text_from_style (ClutterText *text,
 }
 
 /**
- * _st_create_texture_material:
+ * _st_create_texture_pipeline:
  * @src_texture: The CoglTexture for the material
  *
  * Creates a simple material which contains the given texture as a
  * single layer.
  */
-CoglHandle
-_st_create_texture_material (CoglHandle src_texture)
+CoglPipeline *
+_st_create_texture_pipeline (CoglTexture *src_texture)
 {
-  static CoglHandle texture_material_template = COGL_INVALID_HANDLE;
-  CoglHandle material;
+  static CoglPipeline *texture_pipeline_template = NULL;
+  CoglPipeline *pipeline;
 
-  g_return_val_if_fail (src_texture != COGL_INVALID_HANDLE,
-                        COGL_INVALID_HANDLE);
+  g_return_val_if_fail (src_texture != NULL, NULL);
 
-  /* We use a material that has a dummy texture as a base for all
-     texture materials. The idea is that only the Cogl texture object
-     would be different in the children so it is likely that Cogl will
-     be able to share GL programs between all the textures. */
-  if (G_UNLIKELY (texture_material_template == COGL_INVALID_HANDLE))
+  /* The only state used in the pipeline that would affect the shader
+     generation is the texture type on the layer. Therefore we create
+     a template pipeline which sets this state and all texture
+     pipelines are created as a copy of this. That way Cogl can find
+     the shader state for the pipeline more quickly by looking at the
+     pipeline ancestry instead of resorting to the shader cache. */
+  if (G_UNLIKELY (texture_pipeline_template == NULL))
     {
-      static const guint8 white_pixel[] = { 0xff, 0xff, 0xff, 0xff };
-      CoglHandle dummy_texture;
-
-      dummy_texture = st_cogl_texture_new_from_data_wrapper (1, 1,
-                                                             COGL_TEXTURE_NONE,
-                                                             COGL_PIXEL_FORMAT_RGBA_8888_PRE,
-                                                             COGL_PIXEL_FORMAT_ANY,
-                                                             4, white_pixel);
-
-      texture_material_template = cogl_material_new ();
-      cogl_material_set_layer (texture_material_template, 0, dummy_texture);
-      cogl_handle_unref (dummy_texture);
+      texture_pipeline_template = cogl_pipeline_new (st_get_cogl_context());
+      cogl_pipeline_set_layer_null_texture (texture_pipeline_template,
+                                            0, /* layer */
+                                            COGL_TEXTURE_TYPE_2D);
     }
 
-  material = cogl_material_copy (texture_material_template);
+  pipeline = cogl_pipeline_copy (texture_pipeline_template);
 
-  cogl_material_set_layer (material, 0, src_texture);
+  if (src_texture != NULL)
+    cogl_pipeline_set_layer_texture (pipeline, 0, src_texture);
 
-  return material;
+  return pipeline;
 }
 
 /*****
@@ -392,8 +266,8 @@ _st_create_texture_material (CoglHandle src_texture)
  *****/
 
 static gdouble *
-calculate_gaussian_kernel (gdouble   sigma,
-                           guint     n_values)
+calculate_gaussian_kernel (float   sigma,
+                           gint     n_values)
 {
   gdouble *ret, sum;
   gdouble exp_divisor;
@@ -527,21 +401,20 @@ blur_pixels (guchar  *pixels_in,
   return pixels_out;
 }
 
-CoglHandle
-_st_create_shadow_material (StShadow   *shadow_spec,
-                            CoglHandle  src_texture)
+CoglPipeline *
+_st_create_shadow_pipeline (StShadow     *shadow_spec,
+                            CoglTexture  *src_texture)
 {
-  static CoglHandle shadow_material_template = COGL_INVALID_HANDLE;
+  static CoglPipeline *shadow_pipeline_template = NULL;
 
-  CoglHandle  material;
-  CoglHandle  texture;
-  guchar     *pixels_in, *pixels_out;
-  gint        width_in, height_in, rowstride_in;
-  gint        width_out, height_out, rowstride_out;
+  CoglPipeline *pipeline;
+  CoglPipeline *texture;
+  guchar *pixels_in, *pixels_out;
+  gint width_in, height_in, rowstride_in;
+  gint width_out, height_out, rowstride_out;
 
-  g_return_val_if_fail (shadow_spec != NULL, COGL_INVALID_HANDLE);
-  g_return_val_if_fail (src_texture != COGL_INVALID_HANDLE,
-                        COGL_INVALID_HANDLE);
+  g_return_val_if_fail (shadow_spec != NULL, NULL);
+  g_return_val_if_fail (src_texture != NULL, NULL);
 
   width_in  = cogl_texture_get_width  (src_texture);
   height_in = cogl_texture_get_height (src_texture);
@@ -566,82 +439,100 @@ _st_create_shadow_material (StShadow   *shadow_spec,
 
   g_free (pixels_out);
 
-  if (G_UNLIKELY (shadow_material_template == COGL_INVALID_HANDLE))
+  if (G_UNLIKELY (shadow_pipeline_template == NULL))
     {
-      shadow_material_template = cogl_material_new ();
+      shadow_pipeline_template = cogl_pipeline_new (st_get_cogl_context());
 
-      /* We set up the material to blend the shadow texture with the combine
+      /* We set up the pipeline to blend the shadow texture with the combine
        * constant, but defer setting the latter until painting, so that we can
        * take the actor's overall opacity into account. */
-      cogl_material_set_layer_combine (shadow_material_template, 0,
+      cogl_pipeline_set_layer_combine (shadow_pipeline_template, 0,
                                        "RGBA = MODULATE (CONSTANT, TEXTURE[A])",
                                        NULL);
     }
 
-  material = cogl_material_copy (shadow_material_template);
+  pipeline = cogl_pipeline_copy (shadow_pipeline_template);
 
-  cogl_material_set_layer (material, 0, texture);
+  cogl_pipeline_set_layer_texture (pipeline, 0, texture);
 
-  cogl_handle_unref (texture);
+  if (texture)
+    cogl_object_unref (texture);
 
-  return material;
+  return pipeline;
 }
 
-CoglHandle
-_st_create_shadow_material_from_actor (StShadow     *shadow_spec,
+CoglPipeline *
+_st_create_shadow_pipeline_from_actor (StShadow     *shadow_spec,
                                        ClutterActor *actor)
 {
-  CoglHandle shadow_material = COGL_INVALID_HANDLE;
+  CoglPipeline *shadow_pipeline = NULL;
 
   if (CLUTTER_IS_TEXTURE (actor))
     {
-      CoglHandle texture;
+      CoglTexture *texture;
 
       texture = clutter_texture_get_cogl_texture (CLUTTER_TEXTURE (actor));
-      shadow_material = _st_create_shadow_material (shadow_spec, texture);
+      shadow_pipeline = _st_create_shadow_pipeline (shadow_spec, texture);
     }
   else
     {
-      CoglHandle buffer, offscreen;
+      CoglTexture *buffer;
+      CoglOffscreen *offscreen;
+      CoglFramebuffer *fb;
       ClutterActorBox box;
       CoglColor clear_color;
       float width, height;
+      CoglError *catch_error = NULL;
 
       clutter_actor_get_allocation_box (actor, &box);
       clutter_actor_box_get_size (&box, &width, &height);
 
       if (width == 0 || height == 0)
-        return COGL_INVALID_HANDLE;
+        return NULL;
 
       buffer = st_cogl_texture_new_with_size_wrapper (width, height,
                                                       COGL_TEXTURE_NO_SLICING,
                                                       COGL_PIXEL_FORMAT_ANY);
 
-      if (buffer == COGL_INVALID_HANDLE)
-        return COGL_INVALID_HANDLE;
+      if (buffer == NULL)
+        return NULL;
 
-      offscreen = cogl_offscreen_new_to_texture (buffer);
+      offscreen = cogl_offscreen_new_with_texture (buffer);
+      fb = COGL_FRAMEBUFFER (offscreen);
 
-      if (offscreen == COGL_INVALID_HANDLE)
+      if (!cogl_framebuffer_allocate (fb, &catch_error))
         {
-          cogl_handle_unref (buffer);
-          return COGL_INVALID_HANDLE;
+          cogl_error_free (catch_error);
+          cogl_object_unref (offscreen);
+          cogl_object_unref (buffer);
+          return NULL;
         }
 
-      cogl_color_set_from_4ub (&clear_color, 0, 0, 0, 0);
-      cogl_push_framebuffer (offscreen);
-      cogl_clear (&clear_color, COGL_BUFFER_BIT_COLOR);
-      cogl_ortho (0, width, height, 0, 0, 1.0);
+      cogl_color_init_from_4ub (&clear_color, 0, 0, 0, 0);
+
+      /* XXX: There's no way to render a ClutterActor to an offscreen
+       * as it uses the implicit API. */
+      G_GNUC_BEGIN_IGNORE_DEPRECATIONS;
+      cogl_push_framebuffer (fb);
+      G_GNUC_END_IGNORE_DEPRECATIONS;
+
+      cogl_framebuffer_clear (fb, COGL_BUFFER_BIT_COLOR, &clear_color);
+      cogl_framebuffer_translate (fb, -box.x1, -box.y1, 0);
+      cogl_framebuffer_orthographic (fb, 0, 0, width, height, 0, 1.0);
       clutter_actor_paint (actor);
+
+      G_GNUC_BEGIN_IGNORE_DEPRECATIONS;
       cogl_pop_framebuffer ();
-      cogl_handle_unref (offscreen);
+      G_GNUC_END_IGNORE_DEPRECATIONS;
 
-      shadow_material = _st_create_shadow_material (shadow_spec, buffer);
+      cogl_object_unref (fb);
 
-      cogl_handle_unref (buffer);
+      shadow_pipeline = _st_create_shadow_pipeline (shadow_spec, buffer);
+
+      cogl_object_unref (buffer);
     }
 
-  return shadow_material;
+  return shadow_pipeline;
 }
 
 /**
@@ -680,7 +571,12 @@ _st_create_shadow_cairo_pattern (StShadow        *shadow_spec,
   g_return_val_if_fail (shadow_spec != NULL, NULL);
   g_return_val_if_fail (src_pattern != NULL, NULL);
 
-  cairo_pattern_get_surface (src_pattern, &src_surface);
+  if (cairo_pattern_get_surface (src_pattern, &src_surface) != CAIRO_STATUS_SUCCESS)
+    /* The most likely reason we can't get the pattern is that sizing went hairwire
+     * and the caller tried to create a surface too big for memory, leaving us with
+     * a pattern in an error state; we return a transparent pattern for the shadow.
+     */
+    return cairo_pattern_create_rgba(1.0, 1.0, 1.0, 0.0);
 
   width_in  = cairo_image_surface_get_width  (src_surface);
   height_in = cairo_image_surface_get_height (src_surface);
@@ -789,29 +685,26 @@ _st_create_shadow_cairo_pattern (StShadow        *shadow_spec,
 
 void
 _st_paint_shadow_with_opacity (StShadow        *shadow_spec,
-                               CoglHandle       shadow_material,
+                               CoglPipeline    *shadow_pipeline,
                                ClutterActorBox *box,
                                guint8           paint_opacity)
 {
   ClutterActorBox shadow_box;
-  CoglColor       color;
+  CoglColor color;
+  CoglFramebuffer *fb = cogl_get_draw_framebuffer ();
 
   g_return_if_fail (shadow_spec != NULL);
-  g_return_if_fail (shadow_material != COGL_INVALID_HANDLE);
+  g_return_if_fail (shadow_pipeline != NULL);
 
   st_shadow_get_box (shadow_spec, box, &shadow_box);
 
-  cogl_color_set_from_4ub (&color,
-                           shadow_spec->color.red   * paint_opacity / 255,
-                           shadow_spec->color.green * paint_opacity / 255,
-                           shadow_spec->color.blue  * paint_opacity / 255,
-                           shadow_spec->color.alpha * paint_opacity / 255);
-  cogl_color_premultiply (&color);
-
-  cogl_material_set_layer_combine_constant (shadow_material, 0, &color);
-
-  cogl_set_source (shadow_material);
-  cogl_rectangle_with_texture_coords (shadow_box.x1, shadow_box.y1,
-                                      shadow_box.x2, shadow_box.y2,
-                                      0, 0, 1, 1);
+  cogl_color_init_from_4ub (&color,
+                            shadow_spec->color.red   * paint_opacity / 255,
+                            shadow_spec->color.green * paint_opacity / 255,
+                            shadow_spec->color.blue  * paint_opacity / 255,
+                            shadow_spec->color.alpha * paint_opacity / 255);
+  cogl_pipeline_set_layer_combine_constant (shadow_pipeline, 0, &color);
+  cogl_framebuffer_draw_rectangle (fb, shadow_pipeline,
+                                   shadow_box.x1, shadow_box.y1,
+                                   shadow_box.x2, shadow_box.y2);
 }

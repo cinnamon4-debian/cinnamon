@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 import math
 import os
@@ -25,7 +25,7 @@ class EditableEntry (Gtk.Stack):
 
     __gsignals__ = {
         'changed': (GObject.SignalFlags.RUN_FIRST, None,
-                      (str,))
+                    (str,))
     }
 
     def __init__ (self):
@@ -92,7 +92,7 @@ class EditableEntry (Gtk.Stack):
     def get_text(self):
         return self.entry.get_text()
 
-class SidePage:
+class SidePage(object):
     def __init__(self, name, icon, keywords, content_box = None, size = None, is_c_mod = False, is_standalone = False, exec_name = None, module=None):
         self.name = name
         self.icon = icon
@@ -203,16 +203,10 @@ class SAModule:
         self.category = category
 
     def process (self):
-        name = self.name.replace("gksudo ", "")
-        name = name.replace("gksu ", "")
+        name = self.name.replace("pkexec ", "")
         name = name.split()[0]
 
-        for path in os.environ["PATH"].split(os.pathsep):
-            path = path.strip('"')
-            exe_file = os.path.join(path, name)
-            if os.path.isfile(exe_file) and os.access(exe_file, os.X_OK):
-                return True
-        return False
+        return GLib.find_program_in_path(name) is not None
 
 def walk_directories(dirs, filter_func, return_directories=False):
     # If return_directories is False: returns a list of valid subdir names
@@ -231,16 +225,6 @@ def walk_directories(dirs, filter_func, return_directories=False):
         pass
         #logging.critical("Error parsing directories", exc_info=True)
     return valid
-
-def rec_mkdir(path):
-    if os.path.exists(path):
-        return
-
-    rec_mkdir(os.path.split(path)[0])
-
-    if os.path.exists(path):
-        return
-    os.mkdir(path)
 
 class Section(Gtk.Box):
     def __init__(self, name):
@@ -300,8 +284,10 @@ class SettingsStack(Gtk.Stack):
         self.expand = True
 
 class SettingsRevealer(Gtk.Revealer):
-    def __init__(self, schema=None, key=None, values=None):
+    def __init__(self, schema=None, key=None, values=None, check_func=None):
         Gtk.Revealer.__init__(self)
+
+        self.check_func = check_func
 
         self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=15)
         Gtk.Revealer.add(self, self.box)
@@ -311,10 +297,9 @@ class SettingsRevealer(Gtk.Revealer):
 
         if schema:
             self.settings = Gio.Settings.new(schema)
-            #the value of this key is the information whether to show or to hide the revealer
-            if values is None:
+            # if there aren't values or a function provided to determine visibility we can do a simple bind
+            if values is None and check_func is None:
                 self.settings.bind(key, self, "reveal-child", Gio.SettingsBindFlags.GET)
-            #only at some values of this key the reveaer must be shown
             else:
                 self.values = values
                 self.settings.connect("changed::" + key, self.on_settings_changed)
@@ -325,7 +310,11 @@ class SettingsRevealer(Gtk.Revealer):
 
     #only used when checking values
     def on_settings_changed(self, settings, key):
-        self.set_reveal_child(settings.get_value(key).unpack() in self.values)
+        value = settings.get_value(key).unpack()
+        if self.check_func is None:
+            self.set_reveal_child(value in self.values)
+        else:
+            self.set_reveal_child(self.check_func(value, self.values))
 
 class SettingsPage(Gtk.Box):
     def __init__(self):
@@ -343,9 +332,10 @@ class SettingsPage(Gtk.Box):
 
         return section
 
-    def add_reveal_section(self, title, schema=None, key=None, values=None):
+    def add_reveal_section(self, title, schema=None, key=None, values=None, revealer=None):
         section = SettingsBox(title)
-        revealer = SettingsRevealer(schema, key, values)
+        if revealer is None:
+            revealer = SettingsRevealer(schema, key, values)
         revealer.add(section)
         section._revealer = revealer
         self.pack_start(revealer, False, False, 0)
@@ -375,21 +365,6 @@ class SettingsBox(Gtk.Frame):
         toolbar.add(title_holder)
         self.box.add(toolbar)
 
-        toolbar_separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
-        self.box.add(toolbar_separator)
-        separator_context = toolbar_separator.get_style_context()
-        frame_color = frame_style.get_border_color(Gtk.StateFlags.NORMAL).to_string()
-        css_provider = Gtk.CssProvider()
-        css_data = ".separator { -GtkWidget-wide-separators: 0; \
-                                   color: %s;                    \
-                               }" % frame_color
-        try:
-            css_provider.load_from_data(css_data)
-        except:
-            # we must be using python 3
-            css_provider.load_from_data(str.encode(css_data))
-        separator_context.add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-
         self.need_separator = False
 
     def add_row(self, widget):
@@ -398,7 +373,7 @@ class SettingsBox(Gtk.Frame):
             vbox.add(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
         list_box = Gtk.ListBox()
         list_box.set_selection_mode(Gtk.SelectionMode.NONE)
-        row = Gtk.ListBoxRow()
+        row = Gtk.ListBoxRow(can_focus=False)
         row.add(widget)
         if isinstance(widget, Switch):
             list_box.connect("row-activated", widget.clicked)
@@ -408,19 +383,20 @@ class SettingsBox(Gtk.Frame):
 
         self.need_separator = True
 
-    def add_reveal_row(self, widget, schema=None, key=None, values=None):
+    def add_reveal_row(self, widget, schema=None, key=None, values=None, check_func=None, revealer=None):
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         if self.need_separator:
             vbox.add(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
         list_box = Gtk.ListBox()
         list_box.set_selection_mode(Gtk.SelectionMode.NONE)
-        row = Gtk.ListBoxRow()
+        row = Gtk.ListBoxRow(can_focus=False)
         row.add(widget)
         if isinstance(widget, Switch):
             list_box.connect("row-activated", widget.clicked)
         list_box.add(row)
         vbox.add(list_box)
-        revealer = SettingsRevealer(schema, key, values)
+        if revealer is None:
+            revealer = SettingsRevealer(schema, key, values, check_func)
         widget.revealer = revealer
         revealer.add(vbox)
         self.box.add(revealer)
@@ -498,7 +474,7 @@ class Switch(SettingsWidget):
     def __init__(self, label, dep_key=None, tooltip=""):
         super(Switch, self).__init__(dep_key=dep_key)
 
-        self.content_widget = Gtk.Switch()
+        self.content_widget = Gtk.Switch(valign=Gtk.Align.CENTER)
         self.label = SettingsLabel(label)
         self.pack_start(self.label, False, False, 0)
         self.pack_end(self.content_widget, False, False, 0)
@@ -506,7 +482,8 @@ class Switch(SettingsWidget):
         self.set_tooltip_text(tooltip)
 
     def clicked(self, *args):
-        self.content_widget.set_active(not self.content_widget.get_active())
+        if self.is_sensitive():
+            self.content_widget.set_active(not self.content_widget.get_active())
 
 class SpinButton(SettingsWidget):
     bind_prop = "value"
@@ -631,7 +608,7 @@ class Range(SettingsWidget):
     bind_prop = "value"
     bind_dir = Gio.SettingsBindFlags.GET | Gio.SettingsBindFlags.NO_SENSITIVITY
 
-    def __init__(self, label, min_label="", max_label="", mini=None, maxi=None, step=None, invert=False, log=False, dep_key=None, tooltip=""):
+    def __init__(self, label, min_label="", max_label="", mini=None, maxi=None, step=None, invert=False, log=False, show_value=True, dep_key=None, tooltip="", flipped=False):
         super(Range, self).__init__(dep_key=dep_key)
 
         self.set_orientation(Gtk.Orientation.VERTICAL)
@@ -639,6 +616,7 @@ class Range(SettingsWidget):
 
         self.log = log
         self.invert = invert
+        self.flipped = flipped
         self.timer = None
         self.value = 0
 
@@ -667,8 +645,20 @@ class Range(SettingsWidget):
         if log:
             mini = math.log(mini)
             maxi = math.log(maxi)
-            self.map_get = lambda x: math.log(x)
-            self.map_set = lambda x: math.exp(x)
+            if self.flipped:
+                self.map_get = lambda x: -1 * (math.log(x))
+                self.map_set = lambda x: math.exp(x)
+            else:
+                self.map_get = lambda x: math.log(x)
+                self.map_set = lambda x: math.exp(x)
+        elif self.flipped:
+            self.map_get = lambda x: x * -1
+            self.map_set = lambda x: x * -1
+
+        if self.flipped:
+            tmp_mini = mini
+            mini = maxi * -1
+            maxi = tmp_mini * -1
 
         if step is None:
             self.step = (maxi - mini) * 0.02
@@ -677,7 +667,7 @@ class Range(SettingsWidget):
 
         self.content_widget = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, mini, maxi, self.step)
         self.content_widget.set_inverted(invert)
-        self.content_widget.set_draw_value(False)
+        self.content_widget.set_draw_value(show_value and not self.flipped)
         self.bind_object = self.content_widget.get_adjustment()
 
         if invert:
@@ -698,9 +688,12 @@ class Range(SettingsWidget):
     def apply_later(self, *args):
         def apply(self):
             if self.log:
-                self.set_value(math.exp(self.content_widget.get_value()))
+                self.set_value(math.exp(abs(self.content_widget.get_value())))
             else:
-                self.set_value(self.content_widget.get_value())
+                if self.flipped:
+                    self.set_value(self.content_widget.get_value() * -1)
+                else:
+                    self.set_value(self.content_widget.get_value())
             self.timer = None
 
         if self.timer:
@@ -728,7 +721,7 @@ class Range(SettingsWidget):
 class ComboBox(SettingsWidget):
     bind_dir = None
 
-    def __init__(self, label, options=[], valtype="string", size_group=None, dep_key=None, tooltip=""):
+    def __init__(self, label, options=[], valtype=None, size_group=None, dep_key=None, tooltip=""):
         super(ComboBox, self).__init__(dep_key=dep_key)
 
         self.valtype = valtype
@@ -771,8 +764,11 @@ class ComboBox(SettingsWidget):
         self.content_widget.connect('changed', self.on_my_value_changed)
 
     def set_options(self, options):
-        # assume all keys are the same type (mixing types is going to cause an error somewhere)
-        var_type = type(options[0][0])
+        if self.valtype is not None:
+            var_type = self.valtype
+        else:
+            # assume all keys are the same type (mixing types is going to cause an error somewhere)
+            var_type = type(options[0][0])
         self.model = Gtk.ListStore(var_type, str)
 
         for option in options:
@@ -883,7 +879,7 @@ class SoundFileChooser(SettingsWidget):
 
         try:
             Gio.DBusProxy.new_for_bus(Gio.BusType.SESSION, Gio.DBusProxyFlags.NONE, None,
-                                      'org.cinnamon.SettingsDaemon',
+                                      'org.cinnamon.SettingsDaemon.Sound',
                                       '/org/cinnamon/SettingsDaemon/Sound',
                                       'org.cinnamon.SettingsDaemon.Sound',
                                       None, self._on_proxy_ready, None)
@@ -1167,5 +1163,16 @@ class Text(SettingsWidget):
         super(Text, self).__init__()
         self.label = label
 
-        self.content_widget = Gtk.Label(label=label, halign=align)
+        if align == Gtk.Align.END:
+            xalign = 1.0
+            justification = Gtk.Justification.RIGHT
+        elif align == Gtk.Align.CENTER:
+            xalign = 0.5
+            justification = Gtk.Justification.CENTER
+        else: # START and FILL align left
+            xalign = 0
+            justification = Gtk.Justification.LEFT
+
+        self.content_widget = Gtk.Label(label, halign=align, xalign=xalign, justify=justification)
+        self.content_widget.set_line_wrap(True)
         self.pack_start(self.content_widget, True, True, 0)

@@ -185,7 +185,7 @@ st_theme_class_init (StThemeClass *klass)
                                                G_SIGNAL_RUN_LAST,
                                                0, /* no default handler slot */
                                                NULL, NULL, NULL,
-                                               G_TYPE_NONE, 0);  
+                                               G_TYPE_NONE, 0);
 }
 
 static CRStyleSheet *
@@ -632,6 +632,9 @@ additional_selector_matches_style (StTheme         *a_this,
           if (!pseudo_class_add_sel_matches_style (a_this, cur_add_sel, a_node))
             return FALSE;
           break;
+        default:
+          g_warning ("Unhandled selector type %d", cur_add_sel->type);
+          return FALSE;
         }
     }
 
@@ -895,9 +898,18 @@ add_matched_properties (StTheme      *a_this,
                 char *filename = NULL;
 
                 if (import_rule->url->stryng && import_rule->url->stryng->str)
-                  filename = _st_theme_resolve_url (a_this,
-                                                    a_nodesheet,
-                                                    import_rule->url->stryng->str);
+                  {
+                    GFile *file;
+
+                    file = _st_theme_resolve_url (a_this,
+                                                  a_nodesheet,
+                                                  import_rule->url->stryng->str);
+                    if (file)
+                      {
+                        filename = g_file_get_path (file);
+                        g_object_unref (file);
+                      }
+                  }
 
                 if (filename)
                   import_rule->sheet = parse_stylesheet (filename, NULL);
@@ -926,6 +938,10 @@ add_matched_properties (StTheme      *a_this,
               }
           }
           break;
+        case AT_RULE_STMT:
+        case AT_PAGE_RULE_STMT:
+        case AT_CHARSET_RULE_STMT:
+        case AT_FONT_FACE_RULE_STMT:
         default:
           break;
         }
@@ -1018,11 +1034,12 @@ _st_theme_get_matched_properties (StTheme        *theme,
   enum CRStyleOrigin origin = 0;
   CRStyleSheet *sheet = NULL;
   GSList *iter;
+  GPtrArray *props;
 
   g_return_val_if_fail (ST_IS_THEME (theme), NULL);
   g_return_val_if_fail (ST_IS_THEME_NODE (node), NULL);
 
-  GPtrArray *props = g_ptr_array_new ();
+  props = g_ptr_array_new ();
 
   for (origin = ORIGIN_UA; origin < NB_ORIGINS; origin++)
     {
@@ -1047,10 +1064,12 @@ GPtrArray *
 _st_theme_get_matched_properties_fallback (StTheme        *theme,
                                            StThemeNode    *node)
 {
+  GPtrArray *props;
+
   g_return_val_if_fail (ST_IS_THEME (theme), NULL);
   g_return_val_if_fail (ST_IS_THEME_NODE (node), NULL);
 
-  GPtrArray *props = g_ptr_array_new ();
+  props = g_ptr_array_new ();
 
   if (theme->fallback_cr_stylesheet)
     add_matched_properties (theme, theme->fallback_cr_stylesheet, node, props);
@@ -1067,63 +1086,43 @@ _st_theme_get_matched_properties_fallback (StTheme        *theme,
  * local filename, if possible. The resolution here is distinctly lame and
  * will fail on many examples.
  */
-char *
+GFile *
 _st_theme_resolve_url (StTheme      *theme,
                        CRStyleSheet *base_stylesheet,
                        const char   *url)
 {
-  const char *base_filename = NULL;
-  char *dirname;
-  char *filename;
+  char *scheme;
+  GFile *stylesheet, *resource;
 
-  /* Handle absolute file:/ URLs */
-  if (g_str_has_prefix (url, "file:") ||
-      g_str_has_prefix (url, "File:") ||
-      g_str_has_prefix (url, "FILE:"))
+  if ((scheme = g_uri_parse_scheme (url)))
     {
-      GError *error = NULL;
-      char *filename;
+      g_free (scheme);
+      resource = g_file_new_for_uri (url);
+    }
+  else if (base_stylesheet != NULL)
+    {
+      const char *base_filename = NULL;
+      char *dirname;
 
-      filename = g_filename_from_uri (url, NULL, &error);
-      if (filename == NULL)
-        {
-          g_warning ("%s", error->message);
-          g_error_free (error);
-        }
-      else
-        {
-          g_free (filename);
-        }
+      base_filename = g_hash_table_lookup (theme->filenames_by_stylesheet, base_stylesheet);
 
-      return NULL;
+      if (base_filename == NULL)
+      {
+        g_warning ("Can't get base to resolve url '%s'", url);
+        return NULL;
+      }
+
+      dirname = g_path_get_dirname (base_filename); /* returns . if empty */
+      stylesheet = g_file_new_for_path (dirname);   /* always returns something */
+      resource = g_file_resolve_relative_path (stylesheet, url);
+
+      g_object_unref (stylesheet);
+      g_free (dirname);
+    }
+  else
+    {
+      resource = g_file_new_for_path (url);
     }
 
-  /* Guard against http:/ URLs */
-
-  if (g_str_has_prefix (url, "http:") ||
-      g_str_has_prefix (url, "Http:") ||
-      g_str_has_prefix (url, "HTTP:"))
-    {
-      g_warning ("Http URL '%s' in theme stylesheet is not supported", url);
-      return NULL;
-    }
-
-  /* Assume anything else is a relative URL, and "resolve" it
-   */
-  if (url[0] == '/')
-    return g_strdup (url);
-
-  base_filename = g_hash_table_lookup (theme->filenames_by_stylesheet, base_stylesheet);
-
-  if (base_filename == NULL)
-    {
-      g_warning ("Can't get base to resolve url '%s'", url);
-      return NULL;
-    }
-
-  dirname = g_path_get_dirname (base_filename);
-  filename = g_build_filename (dirname, url, NULL);
-  g_free (dirname);
-
-  return filename;
+  return resource;
 }

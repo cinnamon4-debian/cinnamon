@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 import os
 import subprocess
@@ -7,7 +7,8 @@ import pwd
 
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk
+gi.require_version("XApp", "1.0")
+from gi.repository import Gtk, XApp
 
 # i18n
 gettext.install("cinnamon", "/usr/share/locale")
@@ -21,12 +22,7 @@ class MainWindow:
 
         user_id = os.getuid()
         username = pwd.getpwuid(user_id).pw_name
-        real_name = pwd.getpwuid(user_id).pw_gecos
         home_dir = pwd.getpwuid(user_id).pw_dir
-
-        real_name = real_name.replace(",", "")
-        if real_name == "":
-            real_name = username
 
         self.builder = Gtk.Builder()
         self.builder.add_from_file("/usr/share/cinnamon/cinnamon-screensaver-lock-dialog/cinnamon-screensaver-lock-dialog.ui")
@@ -38,15 +34,14 @@ class MainWindow:
         self.image = self.builder.get_object("image_face")
 
         self.window.set_title(_("Screen Locker"))
-        self.window.set_icon_name("cs-screensaver")
+        XApp.set_window_icon_name(self.window, "cs-screensaver")
 
         self.builder.get_object("label_description").set_markup("<i>%s</i>" % _("Please type an away message for the lock screen"))
-        self.builder.get_object("label_away_message").set_markup("<b>%s: </b>" % real_name)
 
         if os.path.exists("%s/.face" % home_dir):
             self.image.set_from_file("%s/.face" % home_dir)
         else:
-            self.image.set_from_file("/usr/share/pixmaps/nobody.png")
+            self.image.set_from_icon_name("cs-screensaver", Gtk.IconSize.DIALOG)
 
         self.window.connect("destroy", Gtk.main_quit)
         self.button_cancel.connect("clicked", Gtk.main_quit)

@@ -1,5 +1,5 @@
 AC_PREREQ(2.63)
-AC_INIT([cinnamon],[3.2.7],[https://github.com/linuxmint/Cinnamon/issues],[cinnamon])
+AC_INIT([cinnamon],[3.8.8],[https://github.com/linuxmint/Cinnamon/issues],[cinnamon])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([src/cinnamon-global.c])
@@ -38,10 +38,6 @@ PKG_PROG_PKG_CONFIG([0.22])
 
 GLIB_GSETTINGS
 
-# Get a value to substitute into cinnamon.in
-AM_PATH_PYTHON([2.5])
-AC_SUBST(PYTHON)
-
 # We need at least this, since gst_plugin_register_static() was added
 # in 0.10.16, but nothing older than 0.10.21 has been tested.
 GSTREAMER_MIN_VERSION=0.11.92
@@ -62,8 +58,8 @@ AM_CONDITIONAL(BUILD_RECORDER, $build_recorder)
 
 CLUTTER_MIN_VERSION=1.10.0
 GOBJECT_INTROSPECTION_MIN_VERSION=0.9.2
-GJS_MIN_VERSION=2.3.1
-MUFFIN_MIN_VERSION=3.0.0
+GJS_MIN_VERSION=3.2.0
+MUFFIN_MIN_VERSION=3.5.0
 GTK_MIN_VERSION=3.12.0
 GIO_MIN_VERSION=2.35.0
 POLKIT_MIN_VERSION=0.100
@@ -74,29 +70,25 @@ PKG_CHECK_MODULES(CINNAMON, gio-2.0 >= $GIO_MIN_VERSION
                                gio-unix-2.0 dbus-glib-1 libxml-2.0
                                gtk+-3.0 >= $GTK_MIN_VERSION
                                libmuffin >= $MUFFIN_MIN_VERSION
-                               cjs-internals-1.0 >= $GJS_MIN_VERSION
+                               cjs-1.0 >= $GJS_MIN_VERSION
 			       libcinnamon-menu-3.0 $recorder_modules
                                gdk-x11-3.0 libsoup-2.4 gl
 			       clutter-x11-1.0 >= $CLUTTER_MIN_VERSION
                                libstartup-notification-1.0 >= $STARTUP_NOTIFICATION_MIN_VERSION
                                gobject-introspection-1.0 >= $GOBJECT_INTROSPECTION_MIN_VERSION
                                polkit-agent-1 >= $POLKIT_MIN_VERSION xfixes
-                               libnm-glib libnm-util gnome-keyring-1 atk-bridge-2.0)
-
-PKG_CHECK_MODULES(CINNAMON_JS, gio-2.0 cjs-internals-1.0 >= $GJS_MIN_VERSION)
+                               libnm-glib libnm-util atk-bridge-2.0)
 
 PKG_CHECK_MODULES(CINNAMON_PERF_HELPER, gtk+-3.0 gio-2.0)
 
 PKG_CHECK_MODULES(CINNAMON_HOTPLUG_SNIFFER, gio-2.0 gdk-pixbuf-2.0)
 
-GJS_VERSION=`$PKG_CONFIG --modversion cjs-internals-1.0`
+GJS_VERSION=`$PKG_CONFIG --modversion cjs-1.0`
 AC_DEFINE_UNQUOTED([GJS_VERSION], ["$GJS_VERSION"], [The version of GJS we're linking to])
 dnl '
 AC_SUBST([GJS_VERSION], ["$GJS_VERSION"])
 
 GOBJECT_INTROSPECTION_CHECK([$GOBJECT_INTROSPECTION_MIN_VERSION])
-JHBUILD_TYPELIBDIR="$INTROSPECTION_TYPELIBDIR"
-AC_SUBST(JHBUILD_TYPELIBDIR)
 
 saved_CFLAGS=$CFLAGS
 saved_LIBS=$LIBS
@@ -108,22 +100,8 @@ LIBS=$saved_LIBS
 
 PKG_CHECK_MODULES(ST, clutter-1.0 gtk+-3.0 libcroco-0.6 >= 0.6.2 cinnamon-desktop >= 2.4.0 x11)
 PKG_CHECK_MODULES(GDMUSER, dbus-glib-1 gtk+-3.0)
-PKG_CHECK_MODULES(TRAY, gtk+-3.0)
+PKG_CHECK_MODULES(TRAY, clutter-1.0 gtk+-3.0)
 PKG_CHECK_MODULES(DESKTOP_SCHEMAS, cinnamon-desktop >= 2.4.0)
-
-AC_MSG_CHECKING([for bluetooth support])
-PKG_CHECK_EXISTS([gnome-bluetooth-1.0 >= 3.1.0],
-        [BLUETOOTH_DIR=`$PKG_CONFIG --variable=applet_libdir gnome-bluetooth-1.0`
-	 BLUETOOTH_LIBS=`$PKG_CONFIG --variable=applet_libs gnome-bluetooth-1.0`
-	 AC_SUBST([BLUETOOTH_LIBS],["$BLUETOOTH_LIBS"])
-	 AC_SUBST([BLUETOOTH_DIR],["$BLUETOOTH_DIR"])
-	 AC_DEFINE_UNQUOTED([BLUETOOTH_DIR],["$BLUETOOTH_DIR"],[Path to installed GnomeBluetooth typelib and library])
-	 AC_DEFINE([HAVE_BLUETOOTH],[1],[Define if you have libgnome-bluetooth-applet])
-	 AC_SUBST([HAVE_BLUETOOTH],[1])
-	 AC_MSG_RESULT([yes])],
-	[AC_DEFINE([HAVE_BLUETOOTH],[0])
-	 AC_SUBST([HAVE_BLUETOOTH],[0])
-	 AC_MSG_RESULT([no])])
 
 MUFFIN_GIR_DIR=`$PKG_CONFIG --variable=girdir libmuffin`
 MUFFIN_TYPELIB_DIR=`$PKG_CONFIG --variable=typelibdir libmuffin`
@@ -163,10 +141,6 @@ AC_SUBST(TYPELIBDIR)
 
 m4_ifdef([AX_COMPILER_FLAGS],
          [AX_COMPILER_FLAGS([WARN_CFLAGS],[WARN_LDFLAGS])])
-
-AC_ARG_ENABLE(jhbuild-wrapper-script,
-  AS_HELP_STRING([--jhbuild-wrapper-script=yes],[Make "cinnamon" script work for jhbuild]),,enable_jhbuild_wrapper_script=no)
-AM_CONDITIONAL(USE_JHBUILD_WRAPPER_SCRIPT, test "x$enable_jhbuild_wrapper_script" = xyes)
 
 AC_ARG_ENABLE([gtk-doc],
   AC_HELP_STRING([--enable-gtk-doc],

@@ -90,7 +90,6 @@ enum
   LAST_SIGNAL
 };
 
-#define ST_ENTRY_GET_PRIVATE(obj)     (G_TYPE_INSTANCE_GET_PRIVATE ((obj), ST_TYPE_ENTRY, StEntryPrivate))
 #define ST_ENTRY_PRIV(x) ((StEntry *) x)->priv
 
 static void         st_entry_check_cursor_blink       (StEntry       *entry);
@@ -116,7 +115,7 @@ struct _StEntryPrivate
 
 static guint entry_signals[LAST_SIGNAL] = { 0, };
 
-G_DEFINE_TYPE (StEntry, st_entry, ST_TYPE_WIDGET);
+G_DEFINE_TYPE_WITH_PRIVATE (StEntry, st_entry, ST_TYPE_WIDGET);
 
 static GType st_entry_accessible_get_type (void) G_GNUC_CONST;
 
@@ -258,7 +257,7 @@ st_entry_style_changed (StWidget *self)
   gdouble size;
 
   theme_node = st_widget_get_theme_node (self);
- 
+
   if (st_theme_node_lookup_length (theme_node, "caret-size", TRUE, &size))
     clutter_text_set_cursor_size (CLUTTER_TEXT (priv->entry), (int)(.5 + size));
 
@@ -422,7 +421,7 @@ st_entry_allocate (ClutterActor          *actor,
                               flags);
 
       /* reduce the size for the entry */
-      child_box.x1 += icon_w + priv->spacing;
+      child_box.x1 = MIN (child_box.x2, child_box.x1 + icon_w + priv->spacing);
     }
 
   if (priv->secondary_icon)
@@ -443,7 +442,7 @@ st_entry_allocate (ClutterActor          *actor,
                               flags);
 
       /* reduce the size for the entry */
-      child_box.x2 -= icon_w - priv->spacing;
+       child_box.x2 = MAX (child_box.x1, child_box.x2 - icon_w - priv->spacing);
     }
 
   clutter_actor_get_preferred_height (priv->entry, child_box.x2 - child_box.x1,
@@ -530,7 +529,7 @@ blink_cb (gpointer data)
 {
   StEntry *entry;
   StEntryPrivate *priv;
-  gint blink_timeout;
+  guint blink_timeout;
 
   entry = ST_ENTRY (data);
   priv = entry->priv;
@@ -734,6 +733,41 @@ st_entry_clipboard_callback (StClipboard *clipboard,
 }
 
 static gboolean
+clutter_text_button_press_event (ClutterActor       *actor,
+                                 ClutterButtonEvent *event,
+                                 gpointer            user_data)
+{
+  StEntryPrivate *priv = ST_ENTRY_PRIV (user_data);
+  GtkSettings *settings = gtk_settings_get_default ();
+  gboolean primary_paste_enabled;
+
+  g_object_get (settings,
+                "gtk-enable-primary-paste", &primary_paste_enabled,
+                NULL);
+
+  if (primary_paste_enabled && event->button == 2
+      && clutter_text_get_editable (CLUTTER_TEXT (priv->entry)))
+    {
+      StClipboard *clipboard;
+
+      clipboard = st_clipboard_get_default ();
+
+      /* By the time the clipboard callback is called,
+       * the rest of the signal handlers will have
+       * run, making the text cursor to be in the correct
+       * place.
+       */
+      st_clipboard_get_text (clipboard,
+                             ST_CLIPBOARD_TYPE_PRIMARY,
+                             st_entry_clipboard_callback,
+                             user_data);
+    }
+
+  return FALSE;
+}
+
+
+static gboolean
 st_entry_key_press_event (ClutterActor    *actor,
                           ClutterKeyEvent *event)
 {
@@ -748,20 +782,23 @@ st_entry_key_press_event (ClutterActor    *actor,
 
   /* paste */
   if ((event->modifier_state & CLUTTER_CONTROL_MASK)
-      && event->keyval == CLUTTER_v)
+      && (event->keyval == CLUTTER_KEY_v || event->keyval == CLUTTER_KEY_V))
     {
       StClipboard *clipboard;
 
       clipboard = st_clipboard_get_default ();
 
-      st_clipboard_get_text (clipboard, st_entry_clipboard_callback, actor);
+      st_clipboard_get_text (clipboard,
+                             ST_CLIPBOARD_TYPE_CLIPBOARD,
+                             st_entry_clipboard_callback,
+                             actor);
 
       return TRUE;
     }
 
   /* copy */
   if ((event->modifier_state & CLUTTER_CONTROL_MASK)
-      && event->keyval == CLUTTER_c)
+      && (event->keyval == CLUTTER_KEY_c || event->keyval == CLUTTER_KEY_C))
     {
       StClipboard *clipboard;
       gchar *text;
@@ -771,7 +808,9 @@ st_entry_key_press_event (ClutterActor    *actor,
       text = clutter_text_get_selection ((ClutterText*) priv->entry);
 
       if (text && strlen (text))
-        st_clipboard_set_text (clipboard, text);
+        st_clipboard_set_text (clipboard,
+                               ST_CLIPBOARD_TYPE_CLIPBOARD,
+                               text);
 
       return TRUE;
     }
@@ -779,7 +818,7 @@ st_entry_key_press_event (ClutterActor    *actor,
 
   /* cut */
   if ((event->modifier_state & CLUTTER_CONTROL_MASK)
-      && event->keyval == CLUTTER_x)
+      && (event->keyval == CLUTTER_KEY_x || event->keyval == CLUTTER_KEY_X))
     {
       StClipboard *clipboard;
       gchar *text;
@@ -790,7 +829,7 @@ st_entry_key_press_event (ClutterActor    *actor,
 
       if (text && strlen (text))
         {
-          st_clipboard_set_text (clipboard, text);
+          st_clipboard_set_text (clipboard,ST_CLIPBOARD_TYPE_CLIPBOARD, text);
 
           /* now delete the text */
           clutter_text_delete_selection ((ClutterText *) priv->entry);
@@ -819,8 +858,6 @@ st_entry_class_init (StEntryClass *klass)
   ClutterActorClass *actor_class = CLUTTER_ACTOR_CLASS (klass);
   StWidgetClass *widget_class = ST_WIDGET_CLASS (klass);
   GParamSpec *pspec;
-
-  g_type_class_add_private (klass, sizeof (StEntryPrivate));
 
   gobject_class->set_property = st_entry_set_property;
   gobject_class->get_property = st_entry_get_property;
@@ -890,7 +927,7 @@ st_entry_init (StEntry *entry)
 {
   StEntryPrivate *priv;
 
-  priv = entry->priv = ST_ENTRY_GET_PRIVATE (entry);
+  priv = entry->priv = st_entry_get_instance_private (entry);
 
   priv->entry = g_object_new (ST_TYPE_IM_TEXT,
                               "line-alignment", PANGO_ALIGN_LEFT,
@@ -907,6 +944,9 @@ st_entry_init (StEntry *entry)
 
   g_signal_connect (priv->entry, "notify::password-char",
                     G_CALLBACK (clutter_text_password_char_cb), entry);
+
+  g_signal_connect (priv->entry, "button-press-event",
+                    G_CALLBACK (clutter_text_button_press_event), entry);
 
   g_signal_connect (priv->entry, "notify::selection-bound",
                     G_CALLBACK (clutter_text_selection_bound_cb), entry);

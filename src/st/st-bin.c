@@ -38,8 +38,6 @@
 #include "st-enum-types.h"
 #include "st-private.h"
 
-#define ST_BIN_GET_PRIVATE(obj)       (G_TYPE_INSTANCE_GET_PRIVATE ((obj), ST_TYPE_BIN, StBinPrivate))
-
 struct _StBinPrivate
 {
   ClutterActor *child;
@@ -65,6 +63,7 @@ enum
 static void clutter_container_iface_init (ClutterContainerIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (StBin, st_bin, ST_TYPE_WIDGET,
+                         G_ADD_PRIVATE (StBin)
                          G_IMPLEMENT_INTERFACE (CLUTTER_TYPE_CONTAINER,
                                                 clutter_container_iface_init));
 
@@ -113,16 +112,19 @@ st_bin_allocate (ClutterActor          *self,
 
   clutter_actor_set_allocation (self, box, flags);
 
-  if (priv->child)
+  if (priv->child && clutter_actor_is_visible (priv->child))
     {
       StThemeNode *theme_node = st_widget_get_theme_node (ST_WIDGET (self));
       ClutterActorBox childbox;
+      gdouble x_align_f, y_align_f;
 
       st_theme_node_get_content_box (theme_node, box, &childbox);
-      _st_allocate_fill (ST_WIDGET (self), priv->child, &childbox,
-                         priv->x_align, priv->y_align,
-                         priv->x_fill, priv->y_fill);
-      clutter_actor_allocate (priv->child, &childbox, flags);
+      _st_get_align_factors (priv->x_align, priv->y_align,
+                             &x_align_f, &y_align_f);
+      clutter_actor_allocate_align_fill (priv->child, &childbox,
+                                         x_align_f, y_align_f,
+                                         priv->x_fill, priv->y_fill,
+                                         flags);
     }
 }
 
@@ -137,7 +139,7 @@ st_bin_get_preferred_width (ClutterActor *self,
 
   st_theme_node_adjust_for_height (theme_node, &for_height);
 
-  if (priv->child == NULL)
+  if (priv->child == NULL || !clutter_actor_is_visible (priv->child))
     {
       if (min_width_p)
         *min_width_p = 0;
@@ -166,7 +168,7 @@ st_bin_get_preferred_height (ClutterActor *self,
 
   st_theme_node_adjust_for_width (theme_node, &for_width);
 
-  if (priv->child == NULL)
+  if (priv->child == NULL || !clutter_actor_is_visible (priv->child))
     {
       if (min_height_p)
         *min_height_p = 0;
@@ -194,6 +196,15 @@ st_bin_dispose (GObject *gobject)
   g_assert (priv->child == NULL);
 
   G_OBJECT_CLASS (st_bin_parent_class)->dispose (gobject);
+}
+
+static void
+st_bin_popup_menu (StWidget *widget)
+{
+  StBinPrivate *priv = ST_BIN (widget)->priv;
+
+  if (priv->child && ST_IS_WIDGET (priv->child))
+    st_widget_popup_menu (ST_WIDGET (priv->child));
 }
 
 static gboolean
@@ -252,7 +263,7 @@ st_bin_set_property (GObject      *gobject,
 
     case PROP_Y_FILL:
       st_bin_set_fill (bin,
-                       bin->priv->y_fill,
+                       bin->priv->x_fill,
                        g_value_get_boolean (value));
       break;
 
@@ -304,8 +315,6 @@ st_bin_class_init (StBinClass *klass)
   StWidgetClass *widget_class = ST_WIDGET_CLASS (klass);
   GParamSpec *pspec;
 
-  g_type_class_add_private (klass, sizeof (StBinPrivate));
-
   gobject_class->set_property = st_bin_set_property;
   gobject_class->get_property = st_bin_get_property;
   gobject_class->dispose = st_bin_dispose;
@@ -314,6 +323,7 @@ st_bin_class_init (StBinClass *klass)
   actor_class->get_preferred_height = st_bin_get_preferred_height;
   actor_class->allocate = st_bin_allocate;
 
+  widget_class->popup_menu = st_bin_popup_menu;
   widget_class->navigate_focus = st_bin_navigate_focus;
 
   /**
@@ -384,7 +394,7 @@ st_bin_class_init (StBinClass *klass)
 static void
 st_bin_init (StBin *bin)
 {
-  bin->priv = ST_BIN_GET_PRIVATE (bin);
+  bin->priv = st_bin_get_instance_private (bin);
 
   bin->priv->x_align = ST_ALIGN_MIDDLE;
   bin->priv->y_align = ST_ALIGN_MIDDLE;

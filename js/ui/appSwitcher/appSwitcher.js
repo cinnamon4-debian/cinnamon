@@ -15,14 +15,21 @@ const DISABLE_HOVER_TIMEOUT = 500; // milliseconds
 function sortWindowsByUserTime(win1, win2) {
     let t1 = win1.get_user_time();
     let t2 = win2.get_user_time();
-    let m1 = win1.minimized;
-    let m2 = win2.minimized;
-    if (m1 == m2) {
-        return (t2 > t1) ? 1 : -1;   
+
+    this.minimizedAwareAltTab = global.settings.get_boolean("alttab-minimized-aware");
+    if (this.minimizedAwareAltTab) {
+      let m1 = win1.minimized;
+      let m2 = win2.minimized;
+      if (m1 == m2) {
+          return (t2 > t1) ? 1 : -1;
+      }
+      else {
+          return m1 ? 1 : -1;
+      }
     }
     else {
-        return m1 ? 1 : -1;
-    }    
+      return (t2 > t1) ? 1 : -1;
+    }
 }
 
 function matchSkipTaskbar(win) {
@@ -64,13 +71,20 @@ function getWindowsForBinding(binding) {
             windows = windows.filter( matchSkipTaskbar );
             break;
         case 'switch-group':
-            // Switch between windows of same application from all workspaces
+            // Switch between windows of the same application
             let focused = global.display.focus_window ? global.display.focus_window : windows[0];
             windows = windows.filter( matchWmClass, focused.get_wm_class() );
+            this._showAllWorkspaces = global.settings.get_boolean("alttab-switcher-show-all-workspaces");
+            if (!this._showAllWorkspaces) {
+                windows = windows.filter( matchWorkspace, global.screen.get_active_workspace() );
+            }
             break;
         default:
             // Switch between windows of current workspace
-            windows = windows.filter( matchWorkspace, global.screen.get_active_workspace() );
+            this._showAllWorkspaces = global.settings.get_boolean("alttab-switcher-show-all-workspaces");
+            if (!this._showAllWorkspaces) {
+                windows = windows.filter( matchWorkspace, global.screen.get_active_workspace() );
+            }
             break;
     }
 

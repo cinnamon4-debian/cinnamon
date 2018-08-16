@@ -244,12 +244,11 @@ st_table_homogeneous_allocate (ClutterActor          *self,
       gint row, col, row_span, col_span;
       StTableChild *meta;
       ClutterActorBox childbox;
-      StAlign x_align, y_align;
-      gboolean x_fill, y_fill;
+      gdouble x_align_f, y_align_f;
 
       meta = (StTableChild *) clutter_container_get_child_meta (CLUTTER_CONTAINER (self), child);
 
-      if (!meta->allocate_hidden && !CLUTTER_ACTOR_IS_VISIBLE (child))
+      if (!meta->allocate_hidden && !clutter_actor_is_visible (child))
         continue;
 
       /* get child properties */
@@ -257,10 +256,8 @@ st_table_homogeneous_allocate (ClutterActor          *self,
       row = meta->row;
       row_span = meta->row_span;
       col_span = meta->col_span;
-      x_align = meta->x_align;
-      y_align = meta->y_align;
-      x_fill = meta->x_fill;
-      y_fill = meta->y_fill;
+      _st_get_align_factors (meta->x_align, meta->y_align,
+                             &x_align_f, &y_align_f);
 
       if (ltr)
         {
@@ -276,10 +273,10 @@ st_table_homogeneous_allocate (ClutterActor          *self,
       childbox.y1 = content_box->y1 + (row_height + row_spacing) * row;
       childbox.y2 = childbox.y1 + (row_height * row_span) + (row_spacing * (row_span - 1));
 
-      _st_allocate_fill (ST_WIDGET (self), child, &childbox,
-                         x_align, y_align, x_fill, y_fill);
-
-      clutter_actor_allocate (child, &childbox, flags);
+      clutter_actor_allocate_align_fill (child, &childbox,
+                                         x_align_f, y_align_f,
+                                         meta->x_fill, meta->y_fill,
+                                         flags);
     }
 
 }
@@ -320,7 +317,7 @@ st_table_calculate_col_widths (StTable *table,
 
       meta = (StTableChild *) clutter_container_get_child_meta (CLUTTER_CONTAINER (table), child);
 
-      if (!meta->allocate_hidden && !CLUTTER_ACTOR_IS_VISIBLE (child))
+      if (!meta->allocate_hidden && !clutter_actor_is_visible (child))
         continue;
 
       /* get child properties */
@@ -427,7 +424,7 @@ st_table_calculate_row_heights (StTable *table,
 
       meta = (StTableChild *) clutter_container_get_child_meta (CLUTTER_CONTAINER (table), child);
 
-      if (!meta->allocate_hidden && !CLUTTER_ACTOR_IS_VISIBLE (child))
+      if (!meta->allocate_hidden && !clutter_actor_is_visible (child))
         continue;
 
       /* get child properties */
@@ -598,12 +595,11 @@ st_table_preferred_allocate (ClutterActor          *self,
       StTableChild *meta;
       ClutterActorBox childbox;
       gint child_x, child_y;
-      StAlign x_align, y_align;
-      gboolean x_fill, y_fill;
+      gdouble x_align_f, y_align_f;
 
       meta = (StTableChild *) clutter_container_get_child_meta (CLUTTER_CONTAINER (self), child);
 
-      if (!meta->allocate_hidden && !CLUTTER_ACTOR_IS_VISIBLE (child))
+      if (!meta->allocate_hidden && !clutter_actor_is_visible (child))
         continue;
 
       /* get child properties */
@@ -611,10 +607,8 @@ st_table_preferred_allocate (ClutterActor          *self,
       row = meta->row;
       row_span = meta->row_span;
       col_span = meta->col_span;
-      x_align = meta->x_align;
-      y_align = meta->y_align;
-      x_fill = meta->x_fill;
-      y_fill = meta->y_fill;
+      _st_get_align_factors (meta->x_align, meta->y_align,
+                             &x_align_f, &y_align_f);
 
 
       /* initialise the width and height */
@@ -691,11 +685,10 @@ st_table_preferred_allocate (ClutterActor          *self,
       childbox.y1 = (float) child_y;
       childbox.y2 = (float) MAX (0, child_y + row_height);
 
-
-      _st_allocate_fill (ST_WIDGET (self), child, &childbox,
-                         x_align, y_align, x_fill, y_fill);
-
-      clutter_actor_allocate (child, &childbox, flags);
+      clutter_actor_allocate_align_fill (child, &childbox,
+                                         x_align_f, y_align_f,
+                                         meta->x_fill, meta->y_fill,
+                                         flags);
     }
 }
 
@@ -765,7 +758,7 @@ st_table_get_preferred_width (ClutterActor *self,
 
       meta = (StTableChild *) clutter_container_get_child_meta (CLUTTER_CONTAINER (self), child);
 
-      if (!meta->allocate_hidden && !CLUTTER_ACTOR_IS_VISIBLE (child))
+      if (!meta->allocate_hidden && !clutter_actor_is_visible (child))
         continue;
 
       /* get child properties */
@@ -864,7 +857,7 @@ st_table_get_preferred_height (ClutterActor *self,
 
       meta = (StTableChild *) clutter_container_get_child_meta (CLUTTER_CONTAINER (self), child);
 
-      if (!meta->allocate_hidden && !CLUTTER_ACTOR_IS_VISIBLE (child))
+      if (!meta->allocate_hidden && !clutter_actor_is_visible (child))
         continue;
 
       /* get child properties */

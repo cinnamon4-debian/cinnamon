@@ -3,7 +3,7 @@
  * FILE:main.js
  * @short_description: This is the heart of Cinnamon, the mother of everything.
  * @placesManager (PlacesManager.PlacesManager): The places manager
- * @overview (Overview.Overview): The "scale" overview 
+ * @overview (Overview.Overview): The "scale" overview
  * @expo (Expo.Expo): The "expo" overview
  * @runDialog (RunDialog.RunDialog): The run dialog
  * @lookingGlass (LookingGlass.Melange): The looking glass object
@@ -62,9 +62,6 @@
  * This is a container that contains all the desklets as childs. Its actor is
  * put between @global.bottom_window_group and @global.uiGroup.
  * @software_rendering (boolean): Whether software rendering is used
- * @lg_log_file (Gio.FileOutputStream): The stream used to log looking messages
- *                                      to ~/.cinnamon/glass.log
- * @can_log (boolean): Whether looking glass log to file can be used
  * @popup_rendering_actor (Clutter.Actor): The popup actor that is in the process of rendering
  * @xlet_startup_error (boolean): Whether there was at least one xlet that did
  * not manage to load
@@ -83,13 +80,14 @@ const Mainloop = imports.mainloop;
 const Meta = imports.gi.Meta;
 const Cinnamon = imports.gi.Cinnamon;
 const St = imports.gi.St;
+const GObject = imports.gi.GObject;
 const PointerTracker = imports.misc.pointerTracker;
 const Lang = imports.lang;
 
 const SoundManager = imports.ui.soundManager;
 const BackgroundManager = imports.ui.backgroundManager;
 const SlideshowManager = imports.ui.slideshowManager;
-const AppletManager = imports.ui.appletManager;
+var AppletManager = imports.ui.appletManager;
 const SearchProviderManager = imports.ui.searchProviderManager;
 const DeskletManager = imports.ui.deskletManager;
 const ExtensionSystem = imports.ui.extensionSystem;
@@ -119,73 +117,84 @@ const Settings = imports.ui.settings;
 const Systray = imports.ui.systray;
 const Accessibility = imports.ui.accessibility;
 
-const DEFAULT_BACKGROUND_COLOR = new Clutter.Color();
-DEFAULT_BACKGROUND_COLOR.from_pixel(0x2266bbff);
+var LAYOUT_TRADITIONAL = "traditional";
+var LAYOUT_FLIPPED = "flipped";
+var LAYOUT_CLASSIC = "classic";
 
-const LAYOUT_TRADITIONAL = "traditional";
-const LAYOUT_FLIPPED = "flipped";
-const LAYOUT_CLASSIC = "classic";
+var DEFAULT_BACKGROUND_COLOR = Clutter.Color.from_pixel(0x000000ff);
 
-const CIN_LOG_FOLDER = GLib.get_home_dir() + '/.cinnamon/';
+var panel = null;
+var soundManager = null;
+var backgroundManager = null;
+var slideshowManager = null;
+var placesManager = null;
+var panelManager = null;
+var osdWindowManager = null;
+var overview = null;
+var expo = null;
+var runDialog = null;
+var lookingGlass = null;
+var wm = null;
+var a11yHandler = null;
+var messageTray = null;
+var indicatorManager = null;
+var notificationDaemon = null;
+var windowAttentionHandler = null;
+var recorder = null;
+var cinnamonDBusService = null;
+var modalCount = 0;
+var modalActorFocusStack = [];
+var uiGroup = null;
+var magnifier = null;
+var xdndHandler = null;
+var statusIconDispatcher = null;
+var keyboard = null;
+var layoutManager = null;
+var themeManager = null;
+var keybindingManager = null;
+var _errorLogStack = [];
+var _startDate;
+var _defaultCssStylesheet = null;
+var _cssStylesheet = null;
+var dynamicWorkspaces = null;
+var tracker = null;
+var settingsManager = null;
+var systrayManager = null;
+var wmSettings = null;
 
-let panel = null;
-let soundManager = null;
-let backgroundManager = null;
-let slideshowManager = null;
-let placesManager = null;
-let panelManager = null;
-let osdWindowManager = null;
-let overview = null;
-let expo = null;
-let runDialog = null;
-let lookingGlass = null;
-let wm = null;
-let a11yHandler = null;
-let messageTray = null;
-let indicatorManager = null;
-let notificationDaemon = null;
-let windowAttentionHandler = null;
-let recorder = null;
-let cinnamonDBusService = null;
-let modalCount = 0;
-let modalActorFocusStack = [];
-let uiGroup = null;
-let magnifier = null;
-let xdndHandler = null;
-let statusIconDispatcher = null;
-let keyboard = null;
-let layoutManager = null;
-let themeManager = null;
-let keybindingManager = null;
-let _errorLogStack = [];
-let _startDate;
-let _defaultCssStylesheet = null;
-let _cssStylesheet = null;
-let dynamicWorkspaces = null;
-let tracker = null;
-let settingsManager = null;
-let systrayManager = null;
-let wmSettings = null;
+var workspace_names = [];
 
-let workspace_names = [];
+var applet_side = St.Side.TOP; // Kept to maintain compatibility. Doesn't seem to be used anywhere
+var deskletContainer = null;
 
-let applet_side = St.Side.TOP; // Kept to maintain compatibility. Doesn't seem to be used anywhere
-let deskletContainer = null;
+var software_rendering = false;
 
-let software_rendering = false;
+var popup_rendering_actor = null;
 
-let lg_log_file;
-let can_log = false;
+var xlet_startup_error = false;
 
-let popup_rendering_actor = null;
+var RunState = {
+    INIT : 0,
+    STARTUP : 1,
+    RUNNING : 2
+}
 
-let xlet_startup_error = false;
+var runState = RunState.INIT;
 
 // Override Gettext localization
 const Gettext = imports.gettext;
 Gettext.bindtextdomain('cinnamon', '/usr/share/locale');
 Gettext.textdomain('cinnamon');
 const _ = Gettext.gettext;
+
+function setRunState(state) {
+    let oldState = runState;
+
+    if (state != oldState) {
+        runState = state;
+        cinnamonDBusService.EmitRunStateChanged();
+    }
+}
 
 function _initRecorder() {
     let recorderSettings = new Gio.Settings({ schema_id: 'org.cinnamon.recorder' });
@@ -215,6 +224,26 @@ function _initRecorder() {
     });
 }
 
+function _addXletDirectoriesToSearchPath() {
+    imports.searchPath.unshift(global.datadir);
+    imports.searchPath.unshift(global.userdatadir);
+    // Including the system data directory also includes unnecessary system utilities,
+    // so we are making sure they are removed.
+    let types = ['applets', 'desklets', 'extensions', 'search_providers'];
+    let importsCache = {};
+    for (let i = 0; i < types.length; i++) {
+        // Cache our existing xlet GJS importer objects
+        importsCache[types[i]] = imports[types[i]];
+    }
+    // Remove the two paths we added to the beginning of the array.
+    imports.searchPath.splice(0, 2);
+    for (let i = 0; i < types.length; i++) {
+        // Re-add cached xlet objects
+        imports[types[i]] = importsCache[types[i]];
+        importsCache[types[i]] = undefined;
+    }
+}
+
 function _initUserSession() {
     _initRecorder();
 
@@ -222,8 +251,6 @@ function _initUserSession() {
 
     systrayManager = new Systray.SystrayManager();
     indicatorManager = new IndicatorManager.IndicatorManager();
-    
-    ExtensionSystem.init();
 
     Meta.keybindings_set_custom_handler('panel-run-dialog', function() {
        getRunDialog().open();
@@ -262,39 +289,20 @@ function start() {
 
     let cinnamonStartTime = new Date().getTime();
 
-    if (global.settings.get_boolean("enable-looking-glass-logs")) {
-        try {
-            let log_filename = Gio.file_parse_name(CIN_LOG_FOLDER + '/glass.log');
-            let log_backup_filename = Gio.file_parse_name(CIN_LOG_FOLDER + '/glass.log.last');
-            let log_dir = Gio.file_new_for_path(CIN_LOG_FOLDER);
-            if (!log_filename.query_exists(null)) {
-                if (!log_dir.query_exists(null))
-                    log_dir.make_directory_with_parents(null);
-                lg_log_file = log_filename.append_to(0, null);
-            } else {
-                log_filename.copy(log_backup_filename, 1, null, null, null);
-                log_filename.delete(null);
-                lg_log_file = log_filename.append_to(0, null);
-            }
-            can_log = true;
-        } catch (e) {
-            global.logError("Error during looking-glass log initialization", e);
-        }
-    }
-
     log("About to start Cinnamon");
     if (GLib.getenv('CINNAMON_SOFTWARE_RENDERING')) {
-        log("ACTIVATING SOFTWARE RENDERING");        
+        log("ACTIVATING SOFTWARE RENDERING");
         global.logError("Cinnamon Software Rendering mode enabled");
         software_rendering = true;
     }
 
     // Chain up async errors reported from C
-    global.connect('notify-error', function (global, msg, detail) { notifyError(msg, detail); });    
+    global.connect('notify-error', function (global, msg, detail) { notifyError(msg, detail); });
 
     Gio.DesktopAppInfo.set_desktop_env('X-Cinnamon');
 
     cinnamonDBusService = new CinnamonDBus.CinnamonDBus();
+    setRunState(RunState.STARTUP);
 
     // Ensure CinnamonWindowTracker and CinnamonAppUsage are initialized; this will
     // also initialize CinnamonAppSystem first.  CinnamonAppSystem
@@ -315,9 +323,9 @@ function start() {
     // actor so set it anyways.
     global.stage.color = DEFAULT_BACKGROUND_COLOR;
     global.stage.no_clear_hint = true;
-    
+
     Gtk.IconTheme.get_default().append_search_path("/usr/share/cinnamon/icons/");
-    _defaultCssStylesheet = global.datadir + '/theme/cinnamon.css';    
+    _defaultCssStylesheet = global.datadir + '/theme/cinnamon.css';
 
     soundManager = new SoundManager.SoundManager();
 
@@ -328,7 +336,8 @@ function start() {
     backgroundManager = new BackgroundManager.BackgroundManager();
 
     slideshowManager = new SlideshowManager.SlideshowManager();
-    
+
+    keybindingManager = new Keybindings.KeybindingManager();
     deskletContainer = new DeskletManager.DeskletContainer();
 
     // Set up stage hierarchy to group all UI actors under one container.
@@ -368,6 +377,8 @@ function start() {
 
     global.reparentActor(global.top_window_group, global.stage);
 
+    global.menuStackLength = 0;
+
     layoutManager = new Layout.LayoutManager();
 
     Panel.checkPanelUpgrade();
@@ -394,30 +405,30 @@ function start() {
     overview = new Overview.Overview();
     expo = new Expo.Expo();
 
-    statusIconDispatcher = new StatusIconDispatcher.StatusIconDispatcher();  
+    statusIconDispatcher = new StatusIconDispatcher.StatusIconDispatcher();
 
     layoutManager._updateBoxes();
-    
+
     wm = new WindowManager.WindowManager();
     messageTray = new MessageTray.MessageTray();
     keyboard = new Keyboard.Keyboard();
     notificationDaemon = new NotificationDaemon.NotificationDaemon();
     windowAttentionHandler = new WindowAttentionHandler.WindowAttentionHandler();
 
-    placesManager = new PlacesManager.PlacesManager();    
+    placesManager = new PlacesManager.PlacesManager();
 
-    keybindingManager = new Keybindings.KeybindingManager();
     magnifier = new Magnifier.Magnifier();
 
     Meta.later_add(Meta.LaterType.BEFORE_REDRAW, _checkWorkspaces);
 
     dynamicWorkspaces = false; // This should be configurable
-    
+
     layoutManager.init();
     keyboard.init();
     overview.init();
     expo.init();
 
+    _addXletDirectoriesToSearchPath();
     _initUserSession();
 
     // Provide the bus object for gnome-session to
@@ -437,7 +448,7 @@ function start() {
         let module = eval('imports.perf.' + perfModuleName + ';');
         Scripting.runPerfScript(module, perfOutput);
     }
-    
+
     wmSettings = new Gio.Settings({schema_id: "org.cinnamon.desktop.wm.preferences"})
     workspace_names = wmSettings.get_strv("workspace-names");
 
@@ -449,54 +460,56 @@ function start() {
 
     _nWorkspacesChanged();
 
-    startTime = new Date().getTime();
-    AppletManager.init();
-    global.log('AppletManager.init() started in %d ms'.format(new Date().getTime() - startTime));
+    Promise.all([
+        AppletManager.init(),
+        ExtensionSystem.init(),
+        DeskletManager.init(),
+        SearchProviderManager.init()
+    ]).then(function() {
+        createLookingGlass();
 
-    DeskletManager.init();
-    SearchProviderManager.init();
+        a11yHandler = new Accessibility.A11yHandler();
 
-    createLookingGlass();
+        if (software_rendering && !GLib.getenv('CINNAMON_2D')) {
+            notifyCinnamon2d();
+        }
 
-    a11yHandler = new Accessibility.A11yHandler();
+        if (xlet_startup_error)
+            Mainloop.timeout_add_seconds(3, notifyXletStartupError);
 
-    if (software_rendering && !GLib.getenv('CINNAMON_2D')) {
-        notifyCinnamon2d();
-    }
+        let sound_settings = new Gio.Settings( {schema_id: "org.cinnamon.sounds"} );
+        let do_login_sound = sound_settings.get_boolean("login-enabled");
 
-    if (xlet_startup_error)
-        Mainloop.timeout_add_seconds(3, notifyXletStartupError);
+        // We're mostly prepared for the startup animation
+        // now, but since a lot is going on asynchronously
+        // during startup, let's defer the startup animation
+        // until the event loop is uncontended and idle.
+        // This helps to prevent us from running the animation
+        // when the system is bogged down
+        if (do_animation) {
+            let id = GLib.idle_add(GLib.PRIORITY_LOW, Lang.bind(this, function() {
+                if (do_login_sound)
+                    soundManager.play_once_per_session('login');
+                layoutManager._startupAnimation();
+                return GLib.SOURCE_REMOVE;
+            }));
+        } else {
+            global.background_actor.show();
+            setRunState(RunState.RUNNING);
 
-    let sound_settings = new Gio.Settings( {schema_id: "org.cinnamon.sounds"} );
-    let do_login_sound = sound_settings.get_boolean("login-enabled");
-
-    // We're mostly prepared for the startup animation
-    // now, but since a lot is going on asynchronously
-    // during startup, let's defer the startup animation
-    // until the event loop is uncontended and idle.
-    // This helps to prevent us from running the animation
-    // when the system is bogged down
-    if (do_animation) {
-        let id = GLib.idle_add(GLib.PRIORITY_LOW, Lang.bind(this, function() {
             if (do_login_sound)
                 soundManager.play_once_per_session('login');
-            layoutManager._startupAnimation();
-            return GLib.SOURCE_REMOVE;
-        }));
-    } else {
-        global.background_actor.show();
-        if (do_login_sound)
-            soundManager.play_once_per_session('login');
-    }
+        }
 
-    // Disable panel edit mode when Cinnamon starts
-    if (global.settings.get_boolean("panel-edit-mode")) {
-        global.settings.set_boolean("panel-edit-mode", false);
-    }
+        // Disable panel edit mode when Cinnamon starts
+        if (global.settings.get_boolean("panel-edit-mode")) {
+            global.settings.set_boolean("panel-edit-mode", false);
+        }
 
-    global.connect('shutdown', do_shutdown_sequence);
+        global.connect('shutdown', do_shutdown_sequence);
 
-    global.log('Cinnamon took %d ms to start'.format(new Date().getTime() - cinnamonStartTime));
+        global.log('Cinnamon took %d ms to start'.format(new Date().getTime() - cinnamonStartTime));
+    });
 }
 
 function notifyCinnamon2d() {
@@ -894,7 +907,7 @@ function warningNotify(msg, details, icon) {
     messageTray.add(source);
     let notification = new MessageTray.Notification(source, msg, details, { icon: icon });
     notification.setTransient(false);
-    notification.setUrgency(MessageTray.Urgency.WARNING);
+    notification.setUrgency(MessageTray.Urgency.HIGH);
     source.notify(notification);
 }
 
@@ -915,6 +928,74 @@ function notifyError(msg, details) {
 }
 
 /**
+ * formatLogArgument:
+ * @arg (any): A single argument.
+ * @recursion (int): Keeps track of the number of recursions.
+ * @depth (int): Controls how deeply to inspect object structures.
+ *
+ * Used by _log to handle each argument type and its formatting.
+ */
+function formatLogArgument(arg = '', recursion = 0, depth = 6) {
+    // Make sure falsey values are clearly indicated.
+    if (arg === null) {
+        arg = 'null';
+    } else if (arg === undefined) {
+        arg = 'undefined';
+    // Ensure strings are distinguishable.
+    } else if (typeof arg === 'string' && recursion > 0) {
+        arg = '\'' + arg + '\'';
+    }
+    // Check if we reached the depth threshold
+    if (recursion + 1 > depth) {
+        try {
+            arg = JSON.stringify(arg);
+        } catch (e) {
+            arg = arg.toString();
+        }
+        return arg;
+    }
+    let isGObject = arg instanceof GObject.Object;
+    let space = '';
+    for (let i = 0; i < recursion + 1; i++) {
+        space += '    ';
+    }
+    if (typeof arg === 'object') {
+        let isArray = Array.isArray(arg);
+        let brackets = isArray ? ['[', ']'] : ['{', '}'];
+        if (isGObject) {
+            arg = Util.getGObjectPropertyValues(arg);
+            if (Object.keys(arg).length === 0) {
+                return arg.toString();
+            }
+        }
+        let array = isArray ? arg : Object.keys(arg);
+        // Add beginning bracket with indentation
+        let string = brackets[0] + (recursion + 1 > depth ? '' : '\n');
+        for (let j = 0, len = array.length; j < len; j++) {
+            if (isArray) {
+                string += space + formatLogArgument(arg[j], recursion + 1, depth) + ',\n';
+            } else {
+                string += space + array[j] + ': ' + formatLogArgument(arg[array[j]], recursion + 1, depth) + ',\n';
+            }
+        }
+        // Remove one level of indentation and add the closing bracket.
+        space = space.substr(4, space.length);
+        arg = string + space + brackets[1];
+    // Functions, numbers, etc.
+    } else if (typeof arg === 'function') {
+        let array = arg.toString().split('\n');
+        for (let i = 0; i < array.length; i++) {
+            if (i === 0) continue;
+            array[i] = space + array[i];
+        }
+        arg = array.join('\n');
+    } else if (typeof arg !== 'string' || isGObject) {
+        arg = arg.toString();
+    }
+    return arg;
+}
+
+/**
  * _log:
  * @category (string): string message type ('info', 'error')
  * @msg (string): A message string
@@ -925,41 +1006,69 @@ function notifyError(msg, details) {
  * stream.  This is primarily intended for use by the
  * extension system as well as debugging.
  */
-function _log(category, msg) {
-    let text = msg;
-    if (arguments.length > 2) {
-        text += ': ';
-        for (let i = 2; i < arguments.length; i++) {
-            text += JSON.stringify(arguments[i]);
-            if (i < arguments.length - 1)
-                text += ' ';
-        }
+function _log(category = 'info', msg = '') {
+    // Convert arguments into an array so it can be iterated.
+    let args = Array.prototype.slice.call(arguments);
+    // Remove category from the list of loggable arguments
+    args.shift();
+    let text = '';
+
+    for (let i = 0, len = args.length; i < len; i++) {
+        args[i] = formatLogArgument(args[i]);
     }
-    let out = {timestamp: new Date().getTime().toString(),
-                         category: category,
-                         message: text };
+
+    if (args.length === 2) {
+        text = args[0] + ': ' + args[1];
+    } else {
+        text = args.join(' ');
+    }
+    let out = {
+        timestamp: new Date().getTime().toString(),
+        category: category,
+        message: text
+    };
+
     _errorLogStack.push(out);
-    if (lookingGlass)
+
+    if (lookingGlass) {
         lookingGlass.emitLogUpdate();
-    if (can_log) lg_log_file.write(renderLogLine(out), null);
+    }
+
+    log(`[LookingGlass/${category}] ${text}`);
 }
 
 /**
  * isError:
  * @obj (Object): the object to be tested
- * 
+ *
  * Tests whether @obj is an error object
- * 
+ *
  * Returns (boolean): whether @obj is an error object
  */
 function isError(obj) {
-    return typeof(obj) == 'object' && 'message' in obj && 'stack' in obj;
+    if (obj == undefined) return false;
+
+    let isErr = false;
+    if (typeof(obj) == 'object' && 'message' in obj && 'stack' in obj) {
+        isErr = true;
+    } else if (obj instanceof GLib.Error) {
+        // Make existing logging functionality work as expected when passed
+        // a GLib.Error which doesn't normally have a stack trace attached.
+        let stack = new Error().stack;
+        // This is reached the first time isError is called by a _log function,
+        // so strip off this function call and the _log function that called us.
+        let strPos = stack.indexOf('\n', stack.indexOf('\n') + 1)  + 1;
+        stack = stack.substr(strPos);
+        obj.stack = stack;
+        isErr = true;
+    }
+    return isErr;
 }
 
 /**
  * _LogTraceFormatted:
  * @stack (string): the stack trace
- * 
+ *
  * Prints the stack trace to the LookingGlass
  * error stream in a predefined format
  */
@@ -1019,13 +1128,13 @@ function _logWarning(msg) {
  * _logError:
  * @msg (string): (optional) The message string
  * @error (Error): (optional) The error object
- * 
+ *
  * Logs the following (if present) to the
  * LookingGlass error stream:
  * - The message from the error object
  * - The stack trace of the error object
  * - The message @msg
- * 
+ *
  * It can be called in the form of either _logError(msg),
  * _logError(error) or _logError(msg, error).
  */
@@ -1046,43 +1155,22 @@ function _logError(msg, error) {
 /**
  * _logInfo:
  * @msg (Error/string): The error object or the message string
- * 
+ *
  * Logs the message to the LookingGlass
- * error stream. If @msg is an Error object, 
+ * error stream. If @msg is an Error object,
  * its stack trace will also be printed
  */
 
 function _logInfo(msg) {
-    if(isError(msg)) {
+    if (isError(msg)) {
         _log('info', msg.message);
         _LogTraceFormatted(msg.stack);
     } else {
-        _log('info', msg);
+        // Convert arguments to an array, add 'info' to the beginning of it. Invoke _log with apply so
+        // unlimited arguments can be passed to it.
+        let args = Array.prototype.slice.call(arguments);
+        _log.apply(this, ['info'].concat(args));
     }
-}
-
-/**
- * formatTime:
- * @d (Date): date object to be formatted
- *
- * Formats a date object into a ISO-8601 format (YYYY-MM-DDTHH:MM:SSZ) in UTC+0
- *
- * Returns (string): a formatted string showing the date
- */
-function formatTime(d) {
-    return d.toISOString();
-}
-
-/**
- * renderLogLine:
- * @line (dictionary): a log line
- * 
- * Converts a log line object into a string
- *
- * Returns (string): line in the format CATEGORY t=TIME MESSAGE
- */
-function renderLogLine(line) {
-    return line.category + ' t=' + formatTime(new Date(parseInt(line.timestamp))) + ' ' + line.message + '\n';
 }
 
 /**
@@ -1169,7 +1257,7 @@ function _stageEventHandler(actor, event) {
         expo.hide();
         return true;
     }
-       
+
     if (action == Meta.KeyBindingAction.SWITCH_PANELS) {
         //Used to call the ctrlalttabmanager in Gnome Shell
         return true;
@@ -1186,15 +1274,14 @@ function _stageEventHandler(actor, event) {
              wm.actionMoveWorkspaceRight();
              return true;
         case Meta.KeyBindingAction.WORKSPACE_UP:
-            overview.hide();   
-            expo.hide();                  
+            overview.hide();
+            expo.hide();
             return true;
         case Meta.KeyBindingAction.WORKSPACE_DOWN:
             overview.hide();
             expo.hide();
             return true;
         case Meta.KeyBindingAction.PANEL_RUN_DIALOG:
-        case Meta.KeyBindingAction.COMMAND_2:
             getRunDialog().open();
             return true;
         case Meta.KeyBindingAction.PANEL_MAIN_MENU:
@@ -1233,7 +1320,7 @@ function _findModal(actor) {
  * @timestamp is optionally used to associate the call with a specific user
  * initiated event.  If not provided then the value of
  * global.get_current_time() is assumed.
- * 
+ *
  * Returns (boolean): true iff we successfully acquired a grab or already had one
  */
 function pushModal(actor, timestamp, options) {
@@ -1271,6 +1358,8 @@ function pushModal(actor, timestamp, options) {
     modalActorFocusStack.push(record);
 
     global.stage.set_key_focus(actor);
+
+    layoutManager.updateChrome(true);
     return true;
 }
 
@@ -1326,6 +1415,9 @@ function popModal(actor, timestamp) {
 
     global.end_modal(timestamp);
     global.set_stage_input_mode(Cinnamon.StageInputMode.NORMAL);
+
+    layoutManager.updateChrome(true);
+
     Meta.enable_unredirect_for_screen(global.screen);
 }
 
@@ -1516,21 +1608,22 @@ function queueDeferredWork(workId) {
  * Returns (boolean): whether the window is interesting
  */
 function isInteresting(metaWindow) {
+
     if (metaWindow.get_title() == "JavaEmbeddedFrame")
         return false;
 
+    // Include any window the tracker finds interesting
     if (tracker.is_window_interesting(metaWindow)) {
-        // The nominal case.
         return true;
     }
-    // The rest of this function is devoted to discovering "orphan" windows
-    // (dialogs without an associated app, e.g., the Logout dialog).
-    if (tracker.get_window_app(metaWindow)) {
-        // orphans don't have an app!
-        return false;
-    }    
+
+    // Include app-less dialogs
     let type = metaWindow.get_window_type();
-    return type === Meta.WindowType.DIALOG || type === Meta.WindowType.MODAL_DIALOG;
+    if (!tracker.get_window_app(metaWindow) && (type === Meta.WindowType.DIALOG || type === Meta.WindowType.MODAL_DIALOG)) {
+        return true;
+    }
+
+    return false;
 }
 
 /**

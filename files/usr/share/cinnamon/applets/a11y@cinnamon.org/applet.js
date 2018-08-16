@@ -1,4 +1,3 @@
-const St = imports.gi.St;
 const PopupMenu = imports.ui.popupMenu;
 const Gio = imports.gi.Gio;
 const Lang = imports.lang;
@@ -14,12 +13,7 @@ const KEY_MOUSE_KEYS_ENABLED  = 'mousekeys-enable';
 
 const APPLICATIONS_SCHEMA = 'org.cinnamon.desktop.a11y.applications';
 
-const DPI_LOW_REASONABLE_VALUE  = 50;
-const DPI_HIGH_REASONABLE_VALUE = 500;
-
 const DPI_FACTOR_LARGE   = 1.25;
-const DPI_FACTOR_LARGER  = 1.5;
-const DPI_FACTOR_LARGEST = 2.0;
 
 const DESKTOP_INTERFACE_SCHEMA = 'org.cinnamon.desktop.interface';
 const KEY_GTK_THEME      = 'gtk-theme';
@@ -30,30 +24,23 @@ const HIGH_CONTRAST_THEME = 'HighContrast';
 
 const Keymap = Gdk.Keymap.get_default();
 
-function MyApplet(metadata, orientation, panel_height, applet_id) {
-    this._init(metadata, orientation, panel_height, applet_id);
-}
-
-MyApplet.prototype = {
-    __proto__: Applet.TextIconApplet.prototype,
-
-    _init: function(metadata, orientation, panel_height, instance_id) {
-        Applet.TextIconApplet.prototype._init.call(this, orientation, panel_height, instance_id);
+class CinnamonA11YApplet extends Applet.TextIconApplet {
+    constructor(metadata, orientation, panel_height, instance_id) {
+        super(orientation, panel_height, instance_id);
 
         this.setAllowedLayout(Applet.AllowedLayout.BOTH);
-        
+
         try {
             this.metadata = metadata;
             Main.systrayManager.registerRole("a11y", metadata.uuid);
-            
+
             this.set_applet_icon_symbolic_name("preferences-desktop-accessibility");
             this.set_applet_tooltip(_("Accessibility"));
-            this.orientation = orientation;
-            
+
             this.menuManager = new PopupMenu.PopupMenuManager(this);
             this.menu = new Applet.AppletPopupMenu(this, orientation);
-            this.menuManager.addMenu(this.menu);            
-                                
+            this.menuManager.addMenu(this.menu);
+
             let highContrast = this._buildHCItem();
             this.menu.addMenuItem(highContrast);
 
@@ -90,15 +77,16 @@ MyApplet.prototype = {
             this.a11y_settings = new Gio.Settings({ schema_id: A11Y_SCHEMA });
 
             this._keyboardStateChangedId = Keymap.connect('state-changed', Lang.bind(this, this._handleStateChange));
+            this.set_show_label_in_vertical_panels(false);
             this.hide_applet_label(true);
 
         }
         catch (e) {
             global.logError(e);
         }
-    },
+    }
 
-    _handleStateChange: function(actor, event) {
+    _handleStateChange(actor, event) {
         if (this.a11y_settings.get_boolean(KEY_STICKY_KEYS_ENABLED)) {
             let state = Keymap.get_modifier_state();
             let modifiers = [];
@@ -125,46 +113,25 @@ MyApplet.prototype = {
             if (state & Gdk.ModifierType.MOD3_MASK)
                 modifiers.push('Mod3');
             let keystring = modifiers.join('+');
-//
-// horizontal panels - show the sticky keys in the label, vertical - in a tooltip, and hide any label
-//
-            if (this.orientation == St.Side.LEFT || this.orientation == St.Side.RIGHT) {
-                this.hide_applet_label(true);
-                if (keystring) {
-                    this.set_applet_tooltip(keystring);
-                    this._applet_tooltip.show();
-                } else {
-                    this.reset_tooltip();
-                }
-            } else {
-                this.set_applet_label(keystring);
-                this.hide_applet_label(false);
-                this.reset_tooltip();
-            }
+
+            this.set_applet_label(keystring);
+            this.set_applet_tooltip(keystring);
+            this._applet_tooltip.show();
         } else {
-            this.hide_applet_label (this.orientation == St.Side.LEFT || this.orientation == St.Side.RIGHT);
             this.reset_tooltip();
         }
-    },
+    }
 
-    on_applet_clicked: function(event) {
+    on_applet_clicked(event) {
         this.menu.toggle();
-    },
+    }
 
-    on_orientation_changed: function(neworientation) {
-
-        this.orientation = neworientation;
-
-        this.hide_applet_label (this.orientation == St.Side.LEFT || this.orientation == St.Side.RIGHT);
-        this.reset_tooltip();
-    },
-
-    reset_tooltip: function () {
+    reset_tooltip () {
         this.set_applet_tooltip(_("Accessibility"));
         this._applet_tooltip.hide();
-    },
+    }
 
-    _buildItemExtended: function(string, initial_value, writable, on_set) {
+    _buildItemExtended(string, initial_value, writable, on_set) {
         let widget = new PopupMenu.PopupSwitchMenuItem(string, initial_value);
         if (!writable)
             widget.actor.reactive = false;
@@ -173,9 +140,9 @@ MyApplet.prototype = {
                 on_set(item.state);
             });
         return widget;
-    },
+    }
 
-    _buildItem: function(string, schema, key) {
+    _buildItem(string, schema, key) {
         let settings = new Gio.Settings({ schema_id: schema });
         let widget = this._buildItemExtended(string,
             settings.get_boolean(key),
@@ -187,9 +154,9 @@ MyApplet.prototype = {
             widget.setToggleState(settings.get_boolean(key));
         });
         return widget;
-    },
+    }
 
-    _buildHCItem: function() {
+    _buildHCItem() {
         let settings = new Gio.Settings({ schema_id: DESKTOP_INTERFACE_SCHEMA });
         let gtkTheme = settings.get_string(KEY_GTK_THEME);
         let iconTheme = settings.get_string(KEY_ICON_THEME);
@@ -225,9 +192,9 @@ MyApplet.prototype = {
                 iconTheme = value;
         });
         return highContrast;
-    },
+    }
 
-    _buildFontItem: function() {
+    _buildFontItem() {
         let settings = new Gio.Settings({ schema_id: DESKTOP_INTERFACE_SCHEMA });
 
         let factor = settings.get_double(KEY_TEXT_SCALING_FACTOR);
@@ -248,14 +215,13 @@ MyApplet.prototype = {
             widget.setToggleState(active);
         });
         return widget;
-    },
+    }
 
-    on_applet_removed_from_panel: function() {
+    on_applet_removed_from_panel() {
         Main.systrayManager.unregisterRole("a11y", this.metadata.uuid);
     }
-};
+}
 
 function main(metadata, orientation, panel_height, instance_id) {
-    let myApplet = new MyApplet(metadata, orientation, panel_height, instance_id);
-    return myApplet;      
+    return new CinnamonA11YApplet(metadata, orientation, panel_height, instance_id);
 }

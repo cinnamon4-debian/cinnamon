@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 from gi.repository import Gio, Gtk, GObject, Gdk
 import cgi
@@ -25,24 +25,24 @@ CINNAMON_SCHEMA = "org.cinnamon.desktop.keybindings"
 
 CATEGORIES = [
 
-#   Label                   id                  parent
-#(child)Label                       id                  parent
+    #   Label                   id                  parent
+    #(child)Label                       id                  parent
 
     [_("General"),          "general",          None,       "preferences-desktop-keyboard-shortcuts"],
-        [_("Troubleshooting"),      "trouble",          "general",      None],
+    [_("Troubleshooting"),      "trouble",          "general",      None],
     [_("Windows"),          "windows",          None,       "preferences-system-windows"],
-        [_("Positioning"),          "win-position",     "windows",      None],
-        [_("Tiling and Snapping"),  "win-tiling",       "windows",      None],
-        [_("Inter-workspace"),      "win-workspaces",   "windows",      None],
-        [_("Inter-monitor"),        "win-monitors",     "windows",      None],
+    [_("Positioning"),          "win-position",     "windows",      None],
+    [_("Tiling and Snapping"),  "win-tiling",       "windows",      None],
+    [_("Inter-workspace"),      "win-workspaces",   "windows",      None],
+    [_("Inter-monitor"),        "win-monitors",     "windows",      None],
     [_("Workspaces"),       "workspaces",       None,       "video-display"],
-        [_("Direct Navigation"),    "ws-navi",          "workspaces",   None],
+    [_("Direct Navigation"),    "ws-navi",          "workspaces",   None],
     [_("System"),           "system",           None,       "preferences-system"],
-        [_("Hardware"),             "sys-hw",           "system",       None],
-        [_("Screenshots and Recording"),"sys-screen",   "system",       None],
+    [_("Hardware"),             "sys-hw",           "system",       None],
+    [_("Screenshots and Recording"),"sys-screen",   "system",       None],
     [_("Launchers"),        "launchers",        None,       "applications-utilities"],
     [_("Sound and Media"),  "media",            None,       "applications-multimedia"],
-        [_("Quiet Keys"),           "media-quiet",      "media",        None],
+    [_("Quiet Keys"),           "media-quiet",      "media",        None],
     [_("Universal Access"), "accessibility",    None,       "preferences-desktop-accessibility"],
     [_("Custom Shortcuts"), "custom",           None,       "cinnamon-panel-launcher"]
 ]
@@ -50,8 +50,10 @@ CATEGORIES = [
 KEYBINDINGS = [
     #   KB Label                        Schema                  Key name               Array?  Category
     # General
-    [_("Toggle Scale"), MUFFIN_KEYBINDINGS_SCHEMA, "switch-to-workspace-down", "general"],
-    [_("Toggle Expo"), MUFFIN_KEYBINDINGS_SCHEMA, "switch-to-workspace-up", "general"],
+    [_("Show the window selection screen"), MUFFIN_KEYBINDINGS_SCHEMA, "switch-to-workspace-down", "general"],
+    [_("Show the workspace selection screen"), MUFFIN_KEYBINDINGS_SCHEMA, "switch-to-workspace-up", "general"],
+    [_("Show desktop"), MUFFIN_KEYBINDINGS_SCHEMA, "show-desktop", "general"],
+    [_("Show Desklets"), CINNAMON_SCHEMA, "show-desklets", "general"],
     [_("Cycle through open windows"), MUFFIN_KEYBINDINGS_SCHEMA, "switch-windows", "general"],
     [_("Cycle backwards through open windows"), MUFFIN_KEYBINDINGS_SCHEMA, "switch-windows-backward", "general"],
     [_("Cycle through open windows of the same application"), MUFFIN_KEYBINDINGS_SCHEMA, "switch-group", "general"],
@@ -64,7 +66,6 @@ KEYBINDINGS = [
     [_("Unmaximize window"), MUFFIN_KEYBINDINGS_SCHEMA, "unmaximize", "windows"],
     [_("Minimize window"), MUFFIN_KEYBINDINGS_SCHEMA, "minimize", "windows"],
     [_("Close window"), MUFFIN_KEYBINDINGS_SCHEMA, "close", "windows"],
-    [_("Show desktop"), MUFFIN_KEYBINDINGS_SCHEMA, "show-desktop", "windows"],
     [_("Activate window menu"), MUFFIN_KEYBINDINGS_SCHEMA, "activate-window-menu", "windows"],
     [_("Raise window"), MUFFIN_KEYBINDINGS_SCHEMA, "raise", "windows"],
     [_("Lower window"), MUFFIN_KEYBINDINGS_SCHEMA, "lower", "windows"],
@@ -212,7 +213,7 @@ class Module:
 
     def on_module_selected(self):
         if not self.loaded:
-            print "Loading Keyboard module"
+            print("Loading Keyboard module")
 
             self.sidePage.stack = SettingsStack()
             self.sidePage.add_widget(self.sidePage.stack)
@@ -228,10 +229,10 @@ class Module:
             switch = GSettingsSwitch(_("Enable key repeat"), "org.cinnamon.settings-daemon.peripherals.keyboard", "repeat")
             settings.add_row(switch)
 
-            slider = GSettingsRange(_("Repeat delay:"), "org.cinnamon.settings-daemon.peripherals.keyboard", "delay", _("Short"), _("Long"), 100, 2000)
+            slider = GSettingsRange(_("Repeat delay:"), "org.cinnamon.settings-daemon.peripherals.keyboard", "delay", _("Short"), _("Long"), 100, 2000, show_value=False)
             settings.add_reveal_row(slider, "org.cinnamon.settings-daemon.peripherals.keyboard", "repeat")
 
-            slider = GSettingsRange(_("Repeat speed:"), "org.cinnamon.settings-daemon.peripherals.keyboard", "repeat-interval", _("Slow"), _("Fast"), 20, 2000, invert=True, log=True)
+            slider = GSettingsRange(_("Repeat speed:"), "org.cinnamon.settings-daemon.peripherals.keyboard", "repeat-interval", _("Slow"), _("Fast"), 20, 2000, log=True, show_value=False, flipped=True)
             settings.add_reveal_row(slider, "org.cinnamon.settings-daemon.peripherals.keyboard", "repeat")
 
             settings = page.add_section(_("Text cursor"))
@@ -239,7 +240,7 @@ class Module:
             switch = GSettingsSwitch(_("Text cursor blinks"), "org.cinnamon.desktop.interface", "cursor-blink")
             settings.add_row(switch)
 
-            slider = GSettingsRange(_("Blink speed:"), "org.cinnamon.desktop.interface", "cursor-blink-time", _("Slow"), _("Fast"), 100, 2500, invert=True)
+            slider = GSettingsRange(_("Blink speed:"), "org.cinnamon.desktop.interface", "cursor-blink-time", _("Slow"), _("Fast"), 100, 2500, show_value=False, flipped=True)
             settings.add_reveal_row(slider, "org.cinnamon.desktop.interface", "cursor-blink")
 
             # vbox.add(Gtk.Label.new(_("Test Box")))
@@ -256,7 +257,7 @@ class Module:
             headingbox.pack_end(Gtk.Label.new(_("To edit a keyboard binding, click it and press the new keys, or press backspace to clear it.")), False, False, 1)
 
             paned = Gtk.Paned(orientation = Gtk.Orientation.HORIZONTAL)
-            Gtk.StyleContext.add_class(Gtk.Widget.get_style_context(paned), "wide")
+            paned.set_wide_handle(True)
 
             left_vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 2)
             right_vbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 2)
@@ -351,7 +352,7 @@ class Module:
             entry_column.set_alignment(.5)
             self.entry_tree.append_column(entry_column)
 
-            self.entry_tree.set_tooltip_text("%s\n%s\n%s" % (_("Click to set a new accelerator key."), _("Press Escape or click again to cancel the operation."), _("Press Backspace to clear the existing keybinding.")))
+            self.entry_tree.set_tooltip_text(CellRendererKeybinding.TOOLTIP_TEXT)
 
             self.main_store = []
 
@@ -465,17 +466,15 @@ class Module:
             for keybinding in category.keybindings:
                 for entry in keybinding.entries:
                     found = False
-                    if accel_string.lower() == entry.lower():
-                        found = True
-                    elif accel_string.replace("<Primary>", "<Control>").lower() == entry.lower():
+                    if Gtk.accelerator_parse_with_keycode(accel_string) == Gtk.accelerator_parse_with_keycode(entry):
                         found = True
 
                     if found and keybinding.label != current_keybinding.label:
                         dialog = Gtk.MessageDialog(None,
-                                    Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                                    Gtk.MessageType.QUESTION,
-                                    Gtk.ButtonsType.YES_NO,
-                                    None)
+                                                   Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                                                   Gtk.MessageType.QUESTION,
+                                                   Gtk.ButtonsType.YES_NO,
+                                                   None)
                         dialog.set_default_size(400, 200)
                         msg = _("This key combination, <b>%(combination)s</b> is currently in use by <b>%(old)s</b>.  ")
                         msg += _("If you continue, the combination will be reassigned to <b>%(new)s</b>.\n\n")
@@ -746,10 +745,10 @@ class AddCustomDialog(Gtk.Dialog):
         else:
             ok_button_label = _("Add")
         super(AddCustomDialog, self).__init__(_("Add custom shortcut"),
-                                                None,
-                                                0,
-                                                (ok_button_label, Gtk.ResponseType.OK,
-                                                _("Cancel"), Gtk.ResponseType.CANCEL))
+                                              None,
+                                              0,
+                                              (ok_button_label, Gtk.ResponseType.OK,
+                                               _("Cancel"), Gtk.ResponseType.CANCEL))
         self.set_default_size(350, 100)
         name_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 2)
         command_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 2)

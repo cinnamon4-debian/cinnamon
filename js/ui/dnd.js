@@ -5,7 +5,6 @@ const GLib = imports.gi.GLib;
 const Gtk = imports.gi.Gtk;
 const St = imports.gi.St;
 const Lang = imports.lang;
-const Meta = imports.gi.Meta;
 const Cinnamon = imports.gi.Cinnamon;
 const Signals = imports.signals;
 const Tweener = imports.ui.tweener;
@@ -13,37 +12,39 @@ const Main = imports.ui.main;
 
 const Params = imports.misc.params;
 
-const DND_ANIMATION_TIME = 0.2;
+var DND_ANIMATION_TIME = 0.2;
 // Time to scale down to maxDragActorSize
-const SCALE_ANIMATION_TIME = 0.25;
+var SCALE_ANIMATION_TIME = 0.25;
 // Time to animate to original position on cancel
-const SNAP_BACK_ANIMATION_TIME = 0.25;
+var SNAP_BACK_ANIMATION_TIME = 0.25;
 // Time to animate to original position on success
-const REVERT_ANIMATION_TIME = 0.75;
+var REVERT_ANIMATION_TIME = 0.75;
 
-const DragMotionResult = {
-    NO_DROP:   0,
-    COPY_DROP: 1,
-    MOVE_DROP: 2,
-    CONTINUE:  3
+var DragMotionResult = {
+    NO_DROP:       0,
+    COPY_DROP:     1,
+    MOVE_DROP:     2,
+    POINTING_DROP: 3,
+    CONTINUE:      4
 };
 
-const DRAG_CURSOR_MAP = {
+var DRAG_CURSOR_MAP = {
     0: Cinnamon.Cursor.DND_UNSUPPORTED_TARGET,
     1: Cinnamon.Cursor.DND_COPY,
-    2: Cinnamon.Cursor.DND_MOVE
+    2: Cinnamon.Cursor.DND_MOVE,
+    3: Cinnamon.Cursor.POINTING_HAND
 };
 
-const DragDropResult = {
+var DragDropResult = {
     FAILURE:  0,
     SUCCESS:  1,
     CONTINUE: 2
 };
 
-let eventHandlerActor = null;
-let currentDraggable = null;
-let dragMonitors = [];
-let targetMonitors = [];
+var eventHandlerActor = null;
+var currentDraggable = null;
+var dragMonitors = [];
+var targetMonitors = [];
 
 function _getEventHandlerActor() {
     if (!eventHandlerActor) {
@@ -75,7 +76,7 @@ function isDragging() {
     return currentDraggable != null;
 }
 
-const _Draggable = new Lang.Class({
+var _Draggable = new Lang.Class({
     Name: 'Draggable',
 
     _init : function(actor, params, target) {
@@ -90,6 +91,7 @@ const _Draggable = new Lang.Class({
 
         this.actor = actor;
         this.target = null;
+        this.recentDropTarget = null;
 
         if (target) {
             this.target = target;
@@ -260,7 +262,7 @@ const _Draggable = new Lang.Class({
 
         if (this.actor._delegate && this.actor._delegate.getDragActor) {
             this._dragActor = this.actor._delegate.getDragActor();
-            this._dragActor.reparent(Main.uiGroup);
+            global.reparentActor(this._dragActor, Main.uiGroup);
             this._dragActor.raise_top();
             Cinnamon.util_set_hidden_from_pick(this._dragActor, true);
 
@@ -309,7 +311,7 @@ const _Draggable = new Lang.Class({
             this._dragOffsetX = actorStageX - this._dragStartX;
             this._dragOffsetY = actorStageY - this._dragStartY;
 
-            this._dragActor.reparent(Main.uiGroup);
+            global.reparentActor(this._dragActor, Main.uiGroup);
             this._dragActor.raise_top();
             Cinnamon.util_set_hidden_from_pick(this._dragActor, true);
         }
@@ -370,14 +372,29 @@ const _Draggable = new Lang.Class({
     _updateDragHover : function () {
         this._updateHoverId = 0;
         let target = null;
+        let result = null;
 
         let x = this._overrideX == undefined ? this._dragX : this._overrideX;
         let y = this._overrideY == undefined ? this._dragY : this._overrideY;
 
-        if (this.target)
+        if (this.recentDropTarget) {
+            let allocation = Cinnamon.util_get_transformed_allocation(this.recentDropTarget);
+
+            if (x < allocation.x1 || x > allocation.x2 || y < allocation.y1 || y > allocation.y2) {
+                this.recentDropTarget._delegate.handleDragOut();
+                this.recentDropTarget = null;
+            }
+        }
+
+        if (this.target) {
             target = this.target;
-        else
-            target = this._dragActor.get_stage().get_actor_at_pos(Clutter.PickMode.ALL, x, y);
+        } else {
+            let stage = this._dragActor.get_stage();
+            if (!stage) {
+                return;
+            }
+            target = stage.get_actor_at_pos(Clutter.PickMode.ALL, x, y);
+        }
 
         let dragEvent = {
             x: this._dragX,
@@ -389,10 +406,9 @@ const _Draggable = new Lang.Class({
         for (let i = 0; i < dragMonitors.length; i++) {
             let motionFunc = dragMonitors[i].dragMotion;
             if (motionFunc) {
-                let result = motionFunc(dragEvent);
-                if (result != DragMotionResult.CONTINUE) {
-                    global.set_cursor(DRAG_CURSOR_MAP[result]);
-                    return false;
+                result = motionFunc(dragEvent);
+                if (result == DragMotionResult.MOVE_DROP || result == DragMotionResult.COPY_DROP) {
+                    break;
                 }
             }
         }
@@ -403,27 +419,26 @@ const _Draggable = new Lang.Class({
                 // We currently loop through all parents on drag-over even if one of the children has handled it.
                 // We can check the return value of the function and break the loop if it's true if we don't want
                 // to continue checking the parents.
-                let result = target._delegate.handleDragOver(this.actor._delegate,
+                result = target._delegate.handleDragOver(this.actor._delegate,
                                                              this._dragActor,
                                                              targX,
                                                              targY,
                                                              0);
-                if (result != DragMotionResult.CONTINUE) {
-                    global.set_cursor(DRAG_CURSOR_MAP[result]);
-                    return false;
+                if (result == DragMotionResult.MOVE_DROP || result == DragMotionResult.COPY_DROP) {
+                    if (target._delegate.handleDragOut) this.recentDropTarget = target;
+                    break;
                 }
             }
             target = target.get_parent();
         }
-        global.set_cursor(Cinnamon.Cursor.DND_IN_DRAG);
+        if (result in DRAG_CURSOR_MAP) global.set_cursor(DRAG_CURSOR_MAP[result]);
+        else global.set_cursor(Cinnamon.Cursor.DND_IN_DRAG);
         return false;
     },
 
     _queueUpdateDragHover: function() {
-        if (this._updateHoverId) {
-            GLib.source_remove(this._updateHoverId);
-            this._updateHoverId = 0;
-        }
+        if (this._updateHoverId)
+            return;
 
         this._updateHoverId = GLib.idle_add(GLib.PRIORITY_DEFAULT,
                                             Lang.bind(this, this._updateDragHover));
@@ -585,7 +600,7 @@ const _Draggable = new Lang.Class({
 
     _restoreDragActor: function(eventTime) {
         this._dragInProgress = false;
-        [restoreX, restoreY, restoreScale] = this._getRestoreLocation();
+        let [restoreX, restoreY, restoreScale] = this._getRestoreLocation();
 
         // fade the actor back in at its original location
         this._dragActor.set_position(restoreX, restoreY);
@@ -605,7 +620,7 @@ const _Draggable = new Lang.Class({
 
     _onAnimationComplete : function (dragActor, eventTime) {
         if (this._dragOrigParent) {
-            dragActor.reparent(this._dragOrigParent);
+            global.reparentActor (dragActor, this._dragOrigParent);
             dragActor.set_scale(this._dragOrigScale, this._dragOrigScale);
             dragActor.set_position(this._dragOrigX, this._dragOrigY);
         } else {

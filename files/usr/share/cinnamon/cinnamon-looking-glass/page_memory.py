@@ -1,10 +1,12 @@
-from pageutils import *
-from gi.repository import Gio, Gtk, GObject, Gdk, Pango, GLib
+#!/usr/bin/python3
 
-class MemoryView(BaseListView):
+import pageutils
+from gi.repository import Gtk
+
+class MemoryView(pageutils.BaseListView):
     def __init__(self):
         store = Gtk.ListStore(str, int)
-        BaseListView.__init__(self, store)
+        pageutils.BaseListView.__init__(self, store)
 
         self.createTextColumn(0, "Name")
         self.createTextColumn(1, "Size (bytes)")
@@ -32,24 +34,24 @@ class MemoryView(BaseListView):
         success, time_last_gc, data = lookingGlassProxy.GetMemoryInfo()
         if success:
             self.secondsLabel.set_text("%d" % time_last_gc)
-            for key in data.keys():
+            for key in data:
                 self.store.append([key, data[key]])
 
     def onFullGc(self, widget):
         lookingGlassProxy.FullGc()
         self.getUpdates()
 
-class ModulePage(WindowAndActionBars):
+class ModulePage(pageutils.WindowAndActionBars):
     def __init__(self, parent):
         self.view = MemoryView()
-        WindowAndActionBars.__init__(self, self.view)
+        pageutils.WindowAndActionBars.__init__(self, self.view)
         self.parent = parent
 
-        refresh = ImageButton("view-refresh")
+        refresh = pageutils.ImageButton("view-refresh")
         refresh.set_tooltip_text("Refresh")
         refresh.connect("clicked", self.view.getUpdates)
         self.addToLeftBar(refresh, 1)
-        fullGc = ImageButton("user-trash-full")
+        fullGc = pageutils.ImageButton("user-trash-full")
         fullGc.set_tooltip_text("Full Garbage Collection")
         fullGc.connect ('clicked', self.view.onFullGc)
 

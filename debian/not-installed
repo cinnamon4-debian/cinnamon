@@ -1,5 +1,3 @@
-# moved to /usr/share
-usr/lib/cinnamon-*
 # libtool not installed
 usr/lib/*/cinnamon/libcinnamon-js.la
 usr/lib/*/cinnamon/libcinnamon.la
@@ -7,3 +5,5 @@ usr/lib/*/cinnamon/libcinnamon.la
 usr/share/man/man1/*.1
 # we are not preloading stuff
 etc/cinnamon/preload/iconthemes.d/cinnamon.list
+# renamed to Default.png
+usr/share/cinnamon/thumbnails/metacity-1/Adwaita.png

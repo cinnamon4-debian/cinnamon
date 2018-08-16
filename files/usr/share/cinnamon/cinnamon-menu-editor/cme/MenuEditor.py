@@ -36,7 +36,7 @@ class MenuEditor(object):
     def loadDOM(self):
         try:
             self.dom = xml.dom.minidom.parse(self.path)
-        except (IOError, xml.parsers.expat.ExpatError), e:
+        except (IOError, xml.parsers.expat.ExpatError) as e:
             self.dom = xml.dom.minidom.parseString(util.getUserMenuXml(self.tree))
         util.removeWhitespaceNodes(self.dom)
 
@@ -113,7 +113,7 @@ class MenuEditor(object):
             item_type = item_iter.next()
         items.sort(key=util.menuSortKey)
         for item in items:
-          yield (item, self.isVisible(item))
+            yield (item, self.isVisible(item))
 
     def getContents(self, item):
         contents = []
@@ -541,10 +541,10 @@ class MenuEditor(object):
         index = -1
         if after:
             index = self.getIndex(after, contents) + 1
-          #  index = contents.index(after) + 1
+            #  index = contents.index(after) + 1
         elif before:
             index = self.getIndex(before, contents)
-          #  index = contents.index(before)
+            #  index = contents.index(before)
         else:
             # append the item to the list
             index = len(contents)

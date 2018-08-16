@@ -37,6 +37,8 @@ const TIME_DELTA = 1500;
 
 const APPLETS_DROP_ANIMATION_TIME = 0.2;
 
+const EDIT_MODE_MIN_BOX_SIZE = 25;
+
 const PANEL_AUTOHIDE_KEY = "panels-autohide";
 const PANEL_SHOW_DELAY_KEY = "panels-show-delay";
 const PANEL_HIDE_DELAY_KEY = "panels-hide-delay";
@@ -64,7 +66,7 @@ const CornerType = {
     dummy : 4
 };
 
-const PanelLoc = {
+var PanelLoc = {
     top : 0,
     bottom : 1,
     left : 2,
@@ -177,12 +179,12 @@ function heightsUsedMonitor (monitorIndex, listofpanels) {
     let toppanelHeight = 0;
     let bottompanelHeight = 0;
 
-    for (let i in listofpanels) {
+    for (let i = 0, len = listofpanels.length; i < len; i++) {
         if (listofpanels[i]) {
             if (listofpanels[i].monitorIndex == monitorIndex) {
                 if (listofpanels[i].panelPosition == PanelLoc.top)
                     toppanelHeight = listofpanels[i].actor.height;
-                if (listofpanels[i].panelPosition == PanelLoc.bottom)
+                else if (listofpanels[i].panelPosition == PanelLoc.bottom)
                     bottompanelHeight = listofpanels[i].actor.height;
             }
         }
@@ -219,7 +221,7 @@ function getPanelLocFromName (pname) {
 
 /**
  * #PanelManager
- * 
+ *
  * @short_description: Manager of Cinnamon panels
  *
  * #PanelManager creates panels and startup and
@@ -231,6 +233,8 @@ function PanelManager() {
 
 PanelManager.prototype = {
     _init: function() {
+        this.dummyPanels = [];
+        this.panelCount = 0;
         this.panels = [];
         this.panelsMeta = [];   // Properties of panels in format [<monitor index>, <panelPosition>]
         this.canAdd = true;     // Whether there is space for more panels to be added
@@ -260,7 +264,7 @@ PanelManager.prototype = {
 
     /**
      * #_fullPanelLoad
-     * 
+     *
      * @short_description: Does a full load of all panels
      *
      * #_fullPanelLoad loads all panels in order, and makes any adjustments to permit vertical panels to fit snugly
@@ -279,7 +283,7 @@ PanelManager.prototype = {
         //
         // First pass through just to count the monitors, as there is no ordering to rely on
         //
-        for (let i in panelProperties) {
+        for (let i = 0, len = panelProperties.length; i < len; i++) {
             let elements = panelProperties[i].split(":");
             if (elements.length != 3) {
                 global.log("Invalid panel definition: " + panelProperties[i]);
@@ -303,7 +307,7 @@ PanelManager.prototype = {
         //
         // set up the list of panels
         //
-        for (let i in panelProperties) {
+        for (let i = 0, len = panelProperties.length; i < len; i++) {
             let elements = panelProperties[i].split(":");
             if (elements.length != 3) {
                 global.log("Invalid panel definition: " + panelProperties[i]);
@@ -313,7 +317,7 @@ PanelManager.prototype = {
 
             monitor = parseInt(elements[1]);
 
-            panels_used[monitor][jj] =  true;
+            panels_used[monitor][jj] = true;
 
             stash[i] = [parseInt(elements[0]),monitor,jj]; // load what we are going to use to call loadPanel into an array
         }
@@ -332,26 +336,20 @@ PanelManager.prototype = {
         // if the theme does not have them
 
         for (let i = 0; i <= monitorCount; i++) {
-            let pleft;
-            for (let j in stash) {
-                if (stash[j][2] == PanelLoc.left && stash[j][1] == i)
-                    pleft = this._loadPanel(stash[j][0], stash[j][1], stash[j][2], [true,true]);
-            }
-            let pright;
-            for (let j in stash) {
-                if (stash[j][2] == PanelLoc.right && stash[j][1] == i)
-                    pright = this._loadPanel(stash[j][0], stash[j][1], stash[j][2], [true,true]);
-            }
-            for (let j in stash) {
+            let pleft, pright;
+            for (let j = 0, len = stash.length; j < len; j++) {
                 let drawcorner = [false,false];
+                if (stash[j][2] == PanelLoc.left && stash[j][1] == i) {
+                    pleft = this._loadPanel(stash[j][0], stash[j][1], stash[j][2], [true,true]);
+                }
+                if (stash[j][2] == PanelLoc.right && stash[j][1] == i) {
+                    pright = this._loadPanel(stash[j][0], stash[j][1], stash[j][2], [true,true]);
+                }
                 if (stash[j][2] == PanelLoc.bottom && stash[j][1] == i) {
                     drawcorner[0] = (panels_used[i][2])? false : true;
                     drawcorner[1] = (panels_used[i][3])? false : true;
                     this._loadPanel(stash[j][0], stash[j][1], stash[j][2], drawcorner);
                 }
-            }
-            for (let j in stash) {
-                let drawcorner = [false,false];
                 if (stash[j][2] == PanelLoc.top && stash[j][1] == i) {
                     drawcorner[0] = (panels_used[i][2])? false : true;
                     drawcorner[1] = (panels_used[i][3])? false : true;
@@ -359,15 +357,15 @@ PanelManager.prototype = {
                 }
             }
             //
-            // if called in init, the calls in moveResizePanel that happen when panels are created will not 
-            // have found the heights available for vertical panels between horizontal panels, so calculate them now. 
+            // if called in init, the calls in moveResizePanel that happen when panels are created will not
+            // have found the heights available for vertical panels between horizontal panels, so calculate them now.
             //
             if (pleft || pright) {
                 let toppheight;
                 let botpheight;
                 [toppheight,botpheight] = heightsUsedMonitor(i, this.panels);
                 if (pleft) {
-                    pleft.toppanelHeight = toppheight; 
+                    pleft.toppanelHeight = toppheight;
                     pleft.bottompanelHeight = botpheight;;
                 }
                 if (pright) {
@@ -380,7 +378,7 @@ PanelManager.prototype = {
         // At this point all the panels are shown, so work through them and adjust
         // vertical panel heights so as to fit snugly between horizontal panels
         //
-        for (let i in this.panels) {
+        for (let i = 0, len = this.panels.length; i < len; i++) {
             if (this.panels[i])
                 if (this.panels[i].panelPosition == PanelLoc.left || this.panels[i].panelPosition == PanelLoc.right)
                     this.panels[i]._moveResizePanel();
@@ -393,7 +391,7 @@ PanelManager.prototype = {
      * Disables (hide and lock) all panels
      */
     disablePanels: function() {
-        for (let i in this.panels) {
+        for (let i = 0, len = this.panels.length; i < len; i++) {
             if (this.panels[i])
                 this.panels[i].disable();
         }
@@ -405,7 +403,7 @@ PanelManager.prototype = {
      * Enables all panels
      */
     enablePanels: function() {
-        for (let i in this.panels) {
+        for (let i = 0, len = this.panels.length; i < len; i++) {
             if (this.panels[i])
                 this.panels[i].enable();
         }
@@ -418,7 +416,7 @@ PanelManager.prototype = {
      * Sets the opacity of all panels to @opacity
      */
     setPanelsOpacity: function(opacity) {
-        for (let i in this.panels) {
+        for (let i = 0, len = this.panels.length; i < len; i++) {
             if (this.panels[i])
                 this.panels[i].actor.opacity = opacity;
         }
@@ -431,7 +429,9 @@ PanelManager.prototype = {
      * Lowers actor to just under the panel actors
      */
     lowerActorBelowPanels: function(actor, group) {
-        for (let i in this.panels) {
+        for (let i = 0, len = this.panels.length; i < len; i++) {
+            if (!this.panels[i])
+                continue;
             Main.uiGroup.set_child_below_sibling(actor, this.panels[i].actor);
             break;
         }
@@ -455,8 +455,9 @@ PanelManager.prototype = {
      * Remove the panel from the list panels-enabled
      */
     removePanel: function(panelId) {
+        this.panelCount -= 1;
         let list = global.settings.get_strv("panels-enabled");
-        for (let i in list) {
+        for (let i = 0, len = list.length; i < len; i++) {
             if (list[i].split(":")[0] == panelId) {
                 list.splice(i, 1);
                 break;
@@ -529,7 +530,7 @@ PanelManager.prototype = {
         let list = global.settings.get_strv("panels-enabled");
         let i = -1;
 
-        for (let i in list) {
+        for (let i = 0, len = list.length; i < len; i++) {
             if (list[i].split(":")[0] == this.moveId) {
                 switch (panelPosition)
                 {
@@ -565,16 +566,19 @@ PanelManager.prototype = {
      * Destroys all panel dummies
      */
     _destroyDummyPanels: function() {
-        for (let i in this.dummyPanels) {
-            if (this.dummyPanels[i][0]) this.dummyPanels[i][0].destroy();
-            if (this.dummyPanels[i][1]) this.dummyPanels[i][1].destroy();
-            if (this.dummyPanels[i][2]) this.dummyPanels[i][2].destroy();
-            if (this.dummyPanels[i][3]) this.dummyPanels[i][3].destroy();
-            delete this.dummyPanels[i][0];
-            delete this.dummyPanels[i][1];
-            delete this.dummyPanels[i][2];
-            delete this.dummyPanels[i][3];
-        }  
+        for (let i = 0, len = this.dummyPanels.length; i < len; i++) {
+            let removedDummyPanelIndexes = [];
+            for (let j = 0, len = this.dummyPanels[i].length; j < len; j++) {
+                if (this.dummyPanels[i][j]) {
+                    this.dummyPanels[i][j].destroy();
+                    removedDummyPanelIndexes.push(j);
+                }
+            }
+            for (let z = 0; z < removedDummyPanelIndexes.length; z++) {
+                this.dummyPanels[i][removedDummyPanelIndexes[z]] = undefined;
+                this.dummyPanels[i].splice(removedDummyPanelIndexes[z], 1);
+            }
+        }
         this.addPanelMode = false;
         this._addOsd.hide();
         this._moveOsd.hide();
@@ -592,8 +596,8 @@ PanelManager.prototype = {
      */
     getPanelsInMonitor: function(monitorIndex) {
         let returnValue = [];
-        for (let i in this.panels) {
-            if (this.panels[i].monitorIndex == monitorIndex)
+        for (let i = 0, len = this.panels.length; i < len; i++) {
+            if (this.panels[i] && this.panels[i].monitorIndex == monitorIndex)
                 returnValue.push(this.panels[i]);
         }
         return returnValue;
@@ -616,12 +620,12 @@ PanelManager.prototype = {
      * @monitorIndex (integer): index of monitor
      * @panelPosition (integer): where the panel is added
      *
-     * Gets a specific panel in monitor @monitorIndex 
+     * Gets a specific panel in monitor @monitorIndex
      *
      * Returns: the panel required (null if panel not found)
      */
     getPanel: function(monitorIndex, panelPosition) {
-        for (let i in this.panels) {
+        for (let i = 0, len = this.panels.length; i < len; i++) {
             if (!this.panels[i])
                 continue;
             if (this.panels[i].monitorIndex == monitorIndex && this.panels[i].panelPosition == panelPosition)
@@ -638,7 +642,7 @@ PanelManager.prototype = {
      * menus close.
      */
     updatePanelsVisibility: function() {
-        for (let i in this.panels) {
+        for (let i = 0, len = this.panels.length; i < len; i++) {
              if (!this.panels[i])
                  continue;
              this.panels[i]._updatePanelVisibility();
@@ -652,7 +656,7 @@ PanelManager.prototype = {
      * @panelPosition (integer): where the panel should be
      * @drawcorner (array): whether to draw corners for [left, right]
      * @panelList (array): (optional) the list in which the new panel should be appended to (not necessarily this.panels, c.f. _onPanelsEnabledChanged) Default: this.panels
-     * @metaList(array): (optional) the list in which the new panel metadata should be appended to (not necessarily this.panelsMeta, c.f. _onPanelsEnabledChanged) 
+     * @metaList(array): (optional) the list in which the new panel metadata should be appended to (not necessarily this.panelsMeta, c.f. _onPanelsEnabledChanged)
      *                   Default: this.panelsMeta
      *
      * Loads a panel with the given properties and appends it to @panelList. @panelList is usually this.panels but is a different array when used by _onPanelsEnabledChanged.
@@ -673,7 +677,10 @@ PanelManager.prototype = {
         metaList.length = panelList.length;
 
         let repeat = false;
-        for (let i in metaList) {
+        for (let i = 0, len = metaList.length; i < len; i++) {
+            if (!metaList[i]) {
+                continue;
+            }
             if ((metaList[i][0] == monitorIndex) && (metaList[i][1] == panelPosition) && i != ID) {
                 switch (panelPosition)
                 {
@@ -707,27 +714,20 @@ PanelManager.prototype = {
         }
         let[toppheight,botpheight] = heightsUsedMonitor(monitorIndex, panelList);
         panelList[ID] = new Panel(ID, monitorIndex, panelPosition, toppheight, botpheight, drawcorner); // create a new panel
+        this.panelCount += 1;
 
         return panelList[ID];
     },
 
     _checkCanAdd: function() {
         let monitorCount = global.screen.get_n_monitors();
-        let panelCount = monitorCount * 4;          // max of 4 panels on a monitor, one per edge
+        let panelCount = (monitorCount * 4) - this.panelCount;          // max of 4 panels on a monitor, one per edge
 
-        for (let i in this.panelsMeta) {
-            if (this.panelsMeta[i][0] >= monitorCount)  // Monitor does not exist
-                continue;
-            panelCount --;
-        }
-
-        if (this.canAdd != (panelCount != 0)) {
-            this.canAdd = (panelCount != 0);
-        }
+        this.canAdd = panelCount > 0;
     },
 
     _updateAllPointerBarriers: function() {
-        for (let i in this.panels) {
+        for (let i = 0, len = this.panels.length; i < len; i++) {
             if (this.panels[i]) {
                 this.panels[i]._updatePanelBarriers();
             }
@@ -773,7 +773,7 @@ PanelManager.prototype = {
 
                     newPanels[ID].updatePosition(newMeta[ID][0], newMeta[ID][1]);
 
-                    AppletManager.updateAppletsOnPanel(newPanels[ID]); // Asymmetrical applets such as panel launchers, systray etc. 
+                    AppletManager.updateAppletsOnPanel(newPanels[ID]); // Asymmetrical applets such as panel launchers, systray etc.
                                                                        // need reorienting within the applet using their
                                                                          // on_orientation_changed function
                 }
@@ -791,11 +791,17 @@ PanelManager.prototype = {
         }
 
         // Destroy removed panels
-        for (let i in this.panels)
+        let removedPanelIndexes = [];
+        for (let i = 0, len = this.panels.length; i < len; i++) {
             if (this.panels[i]) {
                 this.panels[i].destroy();
-                delete this.panels[i];
+                removedPanelIndexes.push(i);
             }
+        }
+        for (let i = 0, len = removedPanelIndexes.length; i < len; i++) {
+            this.panels[i] = undefined;
+            this.panels.splice(removedPanelIndexes[i], 1);
+        }
 
         this.panels = newPanels;
         this.panelsMeta = newMeta;
@@ -808,7 +814,7 @@ PanelManager.prototype = {
         // from moved panels, and the new panel is created without corners.  However unchanged panels may have corners
         // that might not be wanted now.  Easiest thing is to strip every existing corner off and re-add
         //
-        for (let i in this.panels) {
+        for (let i = 0, len = this.panels.length; i < len; i++) {
             if (this.panels[i]) {
                 if (this.panels[i].panelPosition == PanelLoc.left || this.panels[i].panelPosition == PanelLoc.right)
                     this.panels[i]._moveResizePanel();
@@ -837,7 +843,6 @@ PanelManager.prototype = {
      * Load all corners
      */
     _fullCornerLoad: function(panelProperties) {
-
         let monitor = 0;
         let monitorCount = -1;
         let panels_used = []; // [monitor] [top, bottom, left, right].  Used to keep track of which panel types are in use,
@@ -847,7 +852,7 @@ PanelManager.prototype = {
         //
         // First pass through just to count the monitors, as there is no ordering to rely on
         //
-        for (let i in panelProperties) {
+        for (let i = 0, len = panelProperties.length; i < len; i++) {
             let elements = panelProperties[i].split(":");
             if (elements.length != 3) {
                 global.log("Invalid panel definition: " + panelProperties[i]);
@@ -871,7 +876,7 @@ PanelManager.prototype = {
         //
         // set up the list of panels
         //
-        for (let i in panelProperties) {
+        for (let i = 0, len = panelProperties.length; i < len; i++) {
             let elements = panelProperties[i].split(":");
             if (elements.length != 3) {
                 global.log("Invalid panel definition: " + panelProperties[i]);
@@ -888,8 +893,8 @@ PanelManager.prototype = {
         // variable needs to be set so the allocation code runs as desired
 
         for (let i = 0; i <= monitorCount; i++) {
-            for (let j in stash) {
-                let drawcorner = [false,false];
+            for (let j = 0, len = stash.length; j < len; j++) {
+                let drawcorner = [false, false];
                 if (stash[j][2] == PanelLoc.bottom && stash[j][1] == i) {
                     drawcorner[0] = (panels_used[i][2])? false : true;
                     drawcorner[1] = (panels_used[i][3])? false : true;
@@ -898,25 +903,18 @@ PanelManager.prototype = {
                         this.panels[stash[j][0]].drawCorners(drawcorner);
                     }
                 }
-            }
-            for (let j in stash) {
                 if (stash[j][2] == PanelLoc.left && stash[j][1] == i) {
                     if (this.panels[stash[j][0]]) {
                         this.panels[stash[j][0]].drawcorner = [true,true];
                         this.panels[stash[j][0]].drawCorners([true,true]);
                     }
                 }
-            }
-            for (let j in stash) {
                 if (stash[j][2] == PanelLoc.right && stash[j][1] == i) {
                     if (this.panels[stash[j][0]]) {
                         this.panels[stash[j][0]].drawcorner = [true,true];
                         this.panels[stash[j][0]].drawCorners([true,true]);
                     }
                 }
-            }
-            for (let j in stash) {
-                let drawcorner = [false,false];
                 if (stash[j][2] == PanelLoc.top && stash[j][1] == i) {
                     drawcorner[0] = (panels_used[i][2])? false : true;
                     drawcorner[1] = (panels_used[i][3])? false : true;
@@ -931,10 +929,13 @@ PanelManager.prototype = {
 
     _onMonitorsChanged: function() {
         let monitorCount = global.screen.get_n_monitors();
-        let drawcorner = [false,false];
+        let drawcorner = [false, false];
 
-        for (let i in this.panelsMeta) {
-            if (this.panelsMeta[i] && !this.panels[i]) { // If there is a meta but not a panel, i.e. panel could not create due to non-existent monitor, try again
+        for (let i = 0, len = this.panelsMeta.length; i < len; i++) {
+            if (!this.panelsMeta[i]) {
+                continue;
+            }
+            if (!this.panels[i]) { // If there is a meta but not a panel, i.e. panel could not create due to non-existent monitor, try again
                                                          // - the monitor may just have been reconnected
                 if (this.panelsMeta[i][0] < monitorCount)  // just check that the monitor is there
                 {
@@ -946,9 +947,11 @@ PanelManager.prototype = {
                 if (this.panels[i]) {
                     this.panels[i].destroy();
                     delete this.panels[i];
+                    this.panelCount -= 1;
                 }
 
             } else { // Nothing happens. Re-allocate panel
+                this.panels[i]._monitorsChanged = true;
                 this.panels[i]._moveResizePanel();
             }
         }
@@ -958,7 +961,8 @@ PanelManager.prototype = {
             this._showDummyPanels(this.dummyCallback);
         }
 
-        for (let i in this.panels) {          // clear corners, then re add them
+        // clear corners, then re add them
+        for (let i = 0, len = this.panels.length; i < len; i++) {
             if (this.panels[i])
                 this.panels[i]._destroycorners();
         }
@@ -1016,17 +1020,21 @@ PanelManager.prototype = {
         this.dummyCallback = callback;
         this.dummyPanels = [];
 
-        while (this.dummyPanels.push([]) < monitorCount);   // Generate a 2D array of length monitorCount; Push returns new length of array
+        while (this.dummyPanels.push([true, true, true, true]) < monitorCount); // 4 possible panels per monitor
 
-        for (let i in this.panelsMeta) {
-            if (this.panelsMeta[i][0] >= monitorCount)      // Monitor does not exist
+        for (let i = 0, len = this.panelsMeta.length; i < len; i++) {
+            if (!this.panelsMeta[i]) {
                 continue;
-            this.dummyPanels[this.panelsMeta[i][0]][this.panelsMeta[i][1]] = false; // every location where there is an actual existing panel is noted
+            }
+            if (this.panelsMeta[i][0] >= monitorCount) // Monitor does not exist
+                continue;
+            // there is an existing panel showing
+            this.dummyPanels[this.panelsMeta[i][0]][this.panelsMeta[i][1]] = false;
         }
 
         for (let i = 0; i < monitorCount; i++) {
-            for (let j = 0; j < 4; j++) {               // max of 4 panels per monitor - bottom. top, left, right
-                if (this.dummyPanels[i][j] != false) {      // no panel there at the moment, so show a dummy
+            for (let j = 0; j < 4; j++) {
+                if (this.dummyPanels[i] && this.dummyPanels[i][j] == true) { // no panel there at the moment, so show a dummy
                     this.dummyPanels[i][j] = new PanelDummy(i, j, callback);
                 }
             }
@@ -1049,15 +1057,23 @@ PanelManager.prototype = {
                 break;
             }
         }
+    },
+
+    resetPanelDND: function() {
+        for (let i = 0; i < this.panels.length; i++) {
+            if (this.panels[i]) {
+                this.panels[i].resetDNDZones();
+            }
+        }
     }
 
-};  // end of panel manager 
+};  // end of panel manager
 
 /**
  * #PanelDummy
  * @short_description: Dummy panels for users to select new position of panel
  *
- * #PanelDummy creates some boxes at possible panel locations for users to 
+ * #PanelDummy creates some boxes at possible panel locations for users to
  * select where to place their new panels
  */
 function PanelDummy(monitorIndex, panelPosition, callback) {
@@ -1071,12 +1087,12 @@ PanelDummy.prototype = {
         this.callback = callback;
         this.monitor = global.screen.get_monitor_geometry(monitorIndex);
         let defaultheight = 25 * global.ui_scale;
-        
+
         this.actor = new Cinnamon.GenericContainer({style_class: "panel-dummy", reactive: true, track_hover: true, important: true});
 
         Main.layoutManager.addChrome(this.actor, { addToWindowgroup: false });
         //
-        // layouts set to be full width horizontal panels, and vertical panels set to use as much available space as is left 
+        // layouts set to be full width horizontal panels, and vertical panels set to use as much available space as is left
         //
         let tpanelHeight = 0;
         let bpanelHeight = 0;
@@ -1098,11 +1114,11 @@ PanelDummy.prototype = {
                 this.actor.set_position(this.monitor.x, this.monitor.y + this.monitor.height - defaultheight);
                 break;
             case PanelLoc.left:
-                this.actor.set_size( defaultheight,this.monitor.height - tpanelHeight - bpanelHeight); 
+                this.actor.set_size( defaultheight,this.monitor.height - tpanelHeight - bpanelHeight);
                 this.actor.set_position(this.monitor.x,  this.monitor.y + tpanelHeight);
                 break;
             case PanelLoc.right:
-                this.actor.set_size( defaultheight,this.monitor.height - tpanelHeight - bpanelHeight); 
+                this.actor.set_size( defaultheight,this.monitor.height - tpanelHeight - bpanelHeight);
                 this.actor.set_position(this.monitor.x + this.monitor.width - defaultheight, this.monitor.y + tpanelHeight);
                 break;
             default:
@@ -1182,8 +1198,9 @@ AnimatedIcon.prototype = {
             Mainloop.source_remove(this._timeoutId);
     }
 };
+/* FIXME:  Find out if this TextShadower functionality below is actually used */
 
-function TextShadower() {  
+function TextShadower() {
     this._init();
 }
 
@@ -1289,7 +1306,7 @@ PanelCorner.prototype = {
         this._side = side;
         this._box = box;
         this._cornertype = cornertype;
-        this._box.connect('style-changed', Lang.bind(this, this._boxStyleChanged));
+        this.cornerRadius = 0;
 
         this.actor = new St.DrawingArea({ style_class: 'panel-corner' });
 
@@ -1297,108 +1314,14 @@ PanelCorner.prototype = {
         this.actor.connect('repaint', Lang.bind(this, this._repaint));
     },
 
-    _findRightmostButton: function(container) {
-        if (!container.get_children)
-            return null;
-
-        let children = container.get_children();
-
-        if (!children || children.length == 0)
-            return null;
-
-        // Start at the back and work backward
-
-        let index = children.length - 1;
-        while (index >= 0 && !children[index].visible)
-            index--;
-
-        if (index < 0)
-            return null;
-
-        return children[index];
-    },
-
-    _findLeftmostButton: function(container) {
-        if (!container.get_children)
-            return null;
-
-        let children = container.get_children();
-
-        if (!children || children.length == 0)
-            return null;
-
-        // Start at the front and work forward
-
-        let index = 0;
-        while (index < children.length && !children[index].visible)
-            index++;
-
-        if (index == children.length)
-            return null;
-
-        return children[index];
-    },
-
-    _boxStyleChanged: function() {
-        let side = this._side;
-        let rtlAwareContainer = this._box instanceof St.BoxLayout;
-        let button;
-
-        if (rtlAwareContainer &&
-            this._box.get_direction() == St.TextDirection.RTL) {
-            if (this._side == St.Side.LEFT)
-                side = St.Side.RIGHT;
-            else if (this._side == St.Side.RIGHT)
-                side = St.Side.LEFT;
-        } // ?? why is there no similar logic for the LTR case ?
-
-        if (side == St.Side.LEFT)
-            button = this._findLeftmostButton(this._box);
-        else if (side == St.Side.RIGHT)
-            button = this._findRightmostButton(this._box);
-
-        //
-        // This section below is puzzling to me.  Appears to be linking the pseudo class of the corner
-        // to the pseudo class of the closest applet.  Why ?  won't fire for vertical panels anyway
-        // as these will have side set to TOP or BOTTOM
-        //
-        if (button) {
-            if (this._button && this._buttonStyleChangedSignalId) {
-                this._button.disconnect(this._buttonStyleChangedSignalId);
-                this._button.style = null;
-            }
-
-            this._button = button;
-
-            button.connect('destroy', Lang.bind(this,
-                function() {
-                    if (this._button == button) {
-                        this._button = null;
-                        this._buttonStyleChangedSignalId = 0;
-                    }
-                }));
-
-            // Synchronize the locate button's pseudo classes with this corner
-            this._buttonStyleChangedSignalId = button.connect('style-changed', Lang.bind(this,
-                function(actor) {
-                    let pseudoClass = button.get_style_pseudo_class();
-                    this.actor.set_style_pseudo_class(pseudoClass);
-                }));
-
-            // The corner doesn't support theme transitions, so override
-            // the .panel-button default
-                button.style = 'transition-duration: 0';
-        }
-    },
-
     _repaint: function() {
     //
-    // This is all about painting corners just outside the panels so as to create a seamless visual impression for full screen windows 
-    // with curved corners that butt up against a panel. 
-    // So ... top left corner wants to be at the bottom left of the top panel. top right wants to be in the corresponding place on the right 
+    // This is all about painting corners just outside the panels so as to create a seamless visual impression for full screen windows
+    // with curved corners that butt up against a panel.
+    // So ... top left corner wants to be at the bottom left of the top panel. top right wants to be in the corresponding place on the right
     // Bottom left corner wants to be at the top left of the bottom panel.  bottom right in the corresponding place on the right.
     // No panel, no corner necessary.
-    // If there are vertical panels as well then we want to shift these in by the panel width so if there are vertical panels but no horizontal 
+    // If there are vertical panels as well then we want to shift these in by the panel width so if there are vertical panels but no horizontal
     // then the corners are top right and left to right of left panel, and same to left of right panel
     //
         if (this._cornertype == CornerType.dummy) return;
@@ -1435,16 +1358,16 @@ PanelCorner.prototype = {
                 cr.moveTo(0, 0);
                 cr.arc( cornerRadius,
                         innerBorderWidth + cornerRadius,
-                        cornerRadius, 
-                        Math.PI, 
+                        cornerRadius,
+                        Math.PI,
                         3 * Math.PI / 2);  //xc, yc, radius, angle from, angle to.  NB note small offset in y direction
                 cr.lineTo(cornerRadius, 0);
             } else if (this._cornertype == CornerType.topright) {
                 cr.moveTo(0, 0);
                 cr.arc( 0,
                         innerBorderWidth + cornerRadius,
-                        cornerRadius, 
-                        3 * Math.PI / 2, 
+                        cornerRadius,
+                        3 * Math.PI / 2,
                         2 * Math.PI);
                 cr.lineTo(cornerRadius, 0);
             } else if (this._cornertype == CornerType.bottomleft) {
@@ -1453,8 +1376,8 @@ PanelCorner.prototype = {
                 cr.lineTo(cornerRadius, cornerRadius-innerBorderWidth);
                 cr.arc( cornerRadius,
                         -innerBorderWidth,
-                        cornerRadius, 
-                        Math.PI/2, 
+                        cornerRadius,
+                        Math.PI/2,
                         Math.PI);
                 cr.lineTo(0,cornerRadius);
             } else if (this._cornertype == CornerType.bottomright) {
@@ -1463,9 +1386,9 @@ PanelCorner.prototype = {
                 cr.lineTo(cornerRadius, 0);
                 cr.arc( 0,
                         -innerBorderWidth,
-                        cornerRadius, 
-                        0, 
-                        Math.PI/2); 
+                        cornerRadius,
+                        0,
+                        Math.PI/2);
                 cr.lineTo(0, cornerRadius);
             }
 
@@ -1492,14 +1415,14 @@ PanelCorner.prototype = {
             // why ?  pre-existing code, reason for creating this squared off end to the shape is not clear.
 
             if (this._cornertype == CornerType.topleft)
-                cr.rectangle(cornerRadius - offset, 
-                             0, 
-                             offset, 
+                cr.rectangle(cornerRadius - offset,
+                             0,
+                             offset,
                              outerBorderWidth);  // x,y,width,height
             else if (this._cornertype == CornerType.topright)
-                cr.rectangle(0, 
-                             0, 
-                             offset, 
+                cr.rectangle(0,
+                             0,
+                             offset,
                              outerBorderWidth);
             else if (this._cornertype == CornerType.bottomleft)
                 cr.rectangle(cornerRadius - offset,
@@ -1507,19 +1430,19 @@ PanelCorner.prototype = {
                              offset,
                              outerBorderWidth);
             else if (this._cornertype.bottomright)
-                cr.rectangle(0, 
-                             cornerRadius - offset, 
-                             offset, 
-                             outerBorderWidth);          
+                cr.rectangle(0,
+                             cornerRadius - offset,
+                             offset,
+                             outerBorderWidth);
             cr.fill();
             offset = innerBorderWidth;
             Clutter.cairo_set_source_color(cr, backgroundColor);  // colour background
 
             // Draw basic shape with vertex shifted diagonally outwards by the border width, in background colour
 
-            cr.translate(xOffsetDirection * offset, yOffsetDirection * offset); 
+            cr.translate(xOffsetDirection * offset, yOffsetDirection * offset);
             cr.appendPath(savedPath);
-            cr.fill(); 
+            cr.fill();
             cr.restore();
 
             cr.$dispose();
@@ -1538,6 +1461,19 @@ PanelCorner.prototype = {
 
         this.actor.set_size(cornerRadius, cornerRadius);
         this.actor.set_anchor_point(0, 0);
+
+        // since the corners are a child actor of the panel, we need to account
+        // for their size when setting the panel clip region. we keep track here
+        // so the panel can easily check it.
+        this.cornerRadius = cornerRadius;
+
+        // ugly hack: force the panel to reset its clip region since we just added
+        // to the total allocation after it has already clipped to its own
+        // allocation
+        let panel = this._box.get_parent();
+        // for some reason style-changed is called on destroy
+        if (panel && panel._delegate)
+            panel._delegate._setClipRegion(panel._delegate._hidden);
     }
 }; // end of panel corner
 
@@ -1570,7 +1506,7 @@ function populateSettingsMenu(menu, panelId) {
     });
 
     menu.troubleshootItem.menu.addAction(_("Restore all settings to default"), function(event) {
-        let confirm = new ModalDialog.ConfirmDialog("Are you sure you want to restore all settings to default?\n\n",
+        let confirm = new ModalDialog.ConfirmDialog(_("Are you sure you want to restore all settings to default?\n\n"),
                 function() {
                     Util.spawnCommandLine("gsettings reset-recursively org.cinnamon");
                     global.reexec_self();
@@ -1588,7 +1524,7 @@ function populateSettingsMenu(menu, panelId) {
     menuItem.activate = Lang.bind(menu, function() {
         Main.panelManager.removePanel(panelId);
     });
-    panelSettingsSection.menu.addMenuItem(menuItem);  
+    panelSettingsSection.menu.addMenuItem(menuItem);
 
     menu.addPanelItem = new PopupMenu.PopupIconMenuItem(_("Add panel"), "list-add", St.IconType.SYMBOLIC); // submenu item add panel
     menu.addPanelItem.activate = Lang.bind(menu, function() {
@@ -1669,7 +1605,7 @@ PanelContextMenu.prototype = {
         let menuItem = new SettingsLauncher(_("Panel settings"), "panel " + panelId, "emblem-system");
         this.addMenuItem(menuItem);
 
-        let menuItem = new SettingsLauncher(_("Themes"), "themes", "applications-graphics");
+        menuItem = new SettingsLauncher(_("Themes"), "themes", "applications-graphics");
         this.addMenuItem(menuItem);
 
         let menuSetting = new SettingsLauncher(_("System Settings"), "", "preferences-system");
@@ -1685,10 +1621,10 @@ PanelContextMenu.prototype = {
         this.addPanelItem.setSensitive(Main.panelManager.canAdd);
         this.pasteAppletItem.setSensitive(AppletManager.clipboard.length != 0);
 
-        let defs = AppletManager.enabledAppletDefinitions.idMap;
+        let {definitions} = AppletManager;
         let nonEmpty = false;
-        for (let i in defs) {
-            if (defs[i].panelId == this.panelId) {
+        for (let i = 0, len = definitions.length; i < len; i++) {
+            if (definitions[i] && definitions[i].panelId === this.panelId) {
                 nonEmpty = true;
                 break;
             }
@@ -1698,129 +1634,182 @@ PanelContextMenu.prototype = {
     }
 }
 
-function PanelZoneDNDHandler(panelZone){
-    this._init(panelZone);
+function PanelZoneDNDHandler(panelZone, zoneString, panelId){
+    this._init(panelZone, zoneString, panelId);
 }
 
 PanelZoneDNDHandler.prototype = {
-    _init : function(panelZone) {
+    _init : function(panelZone, zoneString, panelId) {
         this._panelZone = panelZone;
         this._panelZone._delegate = this;
+        this._zoneString = zoneString;
+        this._panelId = panelId;
         this._dragPlaceholder = null;
         this._dragPlaceholderPos = -1;
+
+        this._origAppletCenters = null;
+        this._origAppletPos = -1;
+
+        this._panelZone.connect('leave-event', Lang.bind(this, this._handleLeaveEvent));
     },
 
     handleDragOver: function(source, actor, x, y, time) {
 
         if (!(source instanceof Applet.Applet)) return DND.DragMotionResult.NO_DROP;
 
-        let children = this._panelZone.get_children();
-        let appletPos = children.indexOf(source.actor);
+        if (!this._hasSupportedLayout(source)) {
+            return DND.DragMotionResult.NO_DROP;
+        }
 
-        let panelstyle = this._panelZone.get_parent().get_style_class_name();
-        let vertical_panel = (panelstyle.contains("panel-left") || panelstyle.contains("panel-right")) ? true : false;       
+        let vertical_panel = this._panelZone.get_parent()._delegate.is_vertical;
+        let children = this._panelZone.get_children();
+
+        if (this._origAppletCenters == null) {
+            this._origAppletCenters = [];
+            this._origAppletPos = children.indexOf(source.actor);
+
+            let j;
+
+            for (j = 0; j < children.length; j++) {
+                let allocation = children[j].get_allocation_box();
+                let center = 0;
+                if (vertical_panel) {
+                    center = (allocation.y1 + allocation.y2) / 2;
+                } else {
+                    center = (allocation.x1 + allocation.x2) / 2;
+                }
+
+                this._origAppletCenters.push(center);
+            }
+        }
 
         let pos = 0;
+        let i = 0;
 
-        if (vertical_panel) {
-            for (var i in children){
-                //if (children[i] == this._dragPlaceholder.actor) continue;
-                if (y > children[i].get_allocation_box().y1 + children[i].height / 2) pos = i;
-            }
-        } else {
-            for (var i in children){
-                //if (children[i] == this._dragPlaceholder.actor) continue;
-                if (x > children[i].get_allocation_box().x1 + children[i].width / 2) pos = i;
+        while (i < this._origAppletCenters.length) {
+            if (vertical_panel) {
+                if (y > (this._origAppletCenters[i])) {
+                    pos = ++i;
+                } else {
+                    break;
+                }
+            } else {
+                if (x > (this._origAppletCenters[i])) {
+                    pos = ++i;
+                } else {
+                    break;
+                }
             }
         }
 
         if (pos != this._dragPlaceholderPos) {
             this._dragPlaceholderPos = pos;
-
             // Don't allow positioning before or after self
-            if (appletPos != -1 && pos == appletPos) {
-                if (this._dragPlaceholder) {
-                    this._dragPlaceholder.animateOutAndDestroy();
-                }
-                this._dragPlaceholder = null;
 
+            if (this._origAppletPos != -1 && (pos == this._origAppletPos || pos == this._origAppletPos + 1)) {
+                this._clearDragPlaceholder();
                 return DND.DragMotionResult.CONTINUE;
             }
 
             // If the placeholder already exists, we just move
             // it, but if we are adding it, expand its size in
             // an animation
-            let fadeIn;
+
             if (this._dragPlaceholder) {
-                this._dragPlaceholder.actor.destroy();
-                fadeIn = false;
+                this._panelZone.set_child_at_index(this._dragPlaceholder.actor,
+                                                   this._dragPlaceholderPos);
             } else {
-                fadeIn = true;
-            }
+                this._dragPlaceholder = new DND.GenericDragPlaceholderItem();
 
-            this._dragPlaceholder = new DND.GenericDragPlaceholderItem();
-            if (vertical_panel) {
-                this._dragPlaceholder.child.set_width (10);
-                this._dragPlaceholder.child.set_height (20);
-            } else {
-                this._dragPlaceholder.child.set_width (20);
-                this._dragPlaceholder.child.set_height (10);
-            }
+                if (vertical_panel) {
+                    this._dragPlaceholder.child.set_width (10 * global.ui_scale);
+                    this._dragPlaceholder.child.set_height (20 * global.ui_scale);
+                } else {
+                    this._dragPlaceholder.child.set_width (20 * global.ui_scale);
+                    this._dragPlaceholder.child.set_height (10 * global.ui_scale);
+                }
 
-            this._panelZone.insert_child_at_index(this._dragPlaceholder.actor,
-                                                  this._dragPlaceholderPos);
+                this._panelZone.insert_child_at_index(this._dragPlaceholder.actor,
+                                                      this._dragPlaceholderPos);
 
-            if (fadeIn)
                 this._dragPlaceholder.animateIn();
+            }
         }
 
         return DND.DragMotionResult.MOVE_DROP;
     },
 
-    acceptDrop: function(source, actor, x, y, time) { 
+    _handleLeaveEvent: function() {
+        this._clearDragPlaceholder();
+    },
+
+    handleDragOut: function() {
+        this._clearDragPlaceholder();
+    },
+
+    acceptDrop: function(source, actor, x, y, time) {
+        this._origAppletCenters = null;
 
         if (!(source instanceof Applet.Applet)) return false;
 
         //  We want to ensure that applets placed in a panel can be shown correctly
         //  If the applet is of type Icon Applet then should be fine
         //  otherwise we look to see if it has declared itself suitable
-        if (source instanceof Applet.IconApplet) {
-            ;
-        }
-        else {
-            let allowedLayout = source.getAllowedLayout();
-            let panelstyle = this._panelZone.get_parent().get_style_class_name();
-
-            if ((panelstyle.contains("panel-left") || panelstyle.contains("panel-right")) &&
-                 allowedLayout == Applet.AllowedLayout.HORIZONTAL) {
-                    global.log("applet not suitable for panel");
-                    return false;
-            }
-            else if ((panelstyle.contains("panel-top") || panelstyle.contains("panel-bottom")) &&
-                      allowedLayout == Applet.AllowedLayout.VERTICAL) {
-                    global.log("applet not suitable for panel");
+        if (source instanceof Applet.TextIconApplet || !(source instanceof Applet.IconApplet)) {
+            if (!this._hasSupportedLayout(source)) {
                     return false;
             }
         }
 
         let children = this._panelZone.get_children();
         let curAppletPos = 0;
-        let insertAppletPos;
-        for (var i in children){
+        let insertAppletPos = 0;
+
+        for (let i = 0, len = children.length; i < len; i++) {
             if (children[i]._delegate instanceof Applet.Applet){
                 children[i]._applet._newOrder = curAppletPos;
                 curAppletPos++;
-            }else if (children[i] == this._dragPlaceholder.actor){
+            } else if (children[i] == this._dragPlaceholder.actor){
                 insertAppletPos = curAppletPos;
                 curAppletPos++;
             }
         }
+
         source.actor._applet._newOrder = insertAppletPos;
         source.actor._applet._newPanelLocation = this._panelZone;
+        source.actor._applet._zoneString = this._zoneString;
+        source.actor._applet._newPanelId = this._panelId;
+
+        let sourcebox = source.actor._applet._panelLocation; /* this is the panel box providing the applet */
 
         this._clearDragPlaceholder();
         actor.destroy();
         AppletManager.saveAppletsPositions();
+
+        /* this._panelZone is the panel box being dropped into. Note that the style class name will
+           be something like 'panelLeft' or 'panelLeft vertical'*/
+
+        if (this._panelZone.has_style_class_name("panelRight") || this._panelZone.has_style_class_name("panelLeft")) {
+            this._panelZone.set_size(-1, -1);  /* kludge pt 2 - if the box being dropped into
+                                                  has been set a fixed size then we need to let it adjust. */
+
+        }
+
+        if (sourcebox.has_style_class_name("panelRight") || sourcebox.has_style_class_name("panelLeft")) {
+            children = sourcebox.get_children();
+
+            if (children.length == 0) {         /* put back some minimum space if the source box is now empty */
+                if (sourcebox.get_parent()._delegate.is_vertical) {
+                    let height = sourcebox.get_height();
+                    if (height < EDIT_MODE_MIN_BOX_SIZE * global.ui_scale)
+                        sourcebox.set_height(EDIT_MODE_MIN_BOX_SIZE * global.ui_scale);
+                } else {
+                    let width = sourcebox.get_width();
+                    if (width < EDIT_MODE_MIN_BOX_SIZE * global.ui_scale)
+                        sourcebox.set_width(EDIT_MODE_MIN_BOX_SIZE * global.ui_scale);
+                }
+            }
+        }
 
         return true;
     },
@@ -1831,6 +1820,20 @@ PanelZoneDNDHandler.prototype = {
             this._dragPlaceholder = null;
             this._dragPlaceholderPos = -1;
         }
+    },
+
+    _hasSupportedLayout: function(applet) {
+        let layout = applet.getAllowedLayout();
+        if (layout == Applet.AllowedLayout.BOTH) return true;
+        if (applet instanceof Applet.IconApplet && !(applet instanceof Applet.TextIconApplet)) return true;
+        if (layout == ((this._panelZone.get_parent()._delegate.is_vertical) ? Applet.AllowedLayout.VERTICAL : Applet.AllowedLayout.HORIZONTAL)) return true;
+        return false;
+    },
+
+    reset: function() {
+        this._origAppletCenters = null;
+        this._origAppletPos = -1;
+        this._clearDragPlaceholder();
     }
 }
 
@@ -1845,7 +1848,7 @@ PanelZoneDNDHandler.prototype = {
  * @drawcorner (array): [left, right] whether to draw corners alongside the panel
  *
  * @monitor (Meta.Rectangle): the geometry (bounding box) of the monitor
- * @panelPosition (integer): where the panel is on the screen 
+ * @panelPosition (integer): where the panel is on the screen
  * @actor (Cinnamon.GenericContainer): the actor of the panel
  * @scaleMode (boolean): whether the applets should scale with the panel
  *
@@ -1873,23 +1876,27 @@ Panel.prototype = {
         this.panelPosition = panelPosition;
         this.toppanelHeight = toppanelHeight;
         this.bottompanelHeight = bottompanelHeight;
-        let horizontal_panel = (this.panelPosition == PanelLoc.top || this.panelPosition == PanelLoc.bottom) ? true : false;
+
+        this.is_vertical = (this.panelPosition == PanelLoc.left || this.panelPosition == PanelLoc.right);
 
         this._hidden = false;
         this._disabled = false;
         this._panelEditMode = false;
-        this._autohideSettings = this._getProperty(PANEL_AUTOHIDE_KEY, "s");
+        this._autohideSettings = null;
         this._themeFontSize = null;
         this._destroyed = false;
-        this._signalManager = new SignalManager.SignalManager(this);
-        this.margin_top = 0;        // used by vertical panels
-        this.margin_bottom = 0;     // ditto
+        this._positionChanged = false;
+        this._monitorsChanged = false;
+        this._signalManager = new SignalManager.SignalManager(null);
+        this.margin_top = 0;
+        this.margin_bottom = 0;
         this.margin_left = 0;
         this.margin_right = 0;
         this._leftPanelBarrier = 0;
         this._rightPanelBarrier = 0;
         this._topPanelBarrier = 0;
         this._bottomPanelBarrier = 0;
+        this._shadowBox = null;
 
         this.scaleMode = false;
 
@@ -1900,72 +1907,23 @@ Panel.prototype = {
 
         this._menus = new PopupMenu.PopupMenuManager(this);
 
-        if (horizontal_panel) {  // horizontal panels
-            this._leftBox = new St.BoxLayout({ name: 'panelLeft', style_class: 'panelLeft'});
-            this.actor.add_actor(this._leftBox);
-            this._leftBoxDNDHandler = new PanelZoneDNDHandler(this._leftBox);
+        this._leftBox    = new St.BoxLayout({ name: 'panelLeft', style_class: 'panelLeft', important: true });
+        this._rightBox   = new St.BoxLayout({ name: 'panelRight', style_class: 'panelRight', important: true });
+        this._centerBox  = new St.BoxLayout({ name: 'panelCenter',  style_class: 'panelCenter', important: true });
 
-            this._centerBox = new St.BoxLayout({ name: 'panelCenter', style_class: 'panelCenter' });
-            this.actor.add_actor(this._centerBox);
-            this._centerBoxDNDHandler = new PanelZoneDNDHandler(this._centerBox);
-
-            this._rightBox = new St.BoxLayout({ name: 'panelRight',  style_class: 'panelRight', align_end: true});
-            this.actor.add_actor(this._rightBox);
-            this._rightBoxDNDHandler = new PanelZoneDNDHandler(this._rightBox);
-
-        } else {
-            // vertical panels.  'leftBox' is at the top, 'rightBox' at the bottom.
-            // nb align end property does not align to right side as for a box without 'vertical' set
-            // - just orders applets from bottom rather than from top
-            //
-            // About the relative alignment of the panel contents when vertical ...  
-            // using y_align: 3 (right) can cause allocation or json errors, so going without this on the 'rightBox' with a small 
-            // central box (as the horizontal panels have their settings) the bottom icons come up towards the centre which looks dumb
-            // 
-            // Adding y_align: 2 (centre) on the central box kills the right click menu on the central box, but this can be 
-            // worked around quite happily by adding a test on the actor to the pre-existing test on the parent of the actor 
-            // in the button handling logic.  It also kills drag and drop if any box is empty, the workaround is to 
-            // explicitly set the height.  Setting y_expand seems to align the contents to the top in this case, rather weird.
-            //
-            // Using x_align:2 also causes problems with a new, empty panel - seeming to stop the dndhandler working. There is a two part
-            // workaround to this - in allocate to set heights if found to be zero, and the same in the set edit mode code.
-            //
-            // The approach taken is to
-            // 1) keep the natural size of left and right (i.e. top and bottom) boxes, this means that the icons will cluster together
-            //    at top and bottom of the panel respectively
-            // 2) have a central box that can take all the space in between
-            // 3) turn on central y-alignment for the central box
-            // 4) the empty panel case is worked around with a kludge when setting edit mode to set box sizes explicitly if empty.
-            //    - there is a similar work around in the allocate logic, but allocate may not get called without this kludge 
-            //
-            // The appearance of this looks reasonable - the icons in the boxes have sensible positioning (css permitting).
-            //
-            // Some workarounds for the side effects of the central alignment are needed.  
-            //
-            // a) allow the right click to work off the actor as well as its parent, this caters for the way that the central alignment
-            //    seems to shrink the box down around its contents so as to expose the underlying panel.
-            // b) set the height of the central box explicitly if found to be zero when in panel edit mode, and unset it otherwise.
-            // c) set the sizes of zero height boxes explicitly when switching to edit mode to force an allocation to happen
-            //
-
-            if (this.panelPosition == PanelLoc.left) {   // left panel
-                this._leftBox    = new St.BoxLayout({ name: 'panelLeft', style_class: 'panelLeft'});
-                this._rightBox   = new St.BoxLayout({ name: 'panelLeft', style_class: 'panelLeft'});
-            } else {
-                this._leftBox    = new St.BoxLayout({ name: 'panelRight', style_class: 'panelRight'});
-                this._rightBox   = new St.BoxLayout({ name: 'panelRight', style_class: 'panelRight'});
-            }
-            this._centerBox      = new St.BoxLayout({ name: 'panelCenter',  style_class: 'panelCenter'});
+        if (this.is_vertical) {
             this._set_vertical_panel_style();
-
-            this.actor.add_actor(this._leftBox);
-            this.actor.add_actor(this._centerBox);
-            this.actor.add_actor(this._rightBox);
-
-            this._leftBoxDNDHandler   = new PanelZoneDNDHandler(this._leftBox);
-            this._centerBoxDNDHandler = new PanelZoneDNDHandler(this._centerBox);
-            this._rightBoxDNDHandler  = new PanelZoneDNDHandler(this._rightBox);
+        } else {
+            this._set_horizontal_panel_style();
         }
+
+        this.actor.add_actor(this._leftBox);
+        this.actor.add_actor(this._centerBox);
+        this.actor.add_actor(this._rightBox);
+
+        this._leftBoxDNDHandler   = new PanelZoneDNDHandler(this._leftBox, 'left', this.panelId);
+        this._centerBoxDNDHandler = new PanelZoneDNDHandler(this._centerBox, 'center', this.panelId);
+        this._rightBoxDNDHandler  = new PanelZoneDNDHandler(this._rightBox, 'right', this.panelId);
 
         this.drawCorners(drawcorner);
 
@@ -1974,6 +1932,7 @@ Panel.prototype = {
         Main.layoutManager.addChrome(this.actor, { addToWindowgroup: false });
         this._moveResizePanel();
         this._onPanelEditModeChanged();
+        this._processPanelAutoHide();
 
         this.actor.connect('button-press-event', Lang.bind(this, this._onButtonPressEvent));
         this.actor.connect('style-changed', Lang.bind(this, this._moveResizePanel));
@@ -1983,12 +1942,12 @@ Panel.prototype = {
         this.actor.connect('get-preferred-height', Lang.bind(this, this._getPreferredHeight));
         this.actor.connect('allocate', Lang.bind(this, this._allocate));
 
-        this._signalManager.connect(global.settings, "changed::" + PANEL_AUTOHIDE_KEY, this._processPanelAutoHide);
-        this._signalManager.connect(global.settings, "changed::" + PANEL_HEIGHT_KEY, this._moveResizePanel);
-        this._signalManager.connect(global.settings, "changed::" + PANEL_RESIZABLE_KEY, this._moveResizePanel);
-        this._signalManager.connect(global.settings, "changed::" + PANEL_SCALE_TEXT_ICONS_KEY, this._onScaleTextIconsChanged);
-        this._signalManager.connect(global.settings, "changed::panel-edit-mode", this._onPanelEditModeChanged);
-        this._signalManager.connect(global.settings, "changed::no-adjacent-panel-barriers", this._updatePanelBarriers);
+        this._signalManager.connect(global.settings, "changed::" + PANEL_AUTOHIDE_KEY, this._processPanelAutoHide, this);
+        this._signalManager.connect(global.settings, "changed::" + PANEL_HEIGHT_KEY, this._moveResizePanel, this);
+        this._signalManager.connect(global.settings, "changed::" + PANEL_RESIZABLE_KEY, this._moveResizePanel, this);
+        this._signalManager.connect(global.settings, "changed::" + PANEL_SCALE_TEXT_ICONS_KEY, this._onScaleTextIconsChanged, this);
+        this._signalManager.connect(global.settings, "changed::panel-edit-mode", this._onPanelEditModeChanged, this);
+        this._signalManager.connect(global.settings, "changed::no-adjacent-panel-barriers", this._updatePanelBarriers, this);
     },
 
     drawCorners: function(drawcorner)
@@ -2025,28 +1984,28 @@ Panel.prototype = {
             if (this.panelPosition == PanelLoc.left) {   // left panel
                 if (drawcorner[0]) {
                     if (this.actor.get_direction() == St.TextDirection.RTL)    // right to left text direction
-                        this._leftCorner = new PanelCorner(this._rightBox, St.Side.TOP, CornerType.topleft); 
-                    else 
+                        this._leftCorner = new PanelCorner(this._rightBox, St.Side.TOP, CornerType.topleft);
+                    else
                         this._leftCorner = new PanelCorner(this._leftBox, St.Side.TOP, CornerType.topleft);
                 }
                 if (drawcorner[1])
                 {
-                    if (this.actor.get_direction() == St.TextDirection.RTL)    // right to left text direction 
+                    if (this.actor.get_direction() == St.TextDirection.RTL)    // right to left text direction
                         this._rightCorner = new PanelCorner(this._leftBox, St.Side.BOTTOM, CornerType.bottomleft);
-                    else 
-                        this._rightCorner = new PanelCorner(this._rightBox, St.Side.BOTTOM, CornerType.bottomleft); 
+                    else
+                        this._rightCorner = new PanelCorner(this._rightBox, St.Side.BOTTOM, CornerType.bottomleft);
                 }
             } else { // right panel
                 if (drawcorner[0]) {
                     if (this.actor.get_direction() == St.TextDirection.RTL)   // right to left text direction
-                        this._leftCorner = new PanelCorner(this._rightBox, St.Side.TOP, CornerType.topright); 
+                        this._leftCorner = new PanelCorner(this._rightBox, St.Side.TOP, CornerType.topright);
                     else
                         this._leftCorner = new PanelCorner(this._leftBox, St.Side.TOP, CornerType.topright);
                 }
                 if (drawcorner[1]) {
-                    if (this.actor.get_direction() == St.TextDirection.RTL)    // right to left text direction; 
-                        this._rightCorner = new PanelCorner(this._leftBox, St.Side.BOTTOM, CornerType.bottomright); 
-                    else 
+                    if (this.actor.get_direction() == St.TextDirection.RTL)    // right to left text direction;
+                        this._rightCorner = new PanelCorner(this._leftBox, St.Side.BOTTOM, CornerType.bottomright);
+                    else
                         this._rightCorner = new PanelCorner(this._rightBox, St.Side.BOTTOM, CornerType.bottomright);
                 }
             }
@@ -2077,10 +2036,11 @@ Panel.prototype = {
     updatePosition: function(monitorIndex, panelPosition) {
         this.monitorIndex = monitorIndex
         this.panelPosition = panelPosition;
+        this._positionChanged = true;
 
         this.monitor = global.screen.get_monitor_geometry(monitorIndex);
         //
-        // If there are any corners then remove them - they may or may not be required 
+        // If there are any corners then remove them - they may or may not be required
         // in the new position, so we cannot just move them
         //
         this._destroycorners();
@@ -2108,10 +2068,10 @@ Panel.prototype = {
                 this._context_menu = new PanelContextMenu(this, St.Side.BOTTOM, this.panelId);
                 break;
             case PanelLoc.left:
-                this._context_menu = new PanelContextMenu(this, St.Side.LEFT, this.panelId);  
+                this._context_menu = new PanelContextMenu(this, St.Side.LEFT, this.panelId);
                 break;
             case PanelLoc.right:
-                this._context_menu = new PanelContextMenu(this, St.Side.RIGHT, this.panelId); 
+                this._context_menu = new PanelContextMenu(this, St.Side.RIGHT, this.panelId);
                 break;
             default:
                 global.log("addContextMenuToPanel - unrecognised panel position "+panelPosition);
@@ -2119,7 +2079,7 @@ Panel.prototype = {
         this._menus.addMenu(this._context_menu);
 
         return;
-    },  
+    },
 
      /**
      * addPanelStyleClass:
@@ -2171,7 +2131,7 @@ Panel.prototype = {
                                    // the destroy process can test it
 
         this._clearPanelBarriers();
-        AppletManager.unloadAppletsOnPanel(this);
+        AppletManager.unloadAppletsOnPanel(this.panelId);
         this._context_menu.close();
         this._context_menu.destroy();
 
@@ -2208,7 +2168,7 @@ Panel.prototype = {
     isHideable: function() {
         return this._autohideSettings != "false";
     },
-    
+
     /**
      * _getProperty
      * @key (string): name of gsettings key
@@ -2223,7 +2183,7 @@ Panel.prototype = {
         let property;
         for (let i = 0; i < values.length; i++){
             if (values[i].split(":")[0]==this.panelId){
-                property=values[i].split(":")[1];
+                property = values[i].split(":")[1];
                 break;
             }
         }
@@ -2234,7 +2194,7 @@ Panel.prototype = {
         }
         switch (type){
         case "b":
-            return property=="true";
+            return property == "true";
         case "i":
             return parseInt(property);
         default:
@@ -2247,7 +2207,7 @@ Panel.prototype = {
 // For empty panels. If over left,right,center box then will not get here.
 //
         this._enterPanel();
-        if (this._dragShowId > 0)
+        if (this._dragShowId && this._dragShowId > 0)
             Mainloop.source_remove(this._dragShowId);
 
         let leaveIfOut = Lang.bind(this, function() {
@@ -2256,7 +2216,7 @@ Panel.prototype = {
             this.actor.sync_hover();
 
             if (this.actor.x < x && x < this.actor.x + this.actor.width &&
-                this.actor.y < y && y < this.actor.y + this.actor.height) { 
+                this.actor.y < y && y < this.actor.y + this.actor.height) {
                 return true;
             } else {
                 this._leavePanel();
@@ -2388,26 +2348,43 @@ Panel.prototype = {
         this._centerBox.change_style_pseudo_class('dnd', this._panelEditMode);
         this._rightBox.change_style_pseudo_class('dnd', this._panelEditMode);
 
-// This next section is a bit of a kludge
-// For a new vertical panel 'allocate' may not get called when trying to drag an applet in, especially with central alignment.  
-// This causes drop not to be available, meaning the panel can't be populated via this method.
-// This section gives the boxes a minimum size to force an allocation
+        /* this next section is a bit of a kludge and should be reworked when
+           someone can find a better way. The issue is that boxlayout left and right
+           align can show no visible box when containing no applets.  This puts a
+           fixed min size in to permit a drop to happen in edit mode, it turns on
+           when selecting edit mode, and off when leaving.
 
-        if (this._panelEditMode == true && (this.panelPosition == PanelLoc.left || this.panelPosition == PanelLoc.right)) {
-            if (this._centerBox.get_height() == 0) {
-                this._centerBox.set_height(40);
+           Note that setting up to use the full width does not work, it gets
+           left alignment which doesn't seem to be able to be over-ridden,
+           and the applet gets a whole box fill effect which is weird when dragging
+           - perhaps x_fill etc. is turned on elsewhere  */
+
+        if (this._panelEditMode) {
+            if (this.is_vertical) {
+                let height = this._rightBox.get_height();
+                if (height < EDIT_MODE_MIN_BOX_SIZE * global.ui_scale)
+                    this._rightBox.set_height(EDIT_MODE_MIN_BOX_SIZE * global.ui_scale);
+                height = this._leftBox.get_height();
+                if (height < EDIT_MODE_MIN_BOX_SIZE * global.ui_scale)
+                    this._leftBox.set_height(EDIT_MODE_MIN_BOX_SIZE * global.ui_scale);
+            } else {
+                let width = this._rightBox.get_width();
+                if (width < EDIT_MODE_MIN_BOX_SIZE * global.ui_scale)
+                    this._rightBox.set_width(EDIT_MODE_MIN_BOX_SIZE * global.ui_scale);
+                width = this._leftBox.get_width();
+                if (width < EDIT_MODE_MIN_BOX_SIZE * global.ui_scale)
+                    this._leftBox.set_width(EDIT_MODE_MIN_BOX_SIZE * global.ui_scale);
             }
-            if (this._leftBox.get_height() == 0) {
-                this._leftBox.set_height(40);
-            }
-            if (this._rightBox.get_height() == 0) {
-                this._rightBox.set_height(40);
-            }
+        } else {
+            this._rightBox.set_size(-1, -1);
+            this._leftBox.set_size(-1, -1);
         }
 
         if (old_mode != this._panelEditMode) {
-            this._processPanelAutoHide();
+            this._updatePanelVisibility();
         }
+
+        this.actor.queue_relayout();
     },
 
     _onButtonPressEvent: function (actor, event) {
@@ -2424,21 +2401,21 @@ Panel.prototype = {
 
                 // NB test on parent fails with centre aligned vertical box, but works for the test against the actor
                 if (this._context_menu._getMenuItems().length > 0 &&
-                   (target.get_parent() == this.actor || target == this.actor)) { 
-                    this._context_menu.toggle();
-                    if (!this._context_menu.isOpen)
-                        return;
-
-                    switch (this.panelPosition) {
-                        case PanelLoc.top:
-                        case PanelLoc.bottom:
-                            this._context_menu.shiftToPosition(x);
-                            break;
-                        case PanelLoc.left:
-                        case PanelLoc.right:
-                            this._context_menu.shiftToPosition(y);
-                            break;
+                   (target.get_parent() == this.actor || target == this.actor)) {
+                    if (!this._context_menu.isOpen) {
+                        switch (this.panelPosition) {
+                            case PanelLoc.top:
+                            case PanelLoc.bottom:
+                                this._context_menu.shiftToPosition(x);
+                                break;
+                            case PanelLoc.left:
+                            case PanelLoc.right:
+                                this._context_menu.shiftToPosition(y);
+                                break;
+                        }
                     }
+
+                    this._context_menu.toggle();
                 }
             } catch(e) {
                 global.log(e);
@@ -2459,22 +2436,22 @@ Panel.prototype = {
             return;
 
         this._focusWindow = global.display.focus_window.get_compositor_private();
-        this._signalManager.connect(this._focusWindow, "position-changed", this._updatePanelVisibility);
-        this._signalManager.connect(this._focusWindow, "size-changed", this._updatePanelVisibility);
+        this._signalManager.connect(this._focusWindow, "position-changed", this._updatePanelVisibility, this);
+        this._signalManager.connect(this._focusWindow, "size-changed", this._updatePanelVisibility, this);
         this._updatePanelVisibility();
     },
 
-    _processPanelAutoHide: function() {  
+    _processPanelAutoHide: function() {
         this._autohideSettings = this._getProperty(PANEL_AUTOHIDE_KEY, "s");
 
         if (this._autohideSettings == "intel") {
-            this._signalManager.connect(global.display, "notify::focus-window", this._onFocusChanged);
+            this._signalManager.connect(global.display, "notify::focus-window", this._onFocusChanged, this);
             /* focus-window signal is emitted when the workspace change
              * animation starts. When the animation ends, we do the position
              * check again because the windows have moved. We cannot use
              * _onFocusChanged because _onFocusChanged does nothing when there
              * is no actual focus change. */
-            this._signalManager.connect(global.window_manager, "switch-workspace-complete", this._updatePanelVisibility);
+            this._signalManager.connect(global.window_manager, "switch-workspace-complete", this._updatePanelVisibility, this);
             this._onFocusChanged();
         } else {
             this._signalManager.disconnect("notify::focus-window");
@@ -2516,176 +2493,296 @@ Panel.prototype = {
         return panelHeight;
     },
 
+   /**
+    * _setClipRegion:
+    * @hidden: whether the panel should be clipped for hide
+    * @offset: (optional): x or y position offset
+    *
+    * If @hidden is true the clip region is set to the one exposed strip of pixels
+    * adjacent to the monitor edge. Otherwise, the clip region is set to the panel
+    * size plus the shadow on the side of the panel opposite the monitor edge.
+    *
+    * @offset is only used during tweens. If provided, it is used to offset the
+    * current position in order to calculate the exposed size.
+    */
+    _setClipRegion: function(hidden, offset) {
+        let animating = typeof offset === "number";
+        let isHorizontal = this.panelPosition == PanelLoc.top
+                           || this.panelPosition == PanelLoc.bottom;
+
+        // determine corners size so we can extend allocation when not
+        // hiding or animating.
+        let cornerRadius = 0;
+        if (this._leftCorner && this._leftCorner.cornerRadius > 0) {
+            cornerRadius = this._leftCorner.cornerRadius;
+        } else if (this._rightCorner && this._rightCorner.cornerRadius > 0) {
+            cornerRadius = this._rightCorner.cornerRadius;
+        }
+
+        // determine exposed amount of panel
+        let exposedAmount;
+        if (isHorizontal) {
+            if (hidden)
+                exposedAmount = animating ? Math.abs(this.actor.y - offset) + 1
+                                          : 1;
+            else
+                exposedAmount = animating ? Math.abs(this.actor.y - offset)
+                                          : this.actor.height;
+        } else {
+            if (hidden)
+                exposedAmount = animating ? Math.abs(this.actor.x - offset) + 1
+                                          : 1;
+            else
+                exposedAmount = animating ? Math.abs(this.actor.x - offset)
+                                          : this.actor.width;
+        }
+
+        // determine offset & set clip
+        // top/left panels: must offset by the hidden amount
+        // bottom/right panels: if showing must offset by shadow size and corner radius
+        // all panels: if showing increase exposedAmount by shadow size and corner radius
+
+        // we use only the shadowbox x1 or y1 (offset) to determine shadow size
+        // as some themes use an offset shadow to draw only on one side whereas
+        // others have a shadow all around. using the offset should handle
+        // both cases.
+        if (isHorizontal) {
+            let clipOffsetY = 0;
+            if (this.panelPosition == PanelLoc.top) {
+                clipOffsetY = this.actor.height - exposedAmount;
+            } else {
+                if (!hidden)
+                    clipOffsetY = this._shadowBox.y1 - cornerRadius;
+            }
+            if (!hidden)
+                exposedAmount += Math.abs(this._shadowBox.y1) + cornerRadius;
+            this.actor.set_clip(0, clipOffsetY, this.actor.width, exposedAmount);
+        } else {
+            let clipOffsetX = 0;
+            if (this.panelPosition == PanelLoc.left) {
+                clipOffsetX = this.actor.width - exposedAmount;
+            } else {
+                if (!hidden)
+                    clipOffsetX = this._shadowBox.x1 - cornerRadius;
+            }
+            if (!hidden)
+                exposedAmount += Math.abs(this._shadowBox.x1) + cornerRadius;
+            this.actor.set_clip(clipOffsetX, 0, exposedAmount, this.actor.height);
+        }
+        // Force the layout manager to update the input region
+        Main.layoutManager.updateChrome()
+    },
+
     /**
      * _moveResizePanel:
      *
-     * Function to update the panel position and size according to settings
+     * Function to update the panel position, size, and clip region according to settings
      * values.  Note that this is also called when the style changes.
      */
     _moveResizePanel: function() {
-
         if (this._destroyed)
             return false;
 
-        this.monitor = global.screen.get_monitor_geometry(this.monitorIndex);
-        let horizontal_panel = ((this.panelPosition == PanelLoc.top || this.panelPosition == PanelLoc.bottom) ? true : false);
-
-        let panelHeight = this._getScaledPanelHeight();
-        this._setFont(panelHeight);
-
-        let vertpanelHeight = 0;
-
-        try {
-            this.margin_top    = 0;
-            this.margin_bottom = 0;
-            this.margin_left   = 0;
-            this.margin_right  = 0;
-            let themeNode      = this.actor.get_theme_node();
-            this.margin_top    = themeNode.get_length('margin-top');
-            this.margin_bottom = themeNode.get_length('margin-bottom');
-            this.margin_left   = themeNode.get_length('margin-left');
-            this.margin_right  = themeNode.get_length('margin-right');
-        } catch (e) {
-            global.log(e);
-        }
         //
-        // set the height of the panel. To find the height available for the vertical panels we need to find out how
-        // much has been used for the horizontal panels on this monitor.
-        //
-        this.toppanelHeight = 0;
-        this.bottompanelHeight = 0;
-        if (horizontal_panel) {
-            this.actor.set_height(panelHeight); 
-        } else {
-            if (Main.panelManager)            // the panelManager has initialized
-                [this.toppanelHeight, this.bottompanelHeight] = heightsUsedMonitor(this.monitorIndex, Main.panelManager.panels);
-        
-            vertpanelHeight = this.monitor.height - this.toppanelHeight - this.bottompanelHeight
-                              - global.ui_scale*(this.margin_top + this.margin_bottom);
-            this.actor.set_height(vertpanelHeight);
-        }
-        this._processPanelAutoHide();
-        //
-        // layouts set to be full width horizontal panels, and vertical panels set to use as much available space as is left 
+        // layouts set to be full width horizontal panels, and vertical panels set to use as much available space as is left
         //
         // NB If you want to use margin to inset the panels within a monitor, then you can't just set it here
         // else full screen windows will then go right to the edge with the panels floating over
         //
-        switch (this.panelPosition) {
-            case PanelLoc.top:
-                this.actor.set_size    (this.monitor.width - global.ui_scale*(this.margin_left+this.margin_right),
-                                        panelHeight);
-                this.actor.set_position(this.monitor.x + global.ui_scale*this.margin_left,
-                                        this.monitor.y);
-                break;
-            case PanelLoc.bottom:
-                this.actor.set_size    (this.monitor.width - global.ui_scale*(this.margin_left+this.margin_right),
-                                        panelHeight);
-                this.actor.set_position(this.monitor.x + global.ui_scale*this.margin_left,
-                                        this.monitor.y + this.monitor.height - panelHeight);
-                break;
-            case PanelLoc.left:
-                this.actor.set_size    (panelHeight,
-                                        vertpanelHeight);
-                this.actor.set_position(this.monitor.x,
-                                        this.monitor.y + this.toppanelHeight + global.ui_scale*this.margin_top);
-                break;
-            case PanelLoc.right:
-                this.actor.set_size    (panelHeight,
-                                        vertpanelHeight);
-                this.actor.set_position(this.monitor.x + this.monitor.width - panelHeight,
-                                        this.monitor.y + this.toppanelHeight + global.ui_scale*this.margin_top);
-                break;
-            default:
-                global.log("moveResizePanel - unrecognised panel position "+this.panelPosition);
-        }
-        this._updatePanelBarriers();   // only needed here for when this routine is called when the style changes
+        this.monitor = global.screen.get_monitor_geometry(this.monitorIndex);
+        let horizontal_panel = ((this.panelPosition == PanelLoc.top || this.panelPosition == PanelLoc.bottom) ? true : false);
 
-        //
-        // If we are adjusting the heights of horizontal panels then the vertical ones on this monitor 
-        // may need to be changed at the same time. 
-        //
+        // this stands for width on vertical panels, and height on horizontal panels
+        let panelHeight = this._getScaledPanelHeight();
+
+        // find heights used by horizontal panels to determine height available for vertical panels.
+        // we need to check Main.panelManager because this can be called before it has initialized.
+        this.toppanelHeight = 0;
+        this.bottompanelHeight = 0;
+        if (Main.panelManager && !horizontal_panel)
+            [this.toppanelHeight, this.bottompanelHeight] = heightsUsedMonitor(this.monitorIndex, Main.panelManager.panels);
+        // get shadow and margins
+        let themeNode = this.actor.get_theme_node();
+
+        // FIXME: inset shadows will probably break clipping.
+        // I haven't seen a theme with inset panel shadows, but if there
+        // are any then we need to just use the dummy shadow box in that case.
+        let shadowBox;
+        let shadow = themeNode.get_box_shadow();
+        if (shadow) {
+            shadowBox = new Clutter.ActorBox;
+            let actorBox = new Clutter.ActorBox;
+            shadow.get_box(actorBox, shadowBox);
+        } else {
+            // if we don't actually have a shadow, just create a dummy shadowBox
+            shadowBox = {x1: 0, y1: 0, x2: 0, y2: 0};
+        }
+
+        let newMarginTop = 0;
+        let newMarginBottom = 0;
+        let newMarginLeft = 0;
+        let newMarginRight = 0;
+        try {
+            newMarginTop    = themeNode.get_margin(St.Side.TOP);
+            newMarginBottom = themeNode.get_margin(St.Side.BOTTOM);
+            newMarginLeft   = themeNode.get_margin(St.Side.LEFT);
+            newMarginRight  = themeNode.get_margin(St.Side.RIGHT);
+        } catch (e) {
+            global.log(e);
+        }
+
+        let panelChanged = false;
+
+        let shadowChanged = !this._shadowBox
+                            || shadowBox.x1 != this._shadowBox.x1
+                            || shadowBox.x2 != this._shadowBox.x2
+                            || shadowBox.y1 != this._shadowBox.y1
+                            || shadowBox.y2 != this._shadowBox.y2;
+
+        // if the shadow changed, we need to update the clip
+        if (shadowChanged) {
+            panelChanged = true;
+            this._shadowBox = shadowBox;
+        }
+
+        // if the position changed, make sure the panel is showing
+        // so it's more apparent that the panel moved successfully
+        if (this._positionChanged) {
+            panelChanged = true;
+            this._positionChanged = false;
+            this._hidden = false;
+        }
+
+        // if the monitors changed, force update in case the position needs updating
+        if (this._monitorsChanged) {
+            panelChanged = true;
+            this._monitorsChanged = false;
+        }
+
+        // calculate new panel sizes.  NB margin is already scaled for hidpi
+        let newVertPanelHeight = this.monitor.height - this.toppanelHeight - this.bottompanelHeight
+                                 - (newMarginTop + newMarginBottom);
+        let newHorizPanelWidth = this.monitor.width - (newMarginLeft + newMarginRight);
+
+        // and determine if this panel's size changed
         if (horizontal_panel) {
-            if (Main.panelManager) {            // the panelManager has initialized
-                for (let i in Main.panelManager.panels) {
-                    if (Main.panelManager.panels[i])
-                        if ((Main.panelManager.panels[i].panelPosition == PanelLoc.left 
-                        || Main.panelManager.panels[i].panelPosition == PanelLoc.right)
-                        && Main.panelManager.panels[i].monitorIndex == this.monitorIndex)
-                        Main.panelManager.panels[i]._moveResizePanel();
+            if (this.actor.width != newHorizPanelWidth || this.actor.height != panelHeight)
+                panelChanged = true;
+        } else {
+            if (this.actor.width != panelHeight || this.actor.height != newVertPanelHeight)
+                panelChanged = true;
+        }
+
+        if (panelChanged) {
+            // remove any tweens that might be active for autohide
+            Tweener.removeTweens(this.actor);
+
+            this.margin_top = newMarginTop;
+            this.margin_bottom = newMarginBottom;
+            this.margin_left = newMarginLeft;
+            this.margin_right = newMarginRight;
+
+            this._setFont(panelHeight);
+
+            // update size and determine position depending on hidden state
+            let newX, newY;
+            if (horizontal_panel) {
+                newX = this.monitor.x;
+                if (this.panelPosition == PanelLoc.top) {
+                    newY = this._hidden ? this.monitor.y - panelHeight + 1
+                                        : this.monitor.y;
+                } else {
+                    newY = this._hidden ? this.monitor.y + this.monitor.height - 1
+                                        : this.monitor.y + this.monitor.height - panelHeight;
+                }
+                this.actor.set_size(newHorizPanelWidth, panelHeight);
+            } else {
+                newY = this.monitor.y + this.toppanelHeight;
+                if (this.panelPosition == PanelLoc.left) {
+                    newX = this._hidden ? this.monitor.x - panelHeight + 1
+                                        : this.monitor.x;
+                } else {
+                    newX = this._hidden ? this.monitor.x + this.monitor.width - 1
+                                        : this.monitor.x + this.monitor.width - panelHeight;
+                }
+                this.actor.set_size(panelHeight, newVertPanelHeight);
+            }
+
+            // update position and clip region
+            this.actor.set_position(newX, newY)
+            this._setClipRegion(this._hidden);
+
+            // only needed here for when this routine is called when the style changes
+            this._updatePanelBarriers();
+
+            this._updatePanelVisibility();
+
+            // If we are adjusting the heights of horizontal panels then the vertical ones on this monitor
+            // need to be changed at the same time.
+            if (Main.panelManager && horizontal_panel) {
+                let panels = Main.panelManager.getPanelsInMonitor(this.monitorIndex);
+                for (let p = 0, len = panels.length; p < len; p++) {
+                    if (panels[p].panelPosition == PanelLoc.left || panels[p].panelPosition == PanelLoc.right)
+                        panels[p]._moveResizePanel();
                 }
             }
-        }
-        // AppletManager might not be initialized yet
-        if (AppletManager.appletsLoaded)
-            AppletManager.updateAppletPanelHeights(); 
 
+            // AppletManager might not be initialized yet
+            if (AppletManager.appletsLoaded)
+                AppletManager.updateAppletPanelHeights();
+        }
         return true;
     },
 
     _set_orientation: function() {
-    //
-    // cater for the style/alignment for different panel orientations
-    //
-    if (this.panelPosition == PanelLoc.top || this.panelPosition == PanelLoc.bottom)
-        this._set_horizontal_panel_style();
-    else
-        this._set_vertical_panel_style();
+        //
+        // cater for the style/alignment for different panel orientations
+        //
+        if (this.panelPosition == PanelLoc.top || this.panelPosition == PanelLoc.bottom) {
+            this._set_horizontal_panel_style();
+            this.is_vertical = false;
+        }
+        else {
+            this._set_vertical_panel_style();
+            this.is_vertical = true;
+        }
     },
 
     _set_vertical_panel_style: function() {
 
-        if (this.panelPosition == PanelLoc.left) {
-            this._leftBox.set_style_class_name('panelLeft');
-            this._rightBox.set_style_class_name('panelLeft');
-        } else {
-            this._leftBox.set_style_class_name('panelRight');
-            this._rightBox.set_style_class_name('panelRight');
-        }
-        this._rightBox.add_style_class_name('vertical');
-        this._rightBox.set_align_end(false);
-        this._rightBox.set_important(true);
-        this._rightBox.set_vertical(true);
-        this._rightBox.set_x_align(Clutter.ActorAlign.FILL);
-        this._rightBox.set_x_expand(true);
-        this._rightBox.set_y_align(Clutter.ActorAlign.END);
-
         this._leftBox.add_style_class_name('vertical');
-        this._leftBox.set_important(true);
         this._leftBox.set_vertical(true);
         this._leftBox.set_x_align(Clutter.ActorAlign.FILL);
-        this._leftBox.set_x_expand(true);
         this._leftBox.set_y_align(Clutter.ActorAlign.START);
 
         this._centerBox.add_style_class_name('vertical');
-        this._centerBox.set_important(true);
         this._centerBox.set_vertical(true);
         this._centerBox.set_x_align(Clutter.ActorAlign.FILL);
-        this._centerBox.set_y_align(Clutter.ActorAlign.CENTER); // if set to fill it snaps upwards
-        this._centerBox.set_x_expand(true)
-        this._centerBox.set_y_expand(true)
+        this._centerBox.set_y_align(Clutter.ActorAlign.FILL);
+
+        this._rightBox.add_style_class_name('vertical');
+        this._rightBox.set_vertical(true);
+        this._rightBox.set_x_align(Clutter.ActorAlign.FILL);
+        this._rightBox.set_y_align(Clutter.ActorAlign.END);
     },
 
     _set_horizontal_panel_style: function() {
-
-        this._rightBox.remove_style_class_name('vertical');
-        this._rightBox.set_vertical(false);
-        this._rightBox.set_x_align(Clutter.ActorAlign.END);
-        this._rightBox.set_y_align(Clutter.ActorAlign.CENTER);
-        this._rightBox.set_align_end(true);
+        let rtl = this.actor.get_direction() === St.TextDirection.RTL;
 
         this._leftBox.remove_style_class_name('vertical');
         this._leftBox.set_vertical(false);
-        this._leftBox.set_x_align(Clutter.ActorAlign.START);
-        this._leftBox.set_y_align(Clutter.ActorAlign.CENTER);
+        this._leftBox.set_x_align(rtl ? Clutter.ActorAlign.END : Clutter.ActorAlign.START);
+        this._leftBox.set_y_align(Clutter.ActorAlign.FILL);
 
         this._centerBox.remove_style_class_name('vertical');
         this._centerBox.set_vertical(false);
-        this._centerBox.set_x_align(Clutter.ActorAlign.CENTER);
-        this._centerBox.set_y_align(Clutter.ActorAlign.CENTER);
+        this._centerBox.set_x_align(Clutter.ActorAlign.FILL);
+        this._centerBox.set_y_align(Clutter.ActorAlign.FILL);
 
-        this._leftBox.set_style_class_name('panelLeft');
-        this._rightBox.set_style_class_name('panelRight');
+        this._rightBox.remove_style_class_name('vertical');
+        this._rightBox.set_vertical(false);
+        this._rightBox.set_x_align(rtl ? Clutter.ActorAlign.START : Clutter.ActorAlign.END);
+        this._rightBox.set_y_align(Clutter.ActorAlign.FILL);
     },
 
     _setFont: function(panelHeight) {
@@ -2714,9 +2811,9 @@ Panel.prototype = {
         alloc.min_size = -1;
         alloc.natural_size = -1;
 
-        if (this.panelPosition == PanelLoc.top || this.panelPosition == PanelLoc.bottom) {
+ /*       if (this.panelPosition == PanelLoc.top || this.panelPosition == PanelLoc.bottom) {
             alloc.natural_size = Main.layoutManager.primaryMonitor.width;
-        }
+        } */
     },
 
     _getPreferredHeight: function(actor, forWidth, alloc) {
@@ -2724,10 +2821,10 @@ Panel.prototype = {
         alloc.min_size = -1;
         alloc.natural_size = -1;
 
-        if (this.panelPosition == PanelLoc.left || this.panelPosition == PanelLoc.right) {
+/*        if (this.panelPosition == PanelLoc.left || this.panelPosition == PanelLoc.right) {
             alloc.natural_size = Main.layoutManager.primaryMonitor.height;
             alloc.natural_size = alloc.natural_size - this.toppanelHeight - this.bottompanelHeight - this.margin_top - this.margin_bottom;
-        }
+        } */
     },
 
     /**
@@ -2773,10 +2870,15 @@ Panel.prototype = {
      * box wants. In the scenario where the isn't enough space to just allocate the
      * minimum width, we just allocate proportional to the minimum width.
      *
+     * FIXME: consider replacing all of this with clutter constraints.  Fundamentally
+     * we have three boxes constrained to be butted up against each other and to stretch
+     * over the whole panel.  If the centre box is populated then it needs to be centred.
+     * Any field has to be given a minimum size in edit mode to allow drag and drop.
+     *
      * Returns (array): The left and right widths to be allocated.
      */
     _calcBoxSizes: function(allocWidth, allocHeight, vertical) {
-        let leftBoundary,rightBoundary = 0;
+        let leftBoundary, rightBoundary = 0;
         let leftMinWidth       = 0;
         let leftNaturalWidth   = 0;
         let rightMinWidth      = 0;
@@ -2797,19 +2899,13 @@ Panel.prototype = {
 
         let centerBoxOccupied = this._centerBox.get_n_children() > 0;
 
-            /* If panel edit mode, pretend central box is occupied and give it at
-             * least width 25 so that things can be dropped into it */
+        /* If panel edit mode, pretend central box is occupied and give it at
+         * least a minimum width so that things can be dropped into it.
+           Note that this has to be combined with the box being given Clutter.ActorAlign.FILL */
         if (this._panelEditMode) {
             centerBoxOccupied  = true;
-            centerMinWidth     = Math.max(centerMinWidth, 25);
-            centerNaturalWidth = Math.max(centerNaturalWidth, 25);
-
-            if (vertical) {  // a workaround if boxes in a vertical panel are emptied
-                leftMinWidth     = Math.max(leftMinWidth, 25);
-                leftNaturalWidth = Math.max(leftNaturalWidth, 25);
-                rightMinWidth     = Math.max(rightMinWidth, 25);
-                rightNaturalWidth = Math.max(rightNaturalWidth, 25);
-            }
+            centerMinWidth     = Math.max(centerMinWidth, EDIT_MODE_MIN_BOX_SIZE * global.ui_scale);
+            centerNaturalWidth = Math.max(centerNaturalWidth, EDIT_MODE_MIN_BOX_SIZE * global.ui_scale);
         }
 
         let totalMinWidth             = leftMinWidth + centerMinWidth + rightMinWidth;
@@ -2898,12 +2994,12 @@ Panel.prototype = {
             }
         }
 
-        let leftBoundary  = Math.round(leftWidth);
-        let rightBoundary = Math.round(allocWidth - rightWidth);
+        leftBoundary  = Math.round(leftWidth);
+        rightBoundary = Math.round(allocWidth - rightWidth);
 
-        if (!vertical && (this.actor.get_direction() == St.TextDirection.RTL)) {
-            leftBoundary  = allocWidth - leftWidth;
-            rightBoundary = rightWidth;
+        if (!vertical && (this.actor.get_direction() === St.TextDirection.RTL)) {
+            leftBoundary  = Math.round(allocWidth - leftWidth);
+            rightBoundary = Math.round(rightWidth);
         }
 
         return [leftBoundary, rightBoundary];
@@ -2943,139 +3039,108 @@ Panel.prototype = {
         let cornerMinHeight = 0;
         let cornerHeight = 0;
 
-        if (this.drawcorner[0]) {
-            [cornerMinWidth, cornerWidth]   = this._leftCorner.actor.get_preferred_width(-1);
-            [cornerMinHeight, cornerHeight] = this._leftCorner.actor.get_preferred_height(-1);
-        }
-
-        if (this.drawcorner[1]) {
-            [cornerMinWidth, cornerWidth]   = this._rightCorner.actor.get_preferred_width(-1);
-            [cornerMinHeight, cornerHeight] = this._rightCorner.actor.get_preferred_height(-1);
-        }
-
         let allocHeight  = box.y2 - box.y1;
         let allocWidth   = box.x2 - box.x1;
 
+        /* Left, center and right panel sections will fit inside this box, which is
+           equivalent to the CSS content-box (imaginary box inside borders and paddings) */
+        let childBox = box.copy();
+
+        /* The boxes are layout managers, so they rubber-band around their contents and have a few
+           characteristics that they enforce on their contents.  Of particular note is that the alignment
+           - LEFT, CENTER, RIGHT - is not independent of the fill as it probably ought to be, and that there
+           is this hybrid FILL alignment that also comes with implied left alignment (probably locale dependent).
+           Which is not a great problem when there is something in the box, but if there is nothing in the box and
+           something other than FILL alignment is chosen, then the boxes will have no size allocated.
+           Which is a bit of a bummer if you need to drag something into an empty box. So we need to work
+           around this. That's a manual size set when turning on edit mode, combined with adjustments after drop.
+           Note also that settings such as x_fill and y_fill only apply to the children of the box, not to the box itself */
+
         if (this.panelPosition == PanelLoc.left || this.panelPosition == PanelLoc.right) {
 
-            [leftBoundary, rightBoundary] = this._calcBoxSizes(allocHeight, allocWidth, true); 
-        
-            let childBox = new Clutter.ActorBox();
+            /* Distribute sizes for the allocated height with points relative to
+               the children allocation box, inside borders and paddings. */
+            let [leftBoundary, rightBoundary] = this._calcBoxSizes(allocHeight, allocWidth, true);
+            leftBoundary += box.y1;
+            rightBoundary += box.y1;
 
-            childBox.x1 = 0;
-            childBox.x2 = allocWidth;
-            this._setVertChildbox (childBox,0,leftBoundary);
-            this._leftBox.allocate(childBox, flags); //leftbox
+            this._setVertChildbox (childBox, box.y1, leftBoundary);
+            this._leftBox.allocate(childBox, flags);
 
-            this._setVertChildbox (childBox,leftBoundary,rightBoundary);
-            this._centerBox.allocate(childBox, flags);  //centerbox2
+            this._setVertChildbox (childBox, leftBoundary, rightBoundary);
+            this._centerBox.allocate(childBox, flags);
 
-            this._setVertChildbox (childBox,rightBoundary,allocHeight);
-            this._rightBox.allocate(childBox, flags); // rightbox 
+            this._setVertChildbox (childBox, rightBoundary, box.y2);
+            this._rightBox.allocate(childBox, flags);
 
-            // As using central y-align or x-align seems to result in zero size if the box is empty, force
-            // to a defined size in edit mode if this happens
-            // Force the width to max to stop the boxes shrinking in from the edge.  This needs resetting if the
-            // panel orientation is moved to horizontal.  The logic in the horizontal case is analogous
-
-            this._centerBox.set_width(allocWidth);
-            this._leftBox.set_width(allocWidth);
-            this._rightBox.set_width(allocWidth);
-            this._centerBox.set_height(-1);
-            this._leftBox.set_height(-1);
-            this._rightBox.set_height(-1);
-
-            if (this._panelEditMode) {
-                if (this._centerBox.get_height() == 0) {
-                   this._centerBox.set_height(rightBoundary - leftBoundary);
-                }
-                if (this._leftBox.get_height() == 0) {     // without this ...
-                   this._leftBox.set_height(leftBoundary);
-                }
-                if (this._rightBox.get_height() == 0) {    // .. and this, the centre box contents will generally snap to the top in edit mode
-                   this._rightBox.set_height(allocHeight - rightBoundary);
-                }
-            }
-
-            // Corners are in response to a bit of optional css and are about painting corners just outside the panels so as to create a seamless 
-            // visual impression for windows with curved corners 
-            // So ... top left corner wants to be at the bottom left of the top panel. top right wants to be in the correspondingplace on the right 
+            // Corners are in response to a bit of optional css and are about painting corners just outside the panels so as to create a seamless
+            // visual impression for windows with curved corners
+            // So ... top left corner wants to be at the bottom left of the top panel. top right wants to be in the correspondingplace on the right
             // Bottom left corner wants to be at the top left of the bottom panel.  bottom right in the corresponding place on the right
             // No panel, no corner necessary.
             // If there are vertical panels as well then we want to shift these in by the panel width
-            // If there are vertical panels but no horizontal then the corners are top right and left to right of left panel, and same to left of right panel
+            // If there are vertical panels but no horizontal then the corners are top right and left to right of left panel,
+            // and same to left of right panel
 
-            if (this.panelPosition == PanelLoc.left) { // left panel
-                if (this.drawcorner[0]) {
-                    this._setCornerChildbox(childBox, box.x2, box.x2+cornerWidth, box.y1, box.y1+cornerWidth);
-                    this._leftCorner.actor.allocate(childBox, flags);
+            if (this.drawcorner[0]) {
+                [cornerMinWidth, cornerWidth]   = this._leftCorner.actor.get_preferred_width(-1);
+                [cornerMinHeight, cornerHeight] = this._leftCorner.actor.get_preferred_height(-1);
+                if (this.panelPosition === PanelLoc.left) { // left panel
+                    this._setCornerChildbox(childBox, box.x2, box.x2+cornerWidth, 0, cornerWidth);
+                } else { // right panel
+                    this._setCornerChildbox(childBox, box.x1-cornerWidth, box.x1, 0, cornerWidth);
                 }
-
-                if (this.drawcorner[1]) {
-                    this._setCornerChildbox(childBox, box.x2, box.x2+cornerWidth, box.y2-cornerHeight, box.y2);
-                    this._rightCorner.actor.allocate(childBox, flags); 
-                }
+                this._leftCorner.actor.allocate(childBox, flags);
             }
-            if (this.panelPosition == PanelLoc.right) {          // right panel
-                if (this.drawcorner[0]) {
-                    this._setCornerChildbox(childBox, box.x1-cornerWidth, box.x2, box.y1, box.y1+cornerWidth);
-                    this._leftCorner.actor.allocate(childBox, flags); 
-                }
 
-                if (this.drawcorner[1]) {
-                    this._setCornerChildbox(childBox, box.x1-cornerWidth, box.x2, box.y2-cornerHeight, box.y2);
-                    this._rightCorner.actor.allocate(childBox, flags);
+            if (this.drawcorner[1]) {
+                [cornerMinWidth, cornerWidth]   = this._rightCorner.actor.get_preferred_width(-1);
+                [cornerMinHeight, cornerHeight] = this._rightCorner.actor.get_preferred_height(-1);
+                if (this.panelPosition === PanelLoc.left) { // left panel
+                    this._setCornerChildbox(childBox, box.x2, box.x2+cornerWidth, this.actor.height-cornerHeight, this.actor.height);
+                } else { // right panel
+                    this._setCornerChildbox(childBox, box.x1-cornerWidth, box.x1, this.actor.height-cornerHeight, this.actor.height);
                 }
+                this._rightCorner.actor.allocate(childBox, flags);
             }
+
         } else {           // horizontal panel
 
-            [leftBoundary, rightBoundary] = this._calcBoxSizes(allocWidth, allocHeight, false); 
+            /* Distribute sizes for the allocated width with points relative to
+               the children allocation box, inside borders and paddings. */
+            let [leftBoundary, rightBoundary] = this._calcBoxSizes(allocWidth, allocHeight, false);
+            leftBoundary += box.x1;
+            rightBoundary += box.x1;
 
-            let childBox = new Clutter.ActorBox();
-
-            childBox.y1 = 0;
-            childBox.y2 = allocHeight;
-            this._setHorizChildbox (childBox,0,leftBoundary,leftBoundary, allocWidth);
+            this._setHorizChildbox (childBox, box.x1, leftBoundary, leftBoundary, box.x2);
             this._leftBox.allocate(childBox, flags);
 
-            this._setHorizChildbox (childBox,leftBoundary,rightBoundary,rightBoundary,leftBoundary);
-            this._centerBox.allocate(childBox, flags);  //centerbox
+            this._setHorizChildbox (childBox, leftBoundary, rightBoundary, rightBoundary, leftBoundary);
+            this._centerBox.allocate(childBox, flags);
 
-            this._setHorizChildbox (childBox,rightBoundary,allocWidth,0,rightBoundary);
+            this._setHorizChildbox (childBox, rightBoundary, box.x2, box.x1, rightBoundary);
             this._rightBox.allocate(childBox, flags);
 
-            this._centerBox.set_width(-1);
-            this._leftBox.set_width(-1);
-            this._rightBox.set_width(-1);
-            this._centerBox.set_height(allocHeight);
-            this._leftBox.set_height(allocHeight);
-            this._rightBox.set_height(allocHeight);
-
-
-            if (this._panelEditMode) {
-                if (this._centerBox.get_width() == 0) { // a fallback
-                   this._centerBox.set_width(40);
+            if (this.drawcorner[0]) {
+                [cornerMinWidth, cornerWidth]   = this._leftCorner.actor.get_preferred_width(-1);
+                [cornerMinHeight, cornerHeight] = this._leftCorner.actor.get_preferred_height(-1);
+                if (this.panelPosition === PanelLoc.top) { // top panel
+                    this._setCornerChildbox(childBox, 0, cornerWidth, box.y2, box.y2+cornerHeight);
+                } else { // bottom panel
+                    this._setCornerChildbox(childBox, 0, cornerWidth, box.y1-cornerHeight, box.y2);
                 }
+                this._leftCorner.actor.allocate(childBox, flags);
             }
 
-            if (this.panelPosition == PanelLoc.top) { // top panel
-                if (this.drawcorner[0]) {
-                    this._setCornerChildbox(childBox, 0, cornerWidth, allocHeight,allocHeight + cornerHeight );
-                    this._leftCorner.actor.allocate(childBox, flags);
+            if (this.drawcorner[1]) {
+                [cornerMinWidth, cornerWidth]   = this._rightCorner.actor.get_preferred_width(-1);
+                [cornerMinHeight, cornerHeight] = this._rightCorner.actor.get_preferred_height(-1);
+                if (this.panelPosition === PanelLoc.top) { // top panel
+                  this._setCornerChildbox(childBox, this.actor.width-cornerWidth, this.actor.width, box.y2, box.y2+cornerHeight);
+                } else { // bottom panel
+                  this._setCornerChildbox(childBox, this.actor.width-cornerWidth, this.actor.width, box.y1-cornerHeight, box.y1);
                 }
-                if (this.drawcorner[1]) {
-                    this._setCornerChildbox(childBox, allocWidth - cornerWidth, allocWidth, allocHeight,allocHeight + cornerHeight );
-                    this._rightCorner.actor.allocate(childBox, flags);
-                }
-            } else { // bottom
-                if (this.drawcorner[0]) {
-                    this._setCornerChildbox(childBox, 0,cornerWidth, box.y1 - cornerHeight, box.y2);
-                    this._leftCorner.actor.allocate(childBox, flags);
-                }
-                if (this.drawcorner[1]) {
-                    this._setCornerChildbox(childBox, allocWidth - cornerWidth, allocWidth, box.y1 - cornerHeight,box.y2 );
-                    this._rightCorner.actor.allocate(childBox, flags);
-                }
+                this._rightCorner.actor.allocate(childBox, flags);
             }
         }
     },
@@ -3109,9 +3174,9 @@ Panel.prototype = {
                     this._shouldShow = false;
                     break;
                 }
-                let y;
+                let x, y;
 
-                /* Calculate the y instead of getting the actor y since the
+                /* Calculate the x or y instead of getting it from the actor since the
                  * actor might be hidden*/
                 switch (this.panelPosition) {
                     case PanelLoc.top:
@@ -3120,9 +3185,11 @@ Panel.prototype = {
                     case PanelLoc.bottom:
                         y = this.monitor.y + this.monitor.height - this.actor.height;
                         break;
-                    case PanelLoc.left: 
-                    case PanelLoc.right: 
-                        y = this.monitor.y + this.toppanelHeight;
+                    case PanelLoc.left:
+                        x = this.monitor.x;
+                        break;
+                    case PanelLoc.right:
+                        x = this.monitor.x + this.monitor.width - this.actor.width;
                         break;
                     default:
                         global.log("updatePanelVisibility - unrecognised panel position "+this.panelPosition);
@@ -3132,9 +3199,14 @@ Panel.prototype = {
                 let b = global.display.focus_window.get_compositor_private();
                 /* Magic to check whether the panel position overlaps with the
                  * current focused window */
-                this._shouldShow =
-                    !(Math.max(a.x, b.x) < Math.min(a.x + a.width, b.x + b.width) &&
-                      Math.max(y, b.y) < Math.min(y + a.height, b.y + b.height));
+                if (this.panelPosition == PanelLoc.top || this.panelPosition == PanelLoc.bottom) {
+                    this._shouldShow = !(Math.max(a.x, b.x) < Math.min(a.x + a.width, b.x + b.width) &&
+                                         Math.max(y, b.y) < Math.min(y + a.height, b.y + b.height));
+                } else {
+                    this._shouldShow = !(Math.max(x, b.x) < Math.min(x + a.width, b.x + b.width) &&
+                                         Math.max(a.y, b.y) < Math.min(a.y + a.height, b.y + b.height));
+                }
+
         } // end of switch on autohidesettings
 
         if (this._panelEditMode)
@@ -3170,7 +3242,7 @@ Panel.prototype = {
             this._showHideTimer = Mainloop.timeout_add(hideDelay, Lang.bind(this, this._hidePanel))
         }
     },
-    
+
     _enterPanel: function() {
         this._mouseEntered = true;
         this._updatePanelVisibility();
@@ -3179,7 +3251,7 @@ Panel.prototype = {
     _leavePanel:function() {
         this._mouseEntered = false;
         this._updatePanelVisibility();
-    }, 
+    },
 
     /**
      * disable:
@@ -3196,7 +3268,7 @@ Panel.prototype = {
             transition: 'easeOutQuad',
             onComplete: this.actor.hide
         });
-    }, 
+    },
 
     /**
      * enable:
@@ -3223,148 +3295,59 @@ Panel.prototype = {
         this._showHideTimer = 0;
 
         if (this._disabled) return;
-
         if (!this._hidden) return;
 
-        // Force the panel to be on top (hack to correct issues when switching workspace)
-        Main.layoutManager._windowsRestacked();
-
+        // setup panel tween - slide in from edge of monitor
+        // if horizontal panel, animation on y. if vertical, animation on x.
+        let isHorizontal = this.panelPosition == PanelLoc.top
+                           || this.panelPosition == PanelLoc.bottom;
         let animationTime = AUTOHIDE_ANIMATION_TIME;
+        let panelParams = { time: animationTime,
+                            transition: 'easeOutQuad' };
 
-        if (this.panelPosition == PanelLoc.top || this.panelPosition == PanelLoc.bottom) { // horizontal panel, animation on y
+        // set up original and destination positions and add tween
+        // destination parameter
+        let origPos, destPos;
+        if (isHorizontal) {
             let height = this.actor.get_height();
-            let y;
-            switch (this.panelPosition) {
-                case PanelLoc.top:
-                    y = this.monitor.y; // target end position when y = 0
-                    break;
-                case PanelLoc.bottom:
-                    y = this.monitor.y + this.monitor.height - height;
-                    break;
+            if (this.panelPosition == PanelLoc.top) {
+                destPos = this.monitor.y;
+                origPos = this.monitor.y - height;
+            } else {
+                destPos = this.monitor.y + this.monitor.height - height;
+                origPos = this.monitor.y + this.monitor.height;
             }
-
-            // boxes
-            this._leftBox.show();
-            this._centerBox.show();
-            this._rightBox.show();
-
-            let jj;
-            switch (this.panelPosition) {
-                case PanelLoc.top: jj = this.monitor.y - height; break;
-                case PanelLoc.bottom: jj = this.monitor.y + this.monitor.height; break; 
-            }
-            // panel
-            Tweener.addTween(this.actor,
-                            { y: y,
-                            time: animationTime,
-                            transition: 'easeOutQuad',
-                            onUpdate: Lang.bind(this, function(origY, panelPosition) {
-                                // Force the layout manager to update the input region
-                                Main.layoutManager._chrome.updateRegions()
-
-                                let height = Math.abs(this.actor.y - origY);
-                                let y;
-                                switch (panelPosition) {
-                                    case PanelLoc.top:
-                                        y = this.actor.height - height;
-                                        break;
-                                    case PanelLoc.bottom:
-                                        y = 0;
-                                        break;
-                                }
-
-                                this.actor.set_clip(0, y, this.monitor.width, height);
-                            }),
-                            onUpdateParams: [jj, this.panelPosition]
-                            }); 
-            // boxes - fade in as panel slides
-            let params = { opacity: 255,
-                           time: animationTime+0.2,
-                           transition: 'easeOutQuad' };
-
-            Tweener.addTween(this._leftBox, params);
-            Tweener.addTween(this._centerBox, params);
-            Tweener.addTween(this._rightBox, params);
-            // corners
-            //let params = { y: height - 1,
-            //                time: animationTime + 0.1,
-            //                transition: 'easeOutQuad'
-            //                };
-            if (this._leftCorner) {
-            //  this._leftCorner._repaint();
-                //Tweener.addTween(this._leftCorner.actor, params);
-            }
-            if (this._rightCorner) {
-            //  this._rightCorner._repaint();
-                //Tweener.addTween(this._rightCorner.actor, params);
-            }
-        } else {  // vertical panel, animation on x
+            panelParams['y'] = destPos;
+        } else {
             let width = this.actor.get_width();
-            let x;
-            switch (this.panelPosition) {
-                case PanelLoc.left: 
-                    x = this.monitor.x; // target end position when x = 0
-                    break;
-                case PanelLoc.right: 
-                    x = this.monitor.width - width + this.monitor.x;
-                    break;
+            if (this.panelPosition == PanelLoc.left) {
+                destPos = this.monitor.x;
+                origPos = this.monitor.x - width;
+            } else {
+                destPos = this.monitor.width - width + this.monitor.x;
+                origPos = this.monitor.width + this.monitor.x;
             }
-            // corners
-            //let params = { x: width - 1,
-            //                time: animationTime + 0.1,
-            //                transition: 'easeOutQuad'
-            //                };
-
-            // boxes
-            this._leftBox.show();
-            this._centerBox.show();
-            this._rightBox.show();
-
-            let jj;
-            switch (this.panelPosition) {
-                case PanelLoc.left: jj = this.monitor.x - width;
-                case PanelLoc.right: jj = this.monitor.width + this.monitor.x;
-            }
-            // panel
-            Tweener.addTween(this.actor,
-                            { x: x,
-                            time: animationTime,
-                            transition: 'easeOutQuad',
-                            onUpdate: Lang.bind(this, function(origX, panelPosition) {
-                                // Force the layout manager to update the input region
-                                Main.layoutManager._chrome.updateRegions()
-
-                                let width = Math.abs(this.actor.x - origX);
-                                let x;
-                                switch (panelPosition) {
-                                    case PanelLoc.left: 
-                                        x = this.actor.width - width;
-                                        break;
-                                    case PanelLoc.right: 
-                                        x = 0;
-                                        break;
-                                }
-                                this.actor.set_clip(x, 0, width, this.monitor.height); 
-                            }),
-                            onUpdateParams: [jj, this.panelPosition]
-                            }); 
-            // boxes - fade in as panel slides
-            let params = { opacity: 255,
-                           time: animationTime + 0.2,
-                           transition: 'easeOutQuad' };
-
-            Tweener.addTween(this._leftBox, params);
-            Tweener.addTween(this._centerBox, params);
-            Tweener.addTween(this._rightBox, params);
-            if (this._leftCorner) {
-                //this._leftCorner._repaint();
-                //Tweener.addTween(this._leftCorner.actor, params);
-            }
-            if (this._rightCorner) {
-                //this._rightCorner._repaint();
-                //Tweener.addTween(this._rightCorner.actor, params);
-            }
+            panelParams['x'] = destPos;
         }
+
+        // setup onUpdate tween parameter to set the actor clip region during animation.
+        panelParams['onUpdateParams'] = [origPos];
+        panelParams['onUpdate'] =
+            Lang.bind(this, function(origPos) { this._setClipRegion(false, origPos); });
+
+        // setup boxes tween - fade in as panel slides
+        let boxParams = { opacity: 255,
+                          time: animationTime+0.2,
+                          transition: 'easeOutQuad' };
+
+        // show boxes and add tweens
+        this._leftBox.show();
+        this._centerBox.show();
+        this._rightBox.show();
+        Tweener.addTween(this.actor, panelParams);
+        Tweener.addTween(this._leftBox, boxParams);
+        Tweener.addTween(this._centerBox, boxParams);
+        Tweener.addTween(this._rightBox, boxParams);
 
         this._hidden = false;
     },
@@ -3384,131 +3367,68 @@ Panel.prototype = {
 
         if ((this._shouldShow && !force) || global.menuStackLength > 0) return;
 
-        // Force the panel to be on top (hack to correct issues when switching workspace)
-        Main.layoutManager._windowsRestacked();
+        // setup panel tween - slide out the monitor edge leaving one pixel
+        // if horizontal panel, animation on y. if vertical, animation on x.
+        let isHorizontal = this.panelPosition == PanelLoc.top
+                         || this.panelPosition == PanelLoc.bottom;
         let animationTime = AUTOHIDE_ANIMATION_TIME;
+        let panelParams = { time: animationTime,
+                            transition: 'easeOutQuad' };
 
-        if (this.panelPosition == PanelLoc.top || this.panelPosition == PanelLoc.bottom) { // horizontal panels, animation on y
+        // setup destination position and add tween destination parameter
+        // remember to always leave a vestigial 1px strip or the panel
+        // will become inaccessible
+        let destPos;
+        if (isHorizontal) {
             let height = this.actor.get_height();
-            let y;
-            switch (this.panelPosition) {
-                case PanelLoc.top:
-                    y = this.monitor.y - height + 1;  // final position, note the +1 to leave a vestigial panel that can be entered to 
-                    break;                // trigger showing the panel in autohide mode
-                case PanelLoc.bottom:
-                    y = this.monitor.y + this.monitor.height - 1;
-                    break;
-            }
-            // panel        
-            Tweener.addTween(this.actor, {
-                y: y,
-                time: animationTime,
-                transition: 'easeOutQuad',
-                onUpdate: Lang.bind(this, function(targetY, panelPosition) {
-                    // Force the layout manager to update the input region
-                    Main.layoutManager._chrome.updateRegions()
-
-                    let height = Math.abs(this.actor.y - targetY) + 1;
-                    let y;
-                    switch (panelPosition) {
-                        case PanelLoc.top:
-                            y = this.actor.height - height;
-                            break;
-                        case PanelLoc.bottom:
-                            y = 0;
-                            break;
-                    }
-
-                    this.actor.set_clip(0, y, this.monitor.width, height);
-                }),
-                onComplete: Lang.bind(this, function() {
-                    this._leftBox.hide();
-                    this._centerBox.hide();
-                    this._rightBox.hide();
-                }),
-                onUpdateParams: [y, this.panelPosition]
-            });
-        
-            let params = { opacity: 0,
-                           time: Math.max(0, animationTime - 0.1),
-                           transition: 'easeOutQuad' };
-
-            // corners
-            //let params = { y: 0,
-            //                time: animationTime,
-            //                transition: 'easeOutQuad'
-            //                };
-    /*      if (this._leftCorner)
-                Tweener.addTween(this._leftCorner.actor, params);
-            if (this._rightCorner)
-                Tweener.addTween(this._rightCorner.actor, params);
-            // boxes - fade out as panel slides */
-
-            Tweener.addTween(this._leftBox, params);
-            Tweener.addTween(this._centerBox, params);
-            Tweener.addTween(this._rightBox, params);
-
-        } else {  // vertical panels, animation on x
+            if (this.panelPosition == PanelLoc.top)
+                destPos = this.monitor.y - height + 1;
+            else
+                destPos = this.monitor.y + this.monitor.height - 1;
+            panelParams['y'] = destPos;
+        } else {
             let width = this.actor.get_width();
-            let x;
-            switch (this.panelPosition) {
-                case PanelLoc.left:
-                    x = this.monitor.x - width + 1;    // final position of vestigial panel, a one pixel strip at the edge
-                    break;
-                case PanelLoc.right: 
-                    x = this.monitor.x + this.monitor.width - 1; 
-                    break;
-            }
-            
-            // panel
-            Tweener.addTween(this.actor, {
-                x: x,
-                time: animationTime,
-                transition: 'easeOutQuad',
-                onUpdate: Lang.bind(this, function(targetX, panelPosition) {
-                    // Force the layout manager to update the input region
-                    Main.layoutManager._chrome.updateRegions()
+            if (this.panelPosition == PanelLoc.left)
+                destPos = this.monitor.x - width + 1;
+            else
+                destPos = this.monitor.x + this.monitor.width - 1;
+            panelParams['x'] = destPos;
+        }
 
-                    let width = Math.abs(this.actor.x - targetX) + 1;  // note +1 to ensure one pixel remains at least after the clip
-                    let x;
-                    switch (panelPosition) {
-                        case PanelLoc.left:
-                            x = this.actor.width - width;
-                            break;
-                        case PanelLoc.right:
-                            x = 0;
-                         break;
-                    }
+        // setup onUpdate tween parameter to update the actor clip region during animation
+        panelParams['onUpdateParams'] = [destPos];
+        panelParams['onUpdate'] =
+            Lang.bind(this, function(destPos) { this._setClipRegion(true, destPos); });
 
-                    this.actor.set_clip(x, 0, width, this.monitor.height);  //x offset of clip rectangle, y offset of clip rectangle, clip width, clip height
-                }),
-                onComplete: Lang.bind(this, function() {
-                    this._leftBox.hide();
-                    this._centerBox.hide();
-                    this._rightBox.hide();
-                }),
-                onUpdateParams: [x, this.panelPosition]
+        // hide boxes after panel slides out
+        panelParams['onComplete'] =
+            Lang.bind(this, function() {
+               this._leftBox.hide();
+               this._centerBox.hide();
+               this._rightBox.hide();
             });
 
-            let params = { opacity: 0,
-                           time: Math.max(0, animationTime - 0.1),
-                           transition: 'easeOutQuad' };
-            // corners
-            //let params = { x: 0,
-            //                time: animationTime,
-            //                transition: 'easeOutQuad'
-            //                };
-        /*  if (this._leftCorner)
-                Tweener.addTween(this._leftCorner.actor, params);
-            if (this._rightCorner)
-                Tweener.addTween(this._rightCorner.actor, params);
-            // boxes - fade out as panel slides */
+        // setup boxes tween - fade out as panel slides out
+        let boxParams = { opacity: 0,
+                          time: Math.max(0, animationTime - 0.1),
+                          transition: 'easeOutQuad' };
 
-            Tweener.addTween(this._leftBox, params);
-            Tweener.addTween(this._centerBox, params);
-            Tweener.addTween(this._rightBox, params);
-        }
+        // add all tweens
+        Tweener.addTween(this.actor, panelParams);
+        Tweener.addTween(this._leftBox, boxParams);
+        Tweener.addTween(this._centerBox, boxParams);
+        Tweener.addTween(this._rightBox, boxParams);
 
         this._hidden = true;
     },
+
+    getIsVisible: function() {
+        return this._shouldShow;
+    },
+
+    resetDNDZones: function() {
+        this._leftBoxDNDHandler.reset();
+        this._centerBoxDNDHandler.reset();
+        this._rightBoxDNDHandler.reset();
+    }
 };

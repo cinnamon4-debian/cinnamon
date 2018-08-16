@@ -43,20 +43,6 @@ const NM80211ApSecurityFlags = NetworkManager['80211ApSecurityFlags'];
 // (the remaining are placed into More...)
 const NUM_VISIBLE_NETWORKS = 5;
 
-function macToArray(string) {
-    return string.split(':').map(function(el) {
-        return parseInt(el, 16);
-    });
-}
-
-function macCompare(one, two) {
-    for (let i = 0; i < 6; i++) {
-        if (one[i] != two[i])
-            return false;
-    }
-    return true;
-}
-
 function ssidCompare(one, two) {
     if (!one || !two)
         return false;
@@ -116,7 +102,7 @@ NMNetworkMenuItem.prototype = {
 
         this._label = new St.Label({ text: title });
         this.addActor(this._label);
-        let strStrengh = new String(this.bestAP.strength);
+        let strStrengh = String(this.bestAP.strength);
         strStrengh = strStrengh + '%';
         this._labelStrength = new St.Label({ text: strStrengh });
         this.addActor(this._labelStrength, { align: St.Align.END });
@@ -151,7 +137,7 @@ NMNetworkMenuItem.prototype = {
             this.bestAP = ap;
 
         this._signalIcon.icon_name = this._getIcon();
-        let strStrengh = new String(this.bestAP.strength);
+        let strStrengh = String(this.bestAP.strength);
         strStrengh = strStrengh + '%';
         this._labelStrength.set_text(strStrengh);
     },
@@ -348,6 +334,10 @@ NMDevice.prototype = {
         this._autoConnectionItem = null;
         this._overflowItem = null;
 
+        this._carrierChangedId = 0;
+        this._firmwareChangedId = 0;
+        this._firmwareMissingId = 0;
+
         if (this.device) {
             this.statusItem = new PopupMenu.PopupSwitchMenuItem(this._getDescription(), this.connected, { style_class: 'popup-subtitle-menu-item' });
             this._statusChanged = this.statusItem.connect('toggled', Lang.bind(this, function(item, state) {
@@ -383,6 +373,10 @@ NMDevice.prototype = {
         if (this._firmwareChangedId) {
             GObject.Object.prototype.disconnect.call(this.device, this._firmwareChangedId);
             this._firmwareChangedId = 0;
+        }
+        if (this._firmwareMissingId) {
+            GObject.Object.prototype.disconnect.call(this.device, this._firmwareMissingId);
+            this._firmwareMissingId = 0;
         }
 
         this._clearSection();
@@ -923,9 +917,9 @@ NMDeviceBluetooth.prototype = {
     },
 
     _createAutomaticConnection: function() {
-        let connection = new NetworkManager.Connection;
+        let connection = new NetworkManager.Connection();
         connection._uuid = NetworkManager.utils_uuid_generate();
-        connection.add_setting(new NetworkManager.SettingBluetooth);
+        connection.add_setting(new NetworkManager.SettingBluetooth());
         connection.add_setting(new NetworkManager.SettingConnection({
             uuid: connection._uuid,
             id: this._autoConnectionName,
@@ -1186,14 +1180,14 @@ NMDeviceWireless.prototype = {
         if (rsn_flags != NM80211ApSecurityFlags.NONE) {
             /* RSN check first so that WPA+WPA2 APs are treated as RSN/WPA2 */
             if (rsn_flags & NM80211ApSecurityFlags.KEY_MGMT_802_1X)
-	        type = NMAccessPointSecurity.WPA2_ENT;
-	    else if (rsn_flags & NM80211ApSecurityFlags.KEY_MGMT_PSK)
-	        type = NMAccessPointSecurity.WPA2_PSK;
+                type = NMAccessPointSecurity.WPA2_ENT;
+            else if (rsn_flags & NM80211ApSecurityFlags.KEY_MGMT_PSK)
+                type = NMAccessPointSecurity.WPA2_PSK;
         } else if (wpa_flags != NM80211ApSecurityFlags.NONE) {
             if (wpa_flags & NM80211ApSecurityFlags.KEY_MGMT_802_1X)
                 type = NMAccessPointSecurity.WPA_ENT;
             else if (wpa_flags & NM80211ApSecurityFlags.KEY_MGMT_PSK)
-	        type = NMAccessPointSecurity.WPA_PSK;
+                type = NMAccessPointSecurity.WPA_PSK;
         } else {
             if (flags & NM80211ApFlags.PRIVACY)
                 type = NMAccessPointSecurity.WEP;
@@ -1352,7 +1346,6 @@ NMDeviceWireless.prototype = {
         let res = this._findExistingNetwork(accessPoint);
 
         if (res == null) {
-            log('Removing an access point that was never added');
             return;
         }
 
@@ -1428,7 +1421,6 @@ NMDeviceWireless.prototype = {
             return;
         }
 
-        let obj = this._connections[pos];
         this._connections.splice(pos, 1);
 
         let anyauto = false, forceupdate = false;
@@ -1511,7 +1503,6 @@ NMDeviceWireless.prototype = {
     },
 
     _createActiveConnectionItem: function() {
-        let icon, title;
         if (this._activeConnection._connection) {
             let connection = this._activeConnection._connection;
             if (!this._activeNetwork) {
@@ -1532,7 +1523,6 @@ NMDeviceWireless.prototype = {
                 this._activeConnectionItem = new PopupMenu.PopupImageMenuItem(connection._name, 'network-wireless-connected', { reactive: false });
         } else {
             // We cannot read the connection (due to ACL, or API incompatibility), but we still show signal if we have it
-            let menuItem;
             if (this._activeNetwork)
                 this._activeConnectionItem = new NMNetworkMenuItem(this._activeNetwork.accessPoints, undefined,
                                                                    { reactive: false });
@@ -1583,15 +1573,15 @@ NMDeviceWireless.prototype = {
             apObj.item = new NMNetworkMenuItem(apObj.accessPoints);
             apObj.item.connect('activate', Lang.bind(this, function() {
                 let accessPoints = sortAccessPoints(apObj.accessPoints);
-                if (   (accessPoints[0]._secType == NMAccessPointSecurity.WPA2_ENT)
-                    || (accessPoints[0]._secType == NMAccessPointSecurity.WPA_ENT)) {
+                if ((accessPoints[0]._secType == NMAccessPointSecurity.WPA2_ENT) ||
+                    (accessPoints[0]._secType == NMAccessPointSecurity.WPA_ENT)) {
                     // 802.1x-enabled APs require further configuration, so they're
                     // handled in cinnamon-settings
                     Util.spawn(['cinnamon-settings', 'network', 'connect-8021x-wifi',
                                 this.device.get_path(), accessPoints[0].dbus_path]);
                 } else {
                     let connection = this._createAutomaticConnection(apObj);
-                    this._client.add_and_activate_connection(connection, this.device, accessPoints[0].dbus_path, null)
+                    this._client.add_and_activate_connection(connection, this.device, accessPoints[0].dbus_path, null);
                 }
             }));
         }
@@ -1649,11 +1639,34 @@ NMMessageTraySource.prototype = {
     }
 };
 
-function MyApplet(metadata, orientation, panel_height, instance_id) {
+function RescanMenuItem() {
+    this._init.apply(this);
+}
+
+RescanMenuItem.prototype = {
+    __proto__: PopupMenu.PopupBaseMenuItem.prototype,
+
+    _init: function() {
+        PopupMenu.PopupBaseMenuItem.prototype._init.call(this);
+
+
+        this.label = new St.Label({ text: _("Rescan for wireless networks") });
+        this.addActor(this.label);
+        this.actor.label_actor = this.label;
+    },
+
+    activate: function(event) {
+
+        PopupMenu.PopupBaseMenuItem.prototype.activate.call(this, event, true);
+    }
+};
+
+
+function CinnamonNetworkApplet(metadata, orientation, panel_height, instance_id) {
     this._init(metadata, orientation, panel_height, instance_id);
 }
 
-MyApplet.prototype = {
+CinnamonNetworkApplet.prototype = {
     __proto__: Applet.IconApplet.prototype,
 
     _init: function(metadata, orientation, panel_height, instance_id) {
@@ -1730,10 +1743,30 @@ MyApplet.prototype = {
             this._devices.vpn.section.actor.hide();
             this.menu.addMenuItem(this._devices.vpn.section);
             this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+
+            this.rescan_item = new RescanMenuItem();
+
+            this.rescan_item.connect("activate", Lang.bind(this, function() {
+                let devices = this._devices.wireless.devices;
+
+                for (let i = 0; i < devices.length; i++) {
+                    devices[i].device.request_scan_simple(null);
+                }
+            }));
+
+            this.menu.addMenuItem(this.rescan_item);
+
+            this.rescan_item.actor.hide();
+
             this.menu.addSettingsAction(_("Network Settings"), 'network');
             this.menu.addAction(_("Network Connections"), Lang.bind(this, function() {
 				Util.spawnCommandLine("nm-connection-editor");
             }));
+
+            this.menu.connect("open-state-changed", Lang.bind(this, this._updateForMenuToggle));
+
+            this._periodicTimeoutId = 0;
+            this._updateFrequencySeconds = DEFAULT_PERIODIC_UPDATE_FREQUENCY_SECONDS;
 
             this._activeConnections = [ ];
             this._connections = [ ];
@@ -1840,6 +1873,21 @@ MyApplet.prototype = {
                 item.updateForDevice(null);
             }
         }
+
+        let show_rescan = false;
+
+        if (this._devices.wireless.devices.length > 0) {
+            let devices = this._devices.wireless.devices;
+
+            for (let i = 0; i < devices.length; i++) {
+                if (devices[i]._client.wireless_get_enabled()) {
+                    show_rescan = true;
+                    break;
+                }
+            }
+        }
+
+        this.rescan_item.actor.visible = show_rescan;
     },
 
     _readDevices: function() {
@@ -1921,7 +1969,7 @@ MyApplet.prototype = {
         let pos = devices.indexOf(wrapper);
         devices.splice(pos, 1);
 
-        this._syncSectionTitle(wrapper.category)
+        this._syncSectionTitle(wrapper.category);
     },
 
     _syncActiveConnections: function() {
@@ -2029,15 +2077,15 @@ MyApplet.prototype = {
                         }
                     }
                 } else
-                    a._primaryDevice = this._devices.vpn.device
+                    a._primaryDevice = this._devices.vpn.device;
 
                 if (a._primaryDevice)
                     a._primaryDevice.setActiveConnection(a);
 
-                if (a.state == NetworkManager.ActiveConnectionState.ACTIVATED
-                    && a._primaryDevice && a._primaryDevice._notification) {
-                    a._primaryDevice._notification.destroy();
-                    a._primaryDevice._notification = null;
+                if (a.state == NetworkManager.ActiveConnectionState.ACTIVATED &&
+                    a._primaryDevice && a._primaryDevice._notification) {
+                        a._primaryDevice._notification.destroy();
+                        a._primaryDevice._notification = null;
                 }
             }
         }
@@ -2046,10 +2094,10 @@ MyApplet.prototype = {
     },
 
     _notifyActivated: function(activeConnection) {
-        if (activeConnection.state == NetworkManager.ActiveConnectionState.ACTIVATED
-            && activeConnection._primaryDevice && activeConnection._primaryDevice._notification) {
-            activeConnection._primaryDevice._notification.destroy();
-            activeConnection._primaryDevice._notification = null;
+        if (activeConnection.state == NetworkManager.ActiveConnectionState.ACTIVATED &&
+            activeConnection._primaryDevice && activeConnection._primaryDevice._notification) {
+                activeConnection._primaryDevice._notification.destroy();
+                activeConnection._primaryDevice._notification = null;
         }
 
         this._updateIcon();
@@ -2176,18 +2224,17 @@ MyApplet.prototype = {
     },
 
     _updateIcon: function() {
+        let new_delay = DEFAULT_PERIODIC_UPDATE_FREQUENCY_SECONDS;
+
         try {
-            this._updateFrequencySeconds = DEFAULT_PERIODIC_UPDATE_FREQUENCY_SECONDS;
             this._syncActiveConnections();
             let mc = this._mainConnection;
-            let hasApIcon = false;
-            let hasMobileIcon = false;
 
             if (!mc) {
                 this._setIcon('network-offline');
                 this.set_applet_tooltip(_("No connection"));
             } else if (mc.state == NetworkManager.ActiveConnectionState.ACTIVATING) {
-                this._updateFrequencySeconds = FAST_PERIODIC_UPDATE_FREQUENCY_SECONDS;
+                new_delay = FAST_PERIODIC_UPDATE_FREQUENCY_SECONDS;
                 switch (mc._section) {
                 case NMConnectionCategory.WWAN:
                     this._setIcon('network-cellular-acquiring');
@@ -2229,13 +2276,11 @@ MyApplet.prototype = {
                         } else {
                             this._setIcon('network-wireless-signal-' + signalToIcon(ap.strength));
                             this.set_applet_tooltip(_("Wireless connection") + ": " + ap.get_ssid() + " ("+ ap.strength +"%)");
-                            hasApIcon = true;
                         }
-                        break;
                     } else {
                         log('Active connection with no primary device?');
-                        break;
                     }
+                    break;
                 case NMConnectionCategory.WIRED:
                     this._setIcon('network-wired');
                     this.set_applet_tooltip(_("Connected to the wired network"));
@@ -2255,7 +2300,6 @@ MyApplet.prototype = {
 
                     this._setIcon('network-cellular-signal-' + signalToIcon(dev.mobileDevice.signal_quality));
                     this.set_applet_tooltip(_("Connected to the cellular network"));
-                    hasMobileIcon = true;
                     break;
                 case NMConnectionCategory.VPN:
                     this._setIcon('network-vpn');
@@ -2273,12 +2317,38 @@ MyApplet.prototype = {
         catch (e) {
             global.logError(e);
         }
+
+        if (this.menu.isOpen) {
+            return FAST_PERIODIC_UPDATE_FREQUENCY_SECONDS;
+        }
+
+        return new_delay;
     },
 
     _periodicUpdateIcon: function() {
-        this._updateIcon();
-        this._updateFrequencySeconds = Math.max(2, this._updateFrequencySeconds);
+        let new_delay = this._updateIcon();
+
+        if (this._updateFrequencySeconds != new_delay) {
+            this._restartPeriodicUpdateTimer(new_delay);
+        } else {
+            return GLib.SOURCE_CONTINUE;
+        }
+
+        return GLib.SOURCE_REMOVE;
+    },
+
+    _restartPeriodicUpdateTimer: function(new_delay) {
+        if (this._periodicTimeoutId > 0) {
+            Mainloop.source_remove(this._periodicTimeoutId);
+        }
+
+        this._updateFrequencySeconds = new_delay;
+
         this._periodicTimeoutId = Mainloop.timeout_add_seconds(this._updateFrequencySeconds, Lang.bind(this, this._periodicUpdateIcon));
+    },
+
+    _updateForMenuToggle: function() {
+        this._periodicUpdateIcon();
     },
 
     on_applet_removed_from_panel: function() {
@@ -2292,6 +2362,5 @@ MyApplet.prototype = {
 };
 
 function main(metadata, orientation, panel_height, instance_id) {
-    let myApplet = new MyApplet(metadata, orientation, panel_height, instance_id);
-    return myApplet;
+    return new CinnamonNetworkApplet(metadata, orientation, panel_height, instance_id);
 }

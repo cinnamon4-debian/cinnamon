@@ -1,9 +1,4 @@
 ## Process this file with automake to produce Makefile.in
-
-# we want $(DOC_MAIN_SGML_FILE) to be built before sgml-build
-# and sgml-build depends on $(DOC_MODULE)-sections.txt
-$(DOC_MODULE)-sections.txt: $(DOC_MAIN_SGML_FILE)
-
 # We require automake 1.6 at least.
 AUTOMAKE_OPTIONS = 1.6
 
@@ -78,6 +73,7 @@ content_files= \
 	xlet-settings.xml \
 	xlet-settings-ref.xml \
 	xlet-versioning.xml \
+	xlet-translating.xml \
         $(NULL)
 
 # SGML files where gtk-doc abbrevations (#GtkWidget) are expanded
@@ -92,6 +88,7 @@ expand_content_files= \
 	xlet-settings.xml \
 	xlet-settings-ref.xml \
 	xlet-versioning.xml \
+	xlet-translating.xml \
         $(NULL)
 
 # CFLAGS and LDFLAGS for compiling gtkdoc-scangobj with your library.

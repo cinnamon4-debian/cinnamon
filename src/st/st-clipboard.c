@@ -33,11 +33,6 @@
 #include <clutter/x11/clutter-x11.h>
 #include <string.h>
 
-G_DEFINE_TYPE (StClipboard, st_clipboard, G_TYPE_OBJECT)
-
-#define CLIPBOARD_PRIVATE(o) \
-  (G_TYPE_INSTANCE_GET_PRIVATE ((o), ST_TYPE_CLIPBOARD, StClipboardPrivate))
-
 struct _StClipboardPrivate
 {
   Window clipboard_window;
@@ -47,6 +42,8 @@ struct _StClipboardPrivate
   gint   n_targets;
 };
 
+G_DEFINE_TYPE_WITH_PRIVATE (StClipboard, st_clipboard, G_TYPE_OBJECT)
+
 typedef struct _EventFilterData EventFilterData;
 struct _EventFilterData
 {
@@ -55,6 +52,7 @@ struct _EventFilterData
   gpointer                user_data;
 };
 
+static Atom __atom_primary = None;
 static Atom __atom_clip = None;
 static Atom __utf8_string = None;
 static Atom __atom_targets = None;
@@ -173,8 +171,6 @@ st_clipboard_class_init (StClipboardClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  g_type_class_add_private (klass, sizeof (StClipboardPrivate));
-
   object_class->get_property = st_clipboard_get_property;
   object_class->set_property = st_clipboard_set_property;
   object_class->dispose = st_clipboard_dispose;
@@ -187,7 +183,7 @@ st_clipboard_init (StClipboard *self)
   Display *dpy;
   StClipboardPrivate *priv;
 
-  priv = self->priv = CLIPBOARD_PRIVATE (self);
+  priv = self->priv = st_clipboard_get_instance_private (self);
 
   priv->clipboard_window =
     XCreateSimpleWindow (clutter_x11_get_default_display (),
@@ -197,6 +193,9 @@ st_clipboard_init (StClipboard *self)
   dpy = clutter_x11_get_default_display ();
 
   /* Only create once */
+  if (__atom_primary == None)
+    __atom_primary = XInternAtom (dpy, "PRIMARY", 0);
+
   if (__atom_clip == None)
     __atom_clip = XInternAtom (dpy, "CLIPBOARD", 0);
 
@@ -298,9 +297,16 @@ st_clipboard_get_default (void)
   return default_clipboard;
 }
 
+static Atom
+atom_for_clipboard_type (StClipboardType type)
+{
+  return type == ST_CLIPBOARD_TYPE_CLIPBOARD ? __atom_clip : __atom_primary;
+}
+
 /**
  * st_clipboard_get_text:
- * @clipboard: A #StCliboard
+ * @clipboard: A #StClipboard
+ * @type: The type of clipboard data you want
  * @callback: (scope async): function to be called when the text is retreived
  * @user_data: data to be passed to the callback
  *
@@ -310,6 +316,7 @@ st_clipboard_get_default (void)
  */
 void
 st_clipboard_get_text (StClipboard            *clipboard,
+                       StClipboardType         type,
                        StClipboardCallbackFunc callback,
                        gpointer                user_data)
 {
@@ -333,7 +340,7 @@ st_clipboard_get_text (StClipboard            *clipboard,
   clutter_x11_trap_x_errors (); /* safety on */
 
   XConvertSelection (dpy,
-                     __atom_clip,
+                     atom_for_clipboard_type (type),
                      __utf8_string, __utf8_string,
                      clipboard->priv->clipboard_window,
                      CurrentTime);
@@ -344,6 +351,7 @@ st_clipboard_get_text (StClipboard            *clipboard,
 /**
  * st_clipboard_set_text:
  * @clipboard: A #StClipboard
+ * @type: The type of clipboard that you want to set
  * @text: text to copy to the clipboard
  *
  * Sets text as the current contents of the clipboard.
@@ -351,6 +359,7 @@ st_clipboard_get_text (StClipboard            *clipboard,
  */
 void
 st_clipboard_set_text (StClipboard *clipboard,
+                       StClipboardType  type,
                        const gchar *text)
 {
   StClipboardPrivate *priv;
@@ -370,7 +379,7 @@ st_clipboard_set_text (StClipboard *clipboard,
 
   clutter_x11_trap_x_errors ();
 
-  XSetSelectionOwner (dpy, __atom_clip, priv->clipboard_window, CurrentTime);
+  XSetSelectionOwner (dpy, atom_for_clipboard_type (type), priv->clipboard_window, CurrentTime);
   XSync (dpy, FALSE);
 
   clutter_x11_untrap_x_errors ();

@@ -1,5 +1,7 @@
+#!/usr/bin/python3
+
 import dbus
-from gi.repository import Gio, Gtk, GObject, Gdk, Pango, GLib
+from gi.repository import Gio
 
 LG_DBUS_NAME = "org.Cinnamon.LookingGlass"
 LG_DBUS_PATH = "/org/Cinnamon/LookingGlass"
@@ -49,7 +51,7 @@ class LookingGlassProxy:
     def _initProxy(self):
         try:
             self._proxy = Gio.DBusProxy.new_for_bus(Gio.BusType.SESSION, Gio.DBusProxyFlags.NONE, None,
-                              LG_DBUS_NAME, LG_DBUS_PATH, LG_DBUS_NAME, None, self._onProxyReady, None)
+                                                    LG_DBUS_NAME, LG_DBUS_PATH, LG_DBUS_NAME, None, self._onProxyReady, None)
         except dbus.exceptions.DBusException as e:
             print(e)
             self._proxy = None

@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 from gi.repository import Gtk, Gdk, GObject
 
@@ -29,7 +29,7 @@ class ButtonKeybinding(Gtk.TreeView):
                          "accelerator string",
                          "Parseable accelerator string",
                          None,
-                         GObject.PARAM_READWRITE)
+                         GObject.ParamFlags.READWRITE)
     }
 
     def __init__(self):
@@ -38,6 +38,7 @@ class ButtonKeybinding(Gtk.TreeView):
         self.set_headers_visible(False)
         self.set_enable_search(False)
         self.set_hover_selection(True)
+        self.set_tooltip_text(CellRendererKeybinding.TOOLTIP_TEXT)
 
         self.entry_store = None
         self.accel_string = ""
@@ -112,8 +113,12 @@ class CellRendererKeybinding(Gtk.CellRendererText):
                          "accelerator string",
                          "Parseable accelerator string",
                          None,
-                         GObject.PARAM_READWRITE)
+                         GObject.ParamFlags.READWRITE)
     }
+
+    TOOLTIP_TEXT = "%s\n%s\n%s" % (_("Click to set a new accelerator key."),
+                                   _("Press Escape or click again to cancel the operation."),
+                                   _("Press Backspace to clear the existing keybinding."))
 
     def __init__(self, a_widget, accel_string=None):
         super(CellRendererKeybinding, self).__init__()
@@ -146,11 +151,11 @@ class CellRendererKeybinding(Gtk.CellRendererText):
             raise AttributeError('unknown property %s' % prop.name)
 
     def update_label(self):
-        if not self.accel_string:
-            text = _("unassigned")
-        else:
+        text = _("unassigned")
+        if self.accel_string:
             key, codes, mods = Gtk.accelerator_parse_with_keycode(self.accel_string)
-            text = Gtk.accelerator_get_label_with_keycode(None, key, codes[0], mods)
+            if codes is not None and len(codes) > 0:
+                text = Gtk.accelerator_get_label_with_keycode(None, key, codes[0], mods)
         self.set_property("text", text)
 
     def set_value(self, accel_string=None):
@@ -182,6 +187,7 @@ class CellRendererKeybinding(Gtk.CellRendererText):
             self.teaching = False
 
     def on_focus_out(self, widget, event):
+        self.teaching = False
         self.ungrab()
 
     def on_key_press(self, widget, event):
@@ -216,13 +222,8 @@ class CellRendererKeybinding(Gtk.CellRendererText):
 
             shift_group_mask = keymap.get_modifier_mask(Gdk.ModifierIntent.SHIFT_GROUP)
 
-            if Gtk.accelerator_get_default_mod_mask() & accel_mods & shift_group_mask:
-                accel_mods &= ~shift_group_mask
-                group = 0
-                group_mask_disabled = True
-
             retval, keyval, effective_group, level, consumed_modifiers = \
-                   keymap.translate_keyboard_state(event.hardware_keycode, accel_mods, group)
+                keymap.translate_keyboard_state(event.hardware_keycode, accel_mods, group)
 
             if group_mask_disabled:
                 effective_group = 1
@@ -235,11 +236,6 @@ class CellRendererKeybinding(Gtk.CellRendererText):
             accel_key = Gdk.KEY_Tab
 
         accel_mods &= Gtk.accelerator_get_default_mod_mask()
-
-        accel_mods &= ~consumed_modifiers
-
-        if accel_key != keyval:
-            accel_mods |= Gdk.ModifierType.SHIFT_MASK
 
         if accel_mods == 0:
             if accel_key == Gdk.KEY_Escape:
@@ -259,24 +255,26 @@ class CellRendererKeybinding(Gtk.CellRendererText):
         accel_string = Gtk.accelerator_name_with_keycode(None, accel_key, event.hardware_keycode, Gdk.ModifierType(accel_mods))
         accel_label = Gtk.accelerator_get_label_with_keycode(None, accel_key, event.hardware_keycode, Gdk.ModifierType(accel_mods))
 
+        # print("Storing %s as %s" % (accel_label, accel_string))
+
         if (accel_mods == 0 or accel_mods == Gdk.ModifierType.SHIFT_MASK) and event.hardware_keycode != 0:
             if ((keyval >= Gdk.KEY_a                    and keyval <= Gdk.KEY_z)
-            or  (keyval >= Gdk.KEY_A                    and keyval <= Gdk.KEY_Z)
-            or  (keyval >= Gdk.KEY_0                    and keyval <= Gdk.KEY_9)
-            or  (keyval >= Gdk.KEY_kana_fullstop        and keyval <= Gdk.KEY_semivoicedsound)
-            or  (keyval >= Gdk.KEY_Arabic_comma         and keyval <= Gdk.KEY_Arabic_sukun)
-            or  (keyval >= Gdk.KEY_Serbian_dje          and keyval <= Gdk.KEY_Cyrillic_HARDSIGN)
-            or  (keyval >= Gdk.KEY_Greek_ALPHAaccent    and keyval <= Gdk.KEY_Greek_omega)
-            or  (keyval >= Gdk.KEY_hebrew_doublelowline and keyval <= Gdk.KEY_hebrew_taf)
-            or  (keyval >= Gdk.KEY_Thai_kokai           and keyval <= Gdk.KEY_Thai_lekkao)
-            or  (keyval >= Gdk.KEY_Hangul               and keyval <= Gdk.KEY_Hangul_Special)
-            or  (keyval >= Gdk.KEY_Hangul_Kiyeog        and keyval <= Gdk.KEY_Hangul_J_YeorinHieuh)
-            or  keyval in FORBIDDEN_KEYVALS):
+                or  (keyval >= Gdk.KEY_A                    and keyval <= Gdk.KEY_Z)
+                or  (keyval >= Gdk.KEY_0                    and keyval <= Gdk.KEY_9)
+                or  (keyval >= Gdk.KEY_kana_fullstop        and keyval <= Gdk.KEY_semivoicedsound)
+                or  (keyval >= Gdk.KEY_Arabic_comma         and keyval <= Gdk.KEY_Arabic_sukun)
+                or  (keyval >= Gdk.KEY_Serbian_dje          and keyval <= Gdk.KEY_Cyrillic_HARDSIGN)
+                or  (keyval >= Gdk.KEY_Greek_ALPHAaccent    and keyval <= Gdk.KEY_Greek_omega)
+                or  (keyval >= Gdk.KEY_hebrew_doublelowline and keyval <= Gdk.KEY_hebrew_taf)
+                or  (keyval >= Gdk.KEY_Thai_kokai           and keyval <= Gdk.KEY_Thai_lekkao)
+                or  (keyval >= Gdk.KEY_Hangul               and keyval <= Gdk.KEY_Hangul_Special)
+                or  (keyval >= Gdk.KEY_Hangul_Kiyeog        and keyval <= Gdk.KEY_Hangul_J_YeorinHieuh)
+                    or  keyval in FORBIDDEN_KEYVALS):
                 dialog = Gtk.MessageDialog(None,
-                                    Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                                    Gtk.MessageType.ERROR,
-                                    Gtk.ButtonsType.OK,
-                                    None)
+                                           Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                                           Gtk.MessageType.ERROR,
+                                           Gtk.ButtonsType.OK,
+                                           None)
                 dialog.set_default_size(400, 200)
                 msg = _("\nThis key combination, \'<b>%s</b>\' cannot be used because it would become impossible to type using this key.\n\n")
                 msg += _("Please try again with a modifier key such as Control, Alt or Super (Windows key) at the same time.\n")

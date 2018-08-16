@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 import sys
 import os
@@ -15,8 +15,8 @@ from gi.repository import GLib, Gtk, Gio, CMenu, GdkPixbuf
 sys.path.insert(0, '/usr/share/cinnamon/cinnamon-menu-editor')
 from cme import util
 
-sys.path.insert(0, '/usr/share/cinnamon/cinnamon-settings')
-from bin import JsonSettingsWidgets
+sys.path.insert(0, '/usr/share/cinnamon/cinnamon-settings/bin')
+import JsonSettingsWidgets
 
 # i18n
 gettext.install("cinnamon", "/usr/share/locale")
@@ -28,6 +28,7 @@ PANEL_LAUNCHER_PATH = os.path.join(home, ".cinnamon", "panel-launchers")
 
 EXTENSIONS = (".png", ".xpm", ".svg")
 
+DEFAULT_ICON_NAME = "cinnamon-panel-launcher"
 
 def escape_space(string):
     return string.replace(" ", "\ ")
@@ -76,10 +77,14 @@ def strip_extensions(icon):
 
 def set_icon_string(image, icon):
     if GLib.path_is_absolute(icon):
-        image._file = icon
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon, 64, 64)
-        if pixbuf is not None:
-            image.set_from_pixbuf(pixbuf)
+        if os.path.isfile(icon):
+            image._file = icon
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(icon, 64, 64)
+            if pixbuf is not None:
+                image.set_from_pixbuf(pixbuf)
+        else:
+            image._icon_name = DEFAULT_ICON_NAME
+            image.set_from_icon_name(DEFAULT_ICON_NAME, Gtk.IconSize.BUTTON)
     else:
         image._icon_name = strip_extensions(icon)
         image.set_from_icon_name(strip_extensions(icon), Gtk.IconSize.BUTTON)
@@ -113,7 +118,7 @@ class IconPicker(object):
         chooser = Gtk.FileChooserDialog(title=_("Choose an icon"),
                                         parent=self.dialog,
                                         buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT,
-                                        Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT))
+                                                 Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT))
         chooser.add_shortcut_folder("/usr/share/pixmaps")
         chooser.add_shortcut_folder("/usr/share/icons")
         fn = get_icon_string(self.image)
@@ -315,7 +320,7 @@ class LauncherEditor(ItemEditor):
         chooser = Gtk.FileChooserDialog(title=_("Choose a command"),
                                         parent=self.dialog,
                                         buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT,
-                                        Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT))
+                                                 Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT))
         response = chooser.run()
         if response == Gtk.ResponseType.ACCEPT:
             self.builder.get_object('exec-entry').set_text(escape_space(chooser.get_filename()))
@@ -411,7 +416,7 @@ class CinnamonLauncherEditor(ItemEditor):
         chooser = Gtk.FileChooserDialog(title=_("Choose a command"),
                                         parent=self.dialog,
                                         buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT,
-                                        Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT))
+                                                 Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT))
         response = chooser.run()
         if response == Gtk.ResponseType.ACCEPT:
             self.builder.get_object('exec-entry').set_text(escape_space(chooser.get_filename()))
@@ -465,7 +470,7 @@ class Main:
             editor = LauncherEditor(self.orig_file, self.nemo_launcher_cb, self.dest_dir)
             editor.dialog.show_all()
         else:
-            print "Invalid args"
+            print("Invalid args")
 
     def directory_cb(self, success, dest_path):
         self.end()
@@ -527,6 +532,6 @@ class Main:
         Gtk.main_quit()
 
 if __name__ == "__main__":
-    Gtk.Window.set_default_icon_name('cinnamon-panel-launcher')
+    Gtk.Window.set_default_icon_name(DEFAULT_ICON_NAME)
     Main()
     Gtk.main()

@@ -4,6 +4,7 @@ const Cinnamon = imports.gi.Cinnamon;
 const Clutter = imports.gi.Clutter;
 const Cogl = imports.gi.Cogl;
 const Gio = imports.gi.Gio;
+const GLib = imports.gi.GLib;
 const Lang = imports.lang;
 const Meta = imports.gi.Meta;
 const Signals = imports.signals;
@@ -394,6 +395,7 @@ function Melange() {
 Melange.prototype = {
     _init: function() {
         this.proxy = null;
+        this._it = null;
         this._open = false;
         this._settings = new Gio.Settings({schema_id: "org.cinnamon.desktop.keybindings"});
         this._settings.connect("changed::looking-glass-keybinding", Lang.bind(this, this._update_keybinding));
@@ -463,9 +465,12 @@ Melange.prototype = {
 
             //fixme: move this shortvalue stuff to python lg
             let shortValue, value;
-            if (type === "undefined" || result[key] === null) {
+            if (type === "undefined") {
                 value = "";
                 shortValue = "";
+            } else if (result[key] === null) {
+                value = "[null]";
+                shortValue = value;
             } else {
                 value = result[key].toString();
                 shortValue = value;
@@ -511,31 +516,17 @@ Melange.prototype = {
 
         let resultObj;
 
-        /*  Set up for some reporting about memory impact and execution speed.
-            The performance impact of CinnamonJS.get_memory_info should be 
-            very small, whereas getting a timestamp might involve some 
-            memory allocation, so we grab the timestamp first.
-        */
-        let ts = new Date().getTime();
-        let memInfo = global.get_memory_info();
-        
+        let ts = GLib.get_monotonic_time();
+
         try {
             resultObj = eval(fullCmd);
         } catch (e) {
             resultObj = '<exception ' + e + '>';
         }
-        let memInfo2 = global.get_memory_info();
-        let ts2 = new Date().getTime();
 
-        let tooltip = _("Memory information (Final / Diff):") + "\n";
-        tooltip += '    uordblks: ' + (memInfo2.glibc_uordblks) + " / " + (memInfo2.glibc_uordblks - memInfo.glibc_uordblks) + "\n" + 
-                   '    js_bytes: ' + (memInfo2.js_bytes) + " / " + (memInfo2.js_bytes - memInfo.js_bytes) + "\n" + 
-                   '    gjs_boxed: ' + (memInfo2.gjs_boxed) + " / " + (memInfo2.gjs_boxed - memInfo.gjs_boxed) + "\n" + 
-                   '    gjs_gobject: ' + (memInfo2.gjs_gobject) + " / " + (memInfo2.gjs_gobject - memInfo.gjs_gobject) + "\n" + 
-                   '    gjs_function: ' + (memInfo2.gjs_function) + " / " + (memInfo2.gjs_function - memInfo.gjs_function) + "\n" + 
-                   '    gjs_closure: ' + (memInfo2.gjs_closure) + " / " + (memInfo2.gjs_closure - memInfo.gjs_closure) + "\n";
+        let ts2 = GLib.get_monotonic_time();
 
-        tooltip += _("Execution time (ms): ") + (ts2 - ts);
+        let tooltip = _("Execution time (ms): ") + (ts2 - ts) / 1000;
 
         this._pushResult(command, resultObj, tooltip);
 
@@ -567,20 +558,7 @@ Melange.prototype = {
 
     // DBus function
     GetMemoryInfo: function() {
-        let memInfo = global.get_memory_info();
-        let result = [
-            true,
-            memInfo.last_gc_seconds_ago,
-            {
-                'glibc_uordblks': (memInfo.glibc_uordblks),
-                'js_bytes': (memInfo.js_bytes),
-                'gjs_boxed': (memInfo.gjs_boxed),
-                'gjs_gobject': (memInfo.gjs_gobject),
-                'gjs_function': (memInfo.gjs_function),
-                'gjs_closure': (memInfo.gjs_closure)
-            }
-        ]
-        return result;
+        return null;
     },
 
     // DBus function
@@ -614,8 +592,8 @@ Melange.prototype = {
         try {
             let inspector = new Inspector();
             inspector.connect('target', Lang.bind(this, function(i, target, stageX, stageY) {
-                this._pushResult('<inspect x:' + stageX + ' y:' + stageY + '>',
-                                 target, "");
+                let name = '<inspect x:' + stageX + ' y:' + stageY + '>';
+                this._pushResult(name, target, "Inspected actor");
             }));
             inspector.connect('closed', Lang.bind(this, function() {
                 this.emitInspectorDone();
@@ -628,26 +606,23 @@ Melange.prototype = {
     // DBus function
     GetExtensionList: function() {
         try {
-            let extensionList = [];
-            for (let type in Extension.Type) {
-                type = Extension.Type[type];
-                for(let uuid in type.maps.meta){
-                    let meta = type.maps.meta[uuid];
-                    // There can be cases where we create dummy extension metadata
-                    // that's not really a proper extension. Don't bother with these.
-                    if (meta.name) {
-                        extensionList.push({
-                            status: Extension.getMetaStateString(meta.state),
-                            name: meta.name,
-                            description: meta.description,
-                            uuid: uuid,
-                            folder: meta.path,
-                            url: meta.url ? meta.url : '',
-                            type: type.name,
-                            error_message: meta.error ? meta.error : _("Loaded successfully"),
-                            error: meta.error ? "true" : "false" // Must use string due to dbus restrictions
-                        });
-                    }
+            let extensionList = Array(Extension.extensions.length);
+            for (let i = 0; i < extensionList.length; i++) {
+                let meta = Extension.extensions[i].meta;
+                // There can be cases where we create dummy extension metadata
+                // that's not really a proper extension. Don't bother with these.
+                if (meta.name) {
+                    extensionList[i] = {
+                        status: Extension.getMetaStateString(meta.state),
+                        name: meta.name,
+                        description: meta.description,
+                        uuid: Extension.extensions[i].uuid,
+                        folder: meta.path,
+                        url: meta.url ? meta.url : '',
+                        type: Extension.extensions[i].name,
+                        error_message: meta.error ? meta.error : _("Loaded successfully"),
+                        error: meta.error ? "true" : "false" // Must use string due to dbus restrictions
+                    };
                 }
             }
             return [true, extensionList];

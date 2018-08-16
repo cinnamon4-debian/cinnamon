@@ -270,37 +270,34 @@ OpenSearchSystem.prototype = {
     },
 
     _checkSupportedProviderLanguage: function(provider) {
-        if (provider.url.search(/{language}/) == -1)
+        if (!provider.url.includes('{language}'))
             return true;
 
         let langs = GLib.get_language_names();
 
         langs.push('en');
-        let lang = null;
+        provider.lang = null;
         for (let i = 0; i < langs.length; i++) {
-            for (let k = 0; k < provider.langs.length; k++) {
-                if (langs[i] == provider.langs[k])
-                    lang = langs[i];
+            if (provider.langs.includes(langs[i])) {
+                provider.lang = langs[i];
+                return true;
             }
-            if (lang)
-                break;
         }
-        provider.lang = lang;
-        return lang != null;
+
+        return false;
     },
 
     activateResult: function(id, params) {
         let searchTerms = this._terms.join(' ');
 
-        let url = this._providers[id].url.replace('{searchTerms}', encodeURIComponent(searchTerms));
-        if (url.match('{language}'))
-            url = url.replace('{language}', this._providers[id].lang);
+        let url = this._providers[id].url.replace(/{searchTerms}/g, encodeURIComponent(searchTerms));
+        url = url.replace(/{language}/g, this._providers[id].lang);
 
         try {
             Gio.app_info_launch_default_for_uri(url, global.create_app_launch_context());
         } catch (e) {
             // TODO: remove this after glib will be removed from moduleset
-            // In the default jhbuild, gio is in our prefix but gvfs is not
+            // In the default build gio is in our prefix but gvfs is not
             Util.spawn(['gvfs-open', url])
         }
 
@@ -328,13 +325,10 @@ OpenSearchSystem.prototype = {
         let file = Gio.file_new_for_path(global.datadir + '/search_providers');
         FileUtils.listDirAsync(file, Lang.bind(this, function(files) {
             for (let i = 0; i < files.length; i++) {
-                let enabled = true;
                 let name = files[i].get_name();
-                for (let k = 0; k < names.length; k++)
-                    if (names[k] == name)
-                        enabled = false;
-                if (enabled)
+                if (!names.includes(name)) {
                     this._addProvider(name);
+                }
             }
         }));
     }
@@ -382,7 +376,7 @@ SearchSystem.prototype = {
     },
 
     updateSearch: function(searchString) {
-        searchString = searchString.replace(/^\s+/g, '').replace(/\s+$/g, '');
+        searchString = searchString.trim();
         if (searchString == '')
             return;
 

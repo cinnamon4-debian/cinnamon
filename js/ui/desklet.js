@@ -93,12 +93,13 @@ Desklet.prototype = {
     /**
      * setContent:
      * @actor (Clutter.Actor): actor to be set as child
-     * @params (dictionary): (optional) parameters to be sent
+     * @params (dictionary): (optional) parameters to be sent. This argument
+     * is ignored. Only kept for compatibility reasons
      *
      * Sets the content actor of the desklet as @actor
      */
     setContent: function(actor, params){
-        this.content.set_child(actor, params);
+        this.content.set_child(actor);
     },
 
     /**
@@ -106,7 +107,7 @@ Desklet.prototype = {
      *
      * Callback when desklet is removed. To be overridden by individual desklets
      */
-    on_desklet_removed: function() {
+    on_desklet_removed: function(deleteConfig) {
     },
 
     /**
@@ -114,13 +115,13 @@ Desklet.prototype = {
      *
      * Destroys the actor with an fading animation
      */
-    destroy: function(){
+    destroy: function(deleteConfig){
         Tweener.addTween(this.actor,
                          { opacity: 0,
                            transition: 'linear',
                            time: DESKLET_DESTROY_TIME,
                            onComplete: Lang.bind(this, function(){
-                               this.on_desklet_removed();
+                               this.on_desklet_removed(deleteConfig);
                                this.actor.destroy();
                            })});
         this._menu.destroy();

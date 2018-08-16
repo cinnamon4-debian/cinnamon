@@ -1,3 +1,170 @@
+cinnamon (3.8.8-1) unstable; urgency=medium
+
+  * New upstream release (3.8.4).
+  * New upstream release (3.8.5).
+  * New upstream release (3.8.8).
+  * Refresh patches
+  * Update install files
+  * Use dh_missing
+  * Release to unstable
+
+ -- Maximiliano Curia <maxy@debian.org>  Tue, 07 Aug 2018 14:51:47 +0200
+
+cinnamon (3.8.3-1) experimental; urgency=medium
+
+  [ Fabio Fantoni ]
+  * Removed 6 debian/patches applied upstream.
+
+  [ Maximiliano Curia ]
+  * New upstream release (3.8.3).
+  * Release to experimental
+
+ -- Maximiliano Curia <maxy@debian.org>  Thu, 24 May 2018 09:15:09 +0200
+
+cinnamon (3.8.1-1) experimental; urgency=medium
+
+  [ Fabio Fantoni ]
+  * New upstream release (3.8.0). (Closes: #856699)
+  * Refresh patches
+  * fix mistake in debian/control
+  * add to cinnamon-common.install 2 new policy files
+  * remove unused lintian overrides
+
+  [ Maximiliano Curia ]
+  * Keep pulseaudio optional, degrade libcanberra-pulse to a recommends
+  * New upstream release (3.8.1).
+  * Bump Standards-Version to 4.1.4.
+  * Refresh patches
+  * Bump group breaks (3.8)
+  * Reenable always-add-default-theme.patch
+  * Add cs_startup.py fixes.
+    Add upstream patches:
+     Startup-settings-Use-icons-in-button-box.patch
+     Startup-settings-Fix-blurry-icons.patch
+     Startup-settings-Fix-using-the-wrong-variable.patch
+     Startup-settings-Show-delay-units-and-only-show-delay-whe.patch
+     Startup-settings-Fix-creation-of-autostart-files.patch
+  * Add upstream patch Spices.py-Use-https-for-spices-downloads.patch
+  * Release to experimental
+
+ -- Maximiliano Curia <maxy@debian.org>  Sat, 05 May 2018 14:30:03 +0200
+
+cinnamon (3.6.7-8) unstable; urgency=medium
+
+  * Remove gettext tweaking from py2 py3 patch
+    Thanks to Peter for the report (Closes: 894894)
+  * Release to unstable
+
+ -- Maximiliano Curia <maxy@debian.org>  Thu, 05 Apr 2018 23:21:55 +0200
+
+cinnamon (3.6.7-7) unstable; urgency=medium
+
+  * New revision
+  * Fix typo in the network-user-connections patch.
+    Thanks to Tollef Fog Heen for reporting (Closes: 894850)
+  * Release to unstable
+
+ -- Maximiliano Curia <maxy@debian.org>  Thu, 05 Apr 2018 12:17:38 +0200
+
+cinnamon (3.6.7-6) unstable; urgency=medium
+
+  * New revision
+  * Rediff patches (Closes: #894625) Thanks to Frank McCormick for the report
+  * Release to unstable
+
+ -- Maximiliano Curia <maxy@debian.org>  Tue, 03 Apr 2018 15:35:33 +0200
+
+cinnamon (3.6.7-5) unstable; urgency=medium
+
+  * New revision
+  * Rediff patches
+  * Bump xapp gir dependency
+  * Release to unstable
+
+ -- Maximiliano Curia <maxy@debian.org>  Wed, 28 Mar 2018 09:57:29 +0200
+
+cinnamon (3.6.7-4) unstable; urgency=medium
+
+  * New revision
+  * Make /usr/share/cinnamon py2 and py3 compatible
+  * Also compile the python files with python2
+  * Release to unstable
+
+ -- Maximiliano Curia <maxy@debian.org>  Tue, 27 Mar 2018 16:54:17 +0200
+
+cinnamon (3.6.7-3) unstable; urgency=medium
+
+  * New revision
+  * Compile the python files in postinst
+  * Release to unstable
+
+ -- Maximiliano Curia <maxy@debian.org>  Mon, 26 Mar 2018 21:19:04 +0200
+
+cinnamon (3.6.7-2) unstable; urgency=medium
+
+  * New revision
+  * Drop dh-autoreconf (no longer needed with dh >= 10)
+  * Drop dh's parallel arg (no longer needed with dh >= 10)
+  * Drop call to dh_installwm
+  * Add python3 helper
+  * Refresh patches
+  * Release to unstable
+
+ -- Maximiliano Curia <maxy@debian.org>  Mon, 26 Mar 2018 19:47:35 +0200
+
+cinnamon (3.6.7-1) unstable; urgency=medium
+
+  [ Fabio Fantoni ]
+  * Make cinnamon-doc Multi-Arch: foreign (Closes: #874330)
+    Thanks to Hugh McMaster
+  * New upstream release (3.6.7). (Closes: #882394)
+  * Refresh patches
+  * Remove jquery dep as file that use it is now removed
+  * debian/control: update dependencies
+    network-manager components from recommends to deps (Closes: #872767)
+    add gnome-themes-extra that replace gnome-themes-standard (Closes: #892274)
+  * debian/patches: Network applet: Port to libnm (Closes: #857231)
+  * move usr/share/polkit-1/actions/*.policy to cinnamon-common
+
+  [ Maximiliano Curia ]
+  * Set new ml as Maintainer
+  * Bump Standards-Version to 4.1.3.
+  * Bump debhelper build-dep and compat to 11.
+  * Release to unstable
+
+ -- Maximiliano Curia <maxy@debian.org>  Mon, 26 Mar 2018 15:07:10 +0200
+
+cinnamon (3.4.6-1) unstable; urgency=medium
+
+  [ Fabio Fantoni ]
+  * New upstream release (3.4.6).
+  * Remove unused dep: gir1.2-javascriptcoregtk-3.0 (Closes: 864937)
+    Thanks: Jeremy Bicha for the report
+  * Refresh patches
+  * debian/control: update dependencies
+    added gettext and xdg-utils to cinnamon-common deps (Closes: 869395)
+  * replaced obsolete python-imaging with python-pil (Closes: 866420)
+    Thanks: Matthias Klose for the report
+  * Remove gnome-keyring from configure.ac and build-deps,
+    seems unused because not linked (Closes: 867919)
+
+  [ Maximiliano Curia ]
+  * Release to unstable
+  * Remove unused dep.
+    Thanks to Jeremy Bicha for the report (Closes: 864937)
+
+ -- Maximiliano Curia <maxy@debian.org>  Sat, 02 Sep 2017 07:35:32 +0200
+
+cinnamon (3.4.4-1) experimental; urgency=medium
+
+  * New upstream release (3.4.4).
+  * Refresh patches
+  * Update install files
+  * Update install files
+  * Release to experimental
+
+ -- Maximiliano Curia <maxy@debian.org>  Sun, 06 Aug 2017 17:31:51 +0200
+
 cinnamon (3.2.7-4) unstable; urgency=medium
 
   * Cherry pick "window-tracker: fix memory leak" (e2dfda9)

@@ -11,15 +11,18 @@ const St = imports.gi.St;
 const BoxPointer = imports.ui.boxpointer;
 const Main = imports.ui.main;
 const MessageTray = imports.ui.messageTray;
+const Panel = imports.ui.panel;
 
 const KEYBOARD_SCHEMA = 'org.cinnamon.keyboard';
 const KEYBOARD_TYPE = 'keyboard-type';
+const KEYBOARD_SIZE = 'keyboard-size';
+const KEYBOARD_POSITION = 'keyboard-position';
 const ACTIVATION_MODE = 'activation-mode';
 
 const A11Y_APPLICATIONS_SCHEMA = 'org.cinnamon.desktop.a11y.applications';
 const SHOW_KEYBOARD = 'screen-keyboard-enabled';
 
-const CaribouKeyboardIface = 
+const CaribouKeyboardIface =
     "<node> \
         <interface name='org.gnome.Caribou.Keyboard'> \
             <method name='Show'> \
@@ -53,6 +56,7 @@ Key.prototype = {
         this._key = key;
 
         this.actor = this._makeKey();
+        this.actor.connect('destroy', Lang.bind(this, this._onDestroy));
 
         this._extended_keys = this._key.get_extended_keys();
         this._extended_keyboard = null;
@@ -79,6 +83,13 @@ Key.prototype = {
             this.actor._extended_keys = this._extended_keyboard;
             this._boxPointer.actor.hide();
             Main.layoutManager.addChrome(this._boxPointer.actor, { visibleInFullscreen: true });
+        }
+    },
+
+    _onDestroy: function() {
+        if (this._boxPointer) {
+            this._boxPointer.actor.destroy();
+            this._boxPointer = null;
         }
     },
 
@@ -210,6 +221,8 @@ Keyboard.prototype = {
     _settingsChanged: function (settings, key) {
         this._enableKeyboard = this._a11yApplicationsSettings.get_boolean(SHOW_KEYBOARD);
         this.accessibleMode = this._keyboardSettings.get_string(ACTIVATION_MODE) == "accessible";
+        this.keyboard_size = this._keyboardSettings.get_int(KEYBOARD_SIZE);
+        this.keyboard_position = this._keyboardSettings.get_string(KEYBOARD_POSITION);
 
         if (!this._enableKeyboard && !this._keyboard)
             return;
@@ -359,40 +372,48 @@ Keyboard.prototype = {
         let focus = Main.layoutManager.focusMonitor;
         let index = Main.layoutManager.focusIndex;
 
-        let panel = null;
-
-        if (Main.panelManager)
-            panel = Main.panelManager.getPanel(index, true);
-
-        if (panel)
-            this._panelPadding = panel.actor.height;
-        else
-            this._panelPadding = 0;
+        let panelPadding = 0;
+        let panels = Main.getPanels();
+        if(panels) {
+            let [topPadding, bottomPadding] = Panel.heightsUsedMonitor(index, panels);
+            if(this.keyboard_position == "bottom") {
+                this.actor.style = `padding-bottom: ${bottomPadding}px; padding-top: 0;`;
+                panelPadding = bottomPadding;
+            } else {
+                this.actor.style = `padding-top: ${topPadding}px; padding-bottom: 0;`;
+                panelPadding = topPadding;
+            }
+        }
 
         Main.layoutManager.keyboardBox.set_size(focus.width, -1);
         this.actor.width = focus.width;
 
-        let maxHeight = focus.height / 3;
+        let maxHeight = focus.height / this.keyboard_size;
 
         this.monitorIndex = index;
 
         let layout = this._current_page;
         let verticalSpacing = layout.get_theme_node().get_length('spacing');
-        let padding = layout.get_theme_node().get_length('padding');
+        let vpadding = layout.get_theme_node().get_vertical_padding();
+        let hpadding = layout.get_theme_node().get_horizontal_padding();
 
         let box = layout.get_child_at_index(0).get_child_at_index(0);
         let horizontalSpacing = box.get_theme_node().get_length('spacing');
         let allHorizontalSpacing = (this._numOfHorizKeys - 1) * horizontalSpacing;
-        let keyWidth = Math.floor((this.actor.width - allHorizontalSpacing - 2 * padding) / this._numOfHorizKeys);
+        let keyWidth = Math.floor((this.actor.width - allHorizontalSpacing - hpadding) / this._numOfHorizKeys);
 
         let allVerticalSpacing = (this._numOfVertKeys - 1) * verticalSpacing;
-        let keyHeight = Math.floor((maxHeight - allVerticalSpacing - 2 * padding) / this._numOfVertKeys);
+        let keyHeight = Math.floor((maxHeight - allVerticalSpacing - vpadding) / this._numOfVertKeys);
 
         let keySize = Math.min(keyWidth, keyHeight);
-        this.actor.height = (keySize * this._numOfVertKeys) + allVerticalSpacing + (2 * padding) + this._panelPadding;
+        this.actor.height = maxHeight + panelPadding;
 
-        Main.layoutManager.keyboardBox.set_position(focus.x,
-                                                    focus.y + focus.height - this.actor.height);
+        let keyboard_y = 0;
+        if (this.keyboard_position == "bottom") {
+            keyboard_y = focus.y + focus.height - this.actor.height;
+        }
+
+        Main.layoutManager.keyboardBox.set_position(focus.x, keyboard_y);
 
         let rows = this._current_page.get_children();
         for (let i = 0; i < rows.length; ++i) {
@@ -483,7 +504,8 @@ Keyboard.prototype = {
     shouldTakeEvent: function(event) {
         let actor = event.get_source();
         return Main.layoutManager.keyboardBox.contains(actor) ||
-               actor._extended_keys || actor.extended_key;
+               actor.maybeGet("_extended_keys") ||
+               actor.maybeGet("extended_key");
     },
 
     // D-Bus methods
