@@ -128,7 +128,7 @@ Depends:
  gettext,
  gir1.2-cinnamondesktop-3.0 (>= 3.8),
  gir1.2-meta-muffin-0.0 (>= 3.8),
- gvfs-bin,
+ libglib2.0-bin,
  xdg-utils,
  ${misc:Depends},
  ${python3:Depends},
