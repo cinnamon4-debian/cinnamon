@@ -79,7 +79,7 @@ STANDALONE_MODULES = [
     [_("Firewall"),                      "gufw",                                "cs-firewall",        "admin",          _("firewall, block, filter, programs")],
     [_("Firewall"),                      "firewall-config",                     "cs-firewall",        "admin",          _("firewall, block, filter, programs")],
     [_("Languages"),                     "mintlocale",                          "cs-language",        "prefs",          _("language, install, foreign")],
-    [_("Input Method"),                  "mintlocale im",                       "cs-input-method",    "prefs",          _("language, install, foreign, input, method, chinese, korean, japanese, typing")],
+    [_("Input Method"),                  "mintlocale-im",                       "cs-input-method",    "prefs",          _("language, install, foreign, input, method, chinese, korean, japanese, typing")],
     [_("Login Window"),                  "pkexec lightdm-settings",             "cs-login",           "admin",          _("login, lightdm, mdm, gdm, manager, user, password, startup, switch")],
     [_("Login Window"),                  "lightdm-gtk-greeter-settings-pkexec", "cs-login",           "admin",          _("login, lightdm, manager, settings, editor")],
     [_("Driver Manager"),                "pkexec driver-manager",               "cs-drivers",         "admin",          _("video, driver, wifi, card, hardware, proprietary, nvidia, radeon, nouveau, fglrx")],
@@ -115,7 +115,7 @@ class MainWindow:
             self.deselect(cat)
             filtered_path = side_view.get_model().convert_path_to_child_path(selected_items[0])
             if filtered_path is not None:
-                self.go_to_sidepage(cat, filtered_path)
+                self.go_to_sidepage(cat, filtered_path, animate=True)
 
     def _on_sidepage_hide_stack(self):
         self.stack_switcher.set_opacity(0)
@@ -123,7 +123,7 @@ class MainWindow:
     def _on_sidepage_show_stack(self):
         self.stack_switcher.set_opacity(1)
 
-    def go_to_sidepage(self, cat, path):
+    def go_to_sidepage(self, cat, path, animate=True):
         iterator = self.store[cat].get_iter(path)
         sidePage = self.store[cat].get_value(iterator,2)
         if not sidePage.is_standalone:
@@ -147,8 +147,14 @@ class MainWindow:
                     self.stack_switcher.set_opacity(0)
             else:
                 self.stack_switcher.set_opacity(0)
-            self.main_stack.set_visible_child_name("content_box_page")
-            self.header_stack.set_visible_child_name("content_box")
+            if animate:
+                self.main_stack.set_visible_child_name("content_box_page")
+                self.header_stack.set_visible_child_name("content_box")
+
+            else:
+                self.main_stack.set_visible_child_full("content_box_page", Gtk.StackTransitionType.NONE)
+                self.header_stack.set_visible_child_full("content_box", Gtk.StackTransitionType.NONE)
+
             self.current_sidepage = sidePage
             width = 0
             for widget in self.top_bar:
@@ -216,7 +222,7 @@ class MainWindow:
         self.stack_switcher = self.builder.get_object("stack_switcher")
 
         m, n = self.button_back.get_preferred_width()
-        self.stack_switcher.set_margin_right(n)
+        self.stack_switcher.set_margin_end(n)
 
         self.search_entry = self.builder.get_object("search_box")
         self.search_entry.set_placeholder_text(_("Search"))
@@ -229,7 +235,6 @@ class MainWindow:
         self.window.show()
 
         self.builder.connect_signals(self)
-        self.window.set_has_resize_grip(False)
         self.unsortedSidePages = []
         self.sidePages = []
         self.settings = Gio.Settings.new("org.cinnamon")
@@ -316,7 +321,7 @@ class MainWindow:
             (iter, cat) = sidePagesIters[sys.argv[1]]
             path = self.store[cat].get_path(iter)
             if path:
-                self.go_to_sidepage(cat, path)
+                self.go_to_sidepage(cat, path, animate=False)
             else:
                 self.search_entry.grab_focus()
         else:
@@ -417,10 +422,9 @@ class MainWindow:
         img = Gtk.Image.new_from_icon_name(category["icon"], Gtk.IconSize.BUTTON)
         box.pack_start(img, False, False, 4)
 
-        widget = Gtk.Label()
+        widget = Gtk.Label(yalign=0.5)
         widget.set_use_markup(True)
         widget.set_markup('<span size="12000">%s</span>' % category["label"])
-        widget.set_alignment(.5, .5)
         box.pack_start(widget, False, False, 1)
         self.side_view_container.pack_start(box, False, False, 0)
         widget = Gtk.IconView.new_with_model(self.storeFilter[category["id"]])
@@ -434,9 +438,8 @@ class MainWindow:
         widget.set_margin(20)
 
         pixbuf_renderer = Gtk.CellRendererPixbuf()
-        text_renderer = Gtk.CellRendererText(ellipsize=Pango.EllipsizeMode.NONE, wrap_mode=Pango.WrapMode.WORD_CHAR, wrap_width=0, width_chars=self.min_label_length, alignment=Pango.Alignment.CENTER)
+        text_renderer = Gtk.CellRendererText(ellipsize=Pango.EllipsizeMode.NONE, wrap_mode=Pango.WrapMode.WORD_CHAR, wrap_width=0, width_chars=self.min_label_length, alignment=Pango.Alignment.CENTER, xalign=0.5)
 
-        text_renderer.set_alignment(.5, 0)
         area.pack_start(pixbuf_renderer, True, True, False)
         area.pack_start(text_renderer, True, True, False)
         area.add_attribute(pixbuf_renderer, "icon-name", 1)

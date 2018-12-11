@@ -116,6 +116,8 @@ const Keybindings = imports.ui.keybindings;
 const Settings = imports.ui.settings;
 const Systray = imports.ui.systray;
 const Accessibility = imports.ui.accessibility;
+const {readOnlyError} = imports.ui.environment;
+const {installPolyfills} = imports.ui.overrides;
 
 var LAYOUT_TRADITIONAL = "traditional";
 var LAYOUT_FLIPPED = "flipped";
@@ -287,6 +289,8 @@ function start() {
     global.logError = _logError;
     global.log = _logInfo;
 
+    installPolyfills(readOnlyError, _log);
+
     let cinnamonStartTime = new Date().getTime();
 
     log("About to start Cinnamon");
@@ -457,6 +461,8 @@ function start() {
     global.screen.connect('window-entered-monitor', _windowEnteredMonitor);
     global.screen.connect('window-left-monitor', _windowLeftMonitor);
     global.screen.connect('restacked', _windowsRestacked);
+
+    global.display.connect('gl-video-memory-purged', loadTheme);
 
     _nWorkspacesChanged();
 
@@ -1253,9 +1259,10 @@ function _stageEventHandler(actor, event) {
 
     // This isn't a Meta.KeyBindingAction yet
     if (symbol == Clutter.Super_L || symbol == Clutter.Super_R) {
-        overview.hide();
-        expo.hide();
-        return true;
+        if (expo.visible) {
+            expo.hide();
+            return true;
+        }
     }
 
     if (action == Meta.KeyBindingAction.SWITCH_PANELS) {
@@ -1266,7 +1273,6 @@ function _stageEventHandler(actor, event) {
     switch (action) {
         // left/right would effectively act as synonyms for up/down if we enabled them;
         // but that could be considered confusing; we also disable them in the main view.
-        //
          case Meta.KeyBindingAction.WORKSPACE_LEFT:
              wm.actionMoveWorkspaceLeft();
              return true;
@@ -1283,10 +1289,6 @@ function _stageEventHandler(actor, event) {
             return true;
         case Meta.KeyBindingAction.PANEL_RUN_DIALOG:
             getRunDialog().open();
-            return true;
-        case Meta.KeyBindingAction.PANEL_MAIN_MENU:
-            overview.hide();
-            expo.hide();
             return true;
     }
 
