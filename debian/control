@@ -82,7 +82,7 @@ Depends:
  gsettings-desktop-schemas (>= 0.1.7),
  iso-flags-png-320x240,
  libcinnamon-desktop4 (>= 4.0),
- libcinnamon-menu-3-0 (>= 4.0,
+ libcinnamon-menu-3-0 (>= 4.0),
  libcjs0 (>= 4.0),
  libglib2.0-bin,
  libmuffin0 (>= 4.0),
