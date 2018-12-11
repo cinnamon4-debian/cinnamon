@@ -6,3 +6,4 @@ new-iso-flags-folder.patch
 always-add-default-theme.patch
 port-libnm.patch
 Replace-gvfs-bin-calls-with-gio-tool.patch
+upstream-fix-indicator
