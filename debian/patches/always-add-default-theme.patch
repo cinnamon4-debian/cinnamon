@@ -5,15 +5,13 @@ Subject: Forcefully add the Default theme to the list of themes.
 Forwarded: not-yet
 Last-Update: 2017-01-29
 ---
- files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py | 2 +-
+ files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py
-index d1d7515..946dc13 100755
---- a/files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py
-+++ b/files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py
-@@ -257,7 +257,7 @@ class Module:
-         dirs = ("/usr/share/themes", os.path.join(os.path.expanduser("~"), ".themes"))
+--- cinnamon.git.orig/files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py
++++ cinnamon.git/files/usr/share/cinnamon/cinnamon-settings/modules/cs_themes.py
+@@ -270,7 +270,7 @@ class Module:
+         dirs = THEME_FOLDERS
          valid = walk_directories(dirs, self.filter_func_gtk_dir, return_directories=True)
          valid.sort(key=lambda a: a[0].lower())
 -        res = []

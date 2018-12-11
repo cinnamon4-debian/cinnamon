@@ -4,6 +4,5 @@ Drop-nm-applet-from-the-session-files.patch
 add-blueman-to-settings
 new-iso-flags-folder.patch
 always-add-default-theme.patch
-port-libnm.patch
+#port-libnm.patch
 Replace-gvfs-bin-calls-with-gio-tool.patch
-upstream-fix-indicator

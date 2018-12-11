@@ -5,17 +5,14 @@ Subject: Replace gvfs-bin calls with gio-tool
 Closes: 877738
 Thanks: Simon McVittie for the follow up
 ---
- files/usr/share/cinnamon/applets/menu@cinnamon.org/applet.js  | 2 +-
- files/usr/share/cinnamon/applets/trash@cinnamon.org/applet.js | 2 +-
- js/ui/messageTray.js                                          | 2 +-
- js/ui/search.js                                               | 2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ files/usr/share/cinnamon/applets/menu@cinnamon.org/applet.js |    2 +-
+ js/ui/messageTray.js                                         |    2 +-
+ js/ui/search.js                                              |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/files/usr/share/cinnamon/applets/menu@cinnamon.org/applet.js b/files/usr/share/cinnamon/applets/menu@cinnamon.org/applet.js
-index 7fc10c0..843091b 100644
---- a/files/usr/share/cinnamon/applets/menu@cinnamon.org/applet.js
-+++ b/files/usr/share/cinnamon/applets/menu@cinnamon.org/applet.js
-@@ -365,7 +365,7 @@ class TransientButton extends PopupMenu.PopupBaseMenuItem {
+--- cinnamon.git.orig/files/usr/share/cinnamon/applets/menu@cinnamon.org/applet.js
++++ cinnamon.git/files/usr/share/cinnamon/applets/menu@cinnamon.org/applet.js
+@@ -366,7 +366,7 @@ class TransientButton extends PopupMenu.
          } else {
              // Try anyway, even though we probably shouldn't.
              try {
@@ -24,23 +21,8 @@ index 7fc10c0..843091b 100644
              } catch (e) {
                  global.logError("No handler available to open " + this.file.get_uri());
              }
-diff --git a/files/usr/share/cinnamon/applets/trash@cinnamon.org/applet.js b/files/usr/share/cinnamon/applets/trash@cinnamon.org/applet.js
-index 33e7929..eb51d14 100644
---- a/files/usr/share/cinnamon/applets/trash@cinnamon.org/applet.js
-+++ b/files/usr/share/cinnamon/applets/trash@cinnamon.org/applet.js
-@@ -78,7 +78,7 @@ class CinnamonTrashApplet extends Applet.IconApplet {
-     }
- 
-     _doEmptyTrash() {
--        Util.spawn(['gvfs-trash', '--empty']);
-+        Util.spawn(['gio', 'trash', '--empty']);
-     }
- }
- 
-diff --git a/js/ui/messageTray.js b/js/ui/messageTray.js
-index 38b6352..fe06541 100644
---- a/js/ui/messageTray.js
-+++ b/js/ui/messageTray.js
+--- cinnamon.git.orig/js/ui/messageTray.js
++++ cinnamon.git/js/ui/messageTray.js
 @@ -138,7 +138,7 @@ URLHighlighter.prototype = {
                      return true;
                  } catch (e) {
@@ -50,10 +32,8 @@ index 38b6352..fe06541 100644
                      return true;
                  }
              }
-diff --git a/js/ui/search.js b/js/ui/search.js
-index e0404cc..4ae2d98 100644
---- a/js/ui/search.js
-+++ b/js/ui/search.js
+--- cinnamon.git.orig/js/ui/search.js
++++ cinnamon.git/js/ui/search.js
 @@ -298,7 +298,7 @@ OpenSearchSystem.prototype = {
          } catch (e) {
              // TODO: remove this after glib will be removed from moduleset
