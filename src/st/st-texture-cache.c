@@ -42,6 +42,7 @@ struct _StTextureCachePrivate
 
   /* Things that were loaded with a cache policy != NONE */
   GHashTable *keyed_cache; /* char * -> CoglTexture* */
+  GHashTable *keyed_surface_cache; /* char * -> cairo_surface_t* */
 
   /* Presently this is used to de-duplicate requests for GIcons and async URIs. */
   GHashTable *outstanding_requests; /* char * -> AsyncTextureLoadData * */
@@ -172,6 +173,12 @@ st_texture_cache_init (StTextureCache *self)
 
   self->priv->keyed_cache = g_hash_table_new_full (g_str_hash, g_str_equal,
                                                    g_free, cogl_object_unref);
+
+  self->priv->keyed_surface_cache = g_hash_table_new_full (g_str_hash,
+                                                           g_str_equal,
+                                                           g_free,
+                                                           (GDestroyNotify) cairo_surface_destroy);
+
   self->priv->outstanding_requests = g_hash_table_new_full (g_str_hash, g_str_equal,
                                                             g_free, NULL);
   self->priv->file_monitors = g_hash_table_new_full (g_str_hash, g_str_equal,
@@ -207,6 +214,7 @@ st_texture_cache_dispose (GObject *object)
     }
 
   g_clear_pointer (&self->priv->keyed_cache, g_hash_table_destroy);
+  g_clear_pointer (&self->priv->keyed_surface_cache, g_hash_table_destroy);
   g_clear_pointer (&self->priv->outstanding_requests, g_hash_table_destroy);
   g_clear_pointer (&self->priv->file_monitors, g_hash_table_destroy);
 
@@ -554,6 +562,8 @@ finish_texture_load (AsyncTextureLoadData *data,
     goto out;
 
   texdata = pixbuf_to_cogl_texture (pixbuf);
+  if (!texdata)
+    goto out;
 
   if (data->policy != ST_TEXTURE_CACHE_POLICY_NONE)
     {
@@ -994,7 +1004,7 @@ file_changed_cb (GFileMonitor      *monitor,
   g_free (key);
 
   key = g_strconcat (CACHE_PREFIX_URI_FOR_CAIRO, uri, NULL);
-  g_hash_table_remove (cache->priv->keyed_cache, key);
+  g_hash_table_remove (cache->priv->keyed_surface_cache, key);
   g_free (key);
 
   g_signal_emit (cache, signals[TEXTURE_FILE_CHANGED], 0, uri);
@@ -1180,44 +1190,18 @@ st_texture_cache_load_sliced_image (StTextureCache *cache,
  * icon you are loading, use %ST_ICON_FULLCOLOR.
  */
 
-/* generates names like g_themed_icon_new_with_default_fallbacks(),
- * but *only* symbolic names
- */
-static char **
-symbolic_names_for_icon (const char *name)
+static char *
+symbolic_name_for_icon (const char *name)
 {
-  char **parts, **names;
-  int i, numnames;
-
-  parts = g_strsplit (name, "-", -1);
-  numnames = g_strv_length (parts);
-  names = g_new (char *, numnames + 1);
-  for (i = 0; parts[i]; i++)
-    {
-      if (i == 0)
-        {
-          names[i] = g_strdup_printf ("%s-symbolic", parts[i]);
-        }
-      else
-        {
-          names[i] = g_strdup_printf ("%.*s-%s-symbolic",
-                                      (int) (strlen (names[i - 1]) - strlen ("-symbolic")),
-                                      names[i - 1], parts[i]);
-        }
+    if (!name) {
+        return NULL;
     }
-  names[i] = NULL;
 
-  g_strfreev (parts);
+    if (g_str_has_suffix (name, "-symbolic")) {
+        return g_strdup (name);
+    }
 
-  /* need to reverse here, because longest (most specific)
-     name has to come first */
-  for (i = 0; i < (numnames / 2); i++) {
-    char *tmp = names[i];
-    names[i] = names[numnames - i - 1];
-    names[numnames - i - 1] = tmp;
-  }
-
-  return names;
+    return g_strdup_printf ("%s-symbolic", name);
 }
 
 typedef struct {
@@ -1348,8 +1332,7 @@ st_texture_cache_load_icon_name (StTextureCache    *cache,
   ClutterActor *texture;
   CoglTexture *cogltexture;
   GIcon *themed;
-  char **names;
-  char *cache_key;
+  char *cache_key, *symbolic_name;
   CreateFadedIconData data;
 
   g_return_val_if_fail (!(icon_type == ST_ICON_SYMBOLIC && theme_node == NULL), NULL);
@@ -1382,9 +1365,9 @@ st_texture_cache_load_icon_name (StTextureCache    *cache,
       return CLUTTER_ACTOR (texture);
       break;
     case ST_ICON_SYMBOLIC:
-      names = symbolic_names_for_icon (name);
-      themed = g_themed_icon_new_from_names (names, -1);
-      g_strfreev (names);
+      symbolic_name = symbolic_name_for_icon (name);
+      themed = g_themed_icon_new (symbolic_name);
+      g_free (symbolic_name);
       texture = load_gicon_with_colors (cache, themed, size, cache->priv->scale,
                                         st_theme_node_get_icon_colors (theme_node));
       g_object_unref (themed);
@@ -1531,6 +1514,9 @@ st_texture_cache_load_uri_sync_to_cogl_texture (StTextureCache *cache,
       texdata = pixbuf_to_cogl_texture (pixbuf);
       g_object_unref (pixbuf);
 
+      if (!texdata)
+        goto out;
+
       if (policy == ST_TEXTURE_CACHE_POLICY_FOREVER)
         {
           cogl_object_ref (texdata);
@@ -1564,7 +1550,7 @@ st_texture_cache_load_uri_sync_to_cairo_surface (StTextureCache        *cache,
 
   key = g_strconcat (CACHE_PREFIX_URI_FOR_CAIRO, uri, NULL);
 
-  surface = g_hash_table_lookup (cache->priv->keyed_cache, key);
+  surface = g_hash_table_lookup (cache->priv->keyed_surface_cache, key);
 
   if (surface == NULL)
     {
@@ -1578,7 +1564,8 @@ st_texture_cache_load_uri_sync_to_cairo_surface (StTextureCache        *cache,
       if (policy == ST_TEXTURE_CACHE_POLICY_FOREVER)
         {
           cairo_surface_reference (surface);
-          g_hash_table_insert (cache->priv->keyed_cache, g_strdup (key), surface);
+          g_hash_table_insert (cache->priv->keyed_surface_cache,
+                               g_strdup (key), surface);
         }
     }
   else

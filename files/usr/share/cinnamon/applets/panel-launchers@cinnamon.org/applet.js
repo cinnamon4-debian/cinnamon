@@ -14,9 +14,6 @@ const Util = imports.misc.util;
 const Settings = imports.ui.settings;
 const Signals = imports.signals;
 
-const DEFAULT_ICON_SIZE = 22;
-const ICON_HEIGHT_FACTOR = 0.8;
-
 const PANEL_EDIT_MODE_KEY = 'panel-edit-mode';
 const PANEL_LAUNCHERS_KEY = 'panel-launchers';
 
@@ -101,13 +98,14 @@ class PanelAppLauncherMenu extends Applet.AppletPopupMenu {
 }
 
 class PanelAppLauncher extends DND.LauncherDraggable {
-    constructor(launchersBox, app, appinfo, orientation, panel_height, scale) {
+    constructor(launchersBox, app, appinfo, orientation, icon_size) {
         super();
         this.app = app;
         this.appinfo = appinfo;
         this.launchersBox = launchersBox;
         this._applet = launchersBox;
         this.orientation = orientation;
+        this.icon_size = icon_size;
 
         this.actor = new St.Bin({ style_class: 'launcher',
                                   important: true,
@@ -123,20 +121,17 @@ class PanelAppLauncher extends DND.LauncherDraggable {
 
         this._iconBox = new St.Bin({ style_class: 'icon-box',
                                      important: true });
-        this._iconBox.connect('style-changed',
-                              Lang.bind(this, this._onIconBoxStyleChanged));
-        this._iconBox.connect('notify::allocation',
-                              Lang.bind(this, this._updateIconBoxClip));
+
         this.actor.add_actor(this._iconBox);
         this._iconBottomClip = 0;
 
-        if (scale) {
-            this.icon_height = Math.floor((panel_height * ICON_HEIGHT_FACTOR) / global.ui_scale);
-        } else {
-            this.icon_height = DEFAULT_ICON_SIZE;
-        }
         this.icon = this._getIconActor();
         this._iconBox.set_child(this.icon);
+
+        this._iconBox.connect('style-changed',
+                              Lang.bind(this, this._updateIconSize));
+        this._iconBox.connect('notify::allocation',
+                              Lang.bind(this, this._updateIconSize));
 
         this._menuManager = new PopupMenu.PopupMenuManager(this);
         this._menu = new PanelAppLauncherMenu(this, orientation);
@@ -195,9 +190,9 @@ class PanelAppLauncher extends DND.LauncherDraggable {
             let icon = this.appinfo.get_icon();
             if (icon == null)
                 icon = new Gio.ThemedIcon({name: "gnome-panel-launcher"});
-            return new St.Icon({gicon: icon, icon_size: this.icon_height, icon_type: St.IconType.FULLCOLOR});
+            return new St.Icon({gicon: icon, icon_size: this.icon_size, icon_type: St.IconType.FULLCOLOR});
         } else {
-            return this.app.create_icon_texture(this.icon_height);
+            return this.app.create_icon_texture(this.icon_size);
         }
     }
 
@@ -266,18 +261,15 @@ class PanelAppLauncher extends DND.LauncherDraggable {
         }
     }
 
-    _onIconBoxStyleChanged() {
+    _updateIconSize() {
         let node = this._iconBox.get_theme_node();
-        this._iconBottomClip = node.get_length('panel-launcher-bottom-clip');
-        this._updateIconBoxClip();
-    }
+        let maxHeight = this._iconBox.height - node.get_vertical_padding();
+        let maxWidth = this._iconBox.width - node.get_horizontal_padding();
+        let smallestDim = Math.min(maxHeight, maxWidth) / global.ui_scale;
 
-    _updateIconBoxClip() {
-        let allocation = this._iconBox.allocation;
-        if (this._iconBottomClip > 0)
-            this._iconBox.set_clip(0, 0, allocation.x2 - allocation.x1, allocation.y2 - allocation.y1 - this._iconBottomClip);
-        else
-            this._iconBox.remove_clip();
+        if (smallestDim < this.icon.get_icon_size()) {
+            this.icon.set_icon_size(smallestDim);
+        }
     }
 
     getAppInfo() {
@@ -314,6 +306,7 @@ class CinnamonPanelLaunchersApplet extends Applet.Applet {
         this.setAllowedLayout(Applet.AllowedLayout.BOTH);
 
         this.orientation = orientation;
+        this.icon_size = this.getPanelIconSize(St.IconType.FULLCOLOR);
         this._dragPlaceholder = null;
         this._dragPlaceholderPos = -1;
         this._animatingPlaceholdersCount = 0;
@@ -415,6 +408,12 @@ class CinnamonPanelLaunchersApplet extends Applet.Applet {
     }
 
     on_panel_height_changed() {
+        this.icon_size = this.getPanelIconSize(St.IconType.FULLCOLOR);
+        this.reload();
+    }
+
+    on_panel_icon_size_changed(size) {
+        this.icon_size = size;
         this.reload();
     }
 
@@ -443,8 +442,7 @@ class CinnamonPanelLaunchersApplet extends Applet.Applet {
             let [app, appinfo] = this.loadSingleApp(file);
 
             if (app || appinfo) {
-                let launcher = new PanelAppLauncher(this, app, appinfo,
-                        this.orientation, this._panelHeight, this._scaleMode);
+                let launcher = new PanelAppLauncher(this, app, appinfo, this.orientation, this.icon_size);
                 this.myactor.add(launcher.actor);
                 this._launchers.push(launcher);
 
@@ -476,7 +474,7 @@ class CinnamonPanelLaunchersApplet extends Applet.Applet {
         let [app, appinfo] = this.loadSingleApp(path);
         let dummy;
         if (app || appinfo) {
-            dummy = new PanelAppLauncher(this, app, appinfo, this.orientation, this._panelHeight);
+            dummy = new PanelAppLauncher(this, app, appinfo, this.orientation, this.icon_size);
         }
 
         if (dummy && dummy.actor)
