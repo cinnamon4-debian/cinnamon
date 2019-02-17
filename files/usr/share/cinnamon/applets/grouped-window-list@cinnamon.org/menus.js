@@ -858,6 +858,13 @@ class AppThumbnailHoverMenu extends PopupMenu.PopupMenu {
         this.state = state;
         this.groupState = groupState;
 
+        this.stateConnectId = this.state.connect({
+            updateThumbnailsStyle: () => {
+                if (this.groupState.metaWindows.length === 0) return;
+                this.setStyleOptions();
+            }
+        });
+
         this.connectId = this.groupState.connect({
             hoverMenuClose: () => {
                 this.shouldClose = true;
@@ -887,11 +894,41 @@ class AppThumbnailHoverMenu extends PopupMenu.PopupMenu {
                 this.setVerticalSetting();
                 if (isOpen) this.open(true);
             },
+            fileDrag: ({fileDrag}) => {
+                if (fileDrag) {
+                    // When a drag operation from another app is started, no events fire, so we have to grab the
+                    // cursor, find the actor by coordinates, and then look up the thumbnail actor. Do this on a
+                    // 50ms loop until the menu closes so we continue getting data in the absence of events.
+                    this.interval = setInterval(() => {
+                        let [x, y, mask] = global.get_pointer();
+                        let draggedOverActor = global.stage.get_actor_at_pos(Clutter.PickMode.ALL, x, y);
+                        if (draggedOverActor instanceof Meta.ShapedTexture) {
+                            this.groupState.set({fileDrag: false});
+                            this.close(true);
+                            return;
+                        }
+                        each(this.appThumbnails, function(thumbnail) {
+                            if (thumbnail.thumbnailActor === draggedOverActor) {
+                                Main.activateWindow(thumbnail.metaWindow, global.get_current_time());
+                                return false;
+                            }
+                        });
+                    }, 50);
+                } else if (this.interval) {
+                    clearInterval(this.interval);
+                }
+            }
         });
 
         this.appThumbnails = [];
         this.queuedWindows = [];
         this.fullyRefreshThumbnails();
+    }
+
+    addQueuedThumbnails() {
+        if (this.queuedWindows.length === 0) return;
+        each(this.queuedWindows, (win) => this.addThumbnail(win));
+        this.queuedWindows = [];
     }
 
     onButtonPress() {
@@ -918,10 +955,7 @@ class AppThumbnailHoverMenu extends PopupMenu.PopupMenu {
             timeout = this.state.settings.thumbTimeout;
         }
 
-        if (this.queuedWindows.length > 0) {
-            each(this.queuedWindows, (win) => this.addThumbnail(win));
-            this.queuedWindows = [];
-        }
+        this.addQueuedThumbnails();
 
         if (actor != null) {
             this.groupState.set({thumbnailMenuEntered: this.isOpen});
@@ -964,6 +998,7 @@ class AppThumbnailHoverMenu extends PopupMenu.PopupMenu {
             this.groupState.tooltip.set_text(this.groupState.appName);
             this.groupState.tooltip.show();
         } else {
+            if (force) this.addQueuedThumbnails();
             this.state.set({thumbnailMenuOpen: true});
             super.open(this.state.settings.animateThumbs);
         }
@@ -987,6 +1022,10 @@ class AppThumbnailHoverMenu extends PopupMenu.PopupMenu {
         }
         for (let i = 0; i < this.appThumbnails.length; i++) {
             this.appThumbnails[i].destroyOverlayPreview();
+        }
+
+        if (this.groupState.fileDrag) {
+            this.groupState.set({fileDrag: false});
         }
     }
 
@@ -1196,6 +1235,7 @@ class AppThumbnailHoverMenu extends PopupMenu.PopupMenu {
         }
         this.removeAll();
         super.destroy();
+        this.state.disconnect(this.stateConnectId);
         this.groupState.disconnect(this.connectId);
         unref(this, RESERVE_KEYS);
     }

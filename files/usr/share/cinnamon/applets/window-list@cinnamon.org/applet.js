@@ -993,7 +993,7 @@ class CinnamonWindowListApplet extends Applet.Applet {
         this.settings.bind("window-preview-show-label", "showLabel", this._onPreviewChanged);
         this.settings.bind("window-preview-scale", "previewScale", this._onPreviewChanged);
 
-        this.signals.connect(global.screen, 'window-added', this._onWindowAddedAsync, this);
+        this.signals.connect(global.screen, 'window-added', this._onWindowAdded, this);
         this.signals.connect(global.screen, 'window-monitor-changed', this._onWindowMonitorChanged, this);
         this.signals.connect(global.screen, 'window-workspace-changed', this._onWindowWorkspaceChanged, this);
         this.signals.connect(global.screen, 'window-skip-taskbar-changed', this._onWindowSkipTaskbarChanged, this);
@@ -1090,16 +1090,13 @@ class CinnamonWindowListApplet extends Applet.Applet {
         this.manager.set_spacing(spacing * global.ui_scale);
     }
 
-    _onWindowAddedAsync(screen, metaWindow, monitor) {
-        Mainloop.timeout_add(20, Lang.bind(this, this._onWindowAdded, screen, metaWindow, monitor));
-    }
-
     _onWindowAdded(screen, metaWindow, monitor) {
         if (this._shouldAdd(metaWindow))
             this._addWindow(metaWindow, false);
     }
 
     _onWindowMonitorChanged(screen, metaWindow, monitor) {
+        if (!metaWindow.get_compositor_private().visible && !metaWindow.minimized) return;
         if (this._shouldAdd(metaWindow))
             this._addWindow(metaWindow, false);
         else

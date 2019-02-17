@@ -66,9 +66,12 @@ class AppGroup {
             autoStartIndex: findIndex(this.state.autoStartApps, (app) => app.id === params.appId),
             willUnmount: false,
             tooltip: null,
-            verticalThumbs: this.state.settings.verticalThumbs,
+            // Not to be confused with the vertical thumbnail setting, this is for overriding horizontal
+            // orientation when there are too many thumbnails to fit the monitor without making them tiny.
+            verticalThumbs: false,
             groupReady: false,
-            thumbnailMenuEntered:  false
+            thumbnailMenuEntered: false,
+            fileDrag: false
         });
 
         this.groupState.connect({
@@ -106,7 +109,7 @@ class AppGroup {
         // Create the app button icon, number label, and text label for titleDisplay
         this.iconBox = new St.Bin({name: 'appMenuIcon'});
         this.actor.add_child(this.iconBox);
-        this.setActorAttributes();
+        this.setActorAttributes(null, params.metaWindow);
 
         this.badge = new St.BoxLayout({
             style_class: 'grouped-window-list-badge',
@@ -217,7 +220,7 @@ class AppGroup {
         if (fromInit) this.groupState.set({groupReady: true});
     }
 
-    setActorAttributes(iconSize) {
+    setActorAttributes(iconSize, metaWindow) {
         if (!iconSize) {
             iconSize = this.state.trigger('getPanelIconSize');
         }
@@ -239,7 +242,7 @@ class AppGroup {
         if (this.state.isHorizontal) {
             this.actor.height = panelHeight;
         }
-        this.setIcon();
+        this.setIcon(metaWindow);
         this.updateIconBoxClip();
         this.setIconPadding(panelHeight);
         this.setMargin();
@@ -443,12 +446,14 @@ class AppGroup {
     }
 
     showLabel(animate = false) {
-        if (!this.label
+        if (this.labelVisible
+            || !this.label
             || !this.state.isHorizontal
             || this.label.is_finalized()
             || !this.label.realized) {
             return;
         }
+
         let width = MAX_BUTTON_WIDTH * global.ui_scale;
 
         this.labelVisible = true;
@@ -479,6 +484,7 @@ class AppGroup {
     hideLabel() {
         if (!this.label || this.label.is_finalized() || !this.label.realized) return;
 
+        this.label.set_text('');
         this.labelVisible = false;
         this.label.width = 1;
         this.label.hide();
@@ -621,8 +627,19 @@ class AppGroup {
             || this.state.panelEditMode) {
             return DND.DragMotionResult.CONTINUE;
         }
-        if (this.groupState.metaWindows.length > 0 && this.groupState.lastFocused) {
-            Main.activateWindow(this.groupState.lastFocused, global.get_current_time());
+        let nWindows = this.groupState.metaWindows.length;
+        if (nWindows > 0 && this.groupState.lastFocused) {
+            if (nWindows === 1) {
+                Main.activateWindow(this.groupState.lastFocused, global.get_current_time());
+            } else {
+                if (this.groupState.fileDrag) {
+                    this.listState.trigger('closeAllHoverMenus');
+                }
+                // Open the thumbnail menu and activate the window corresponding to the dragged over thumbnail.
+                if (!this.hoverMenu) this.initThumbnailMenu();
+                this.groupState.set({fileDrag: true});
+                this.hoverMenu.open(true);
+            }
         }
         return true;
     }
@@ -655,9 +672,11 @@ class AppGroup {
 
         let modifiers = Cinnamon.get_event_state(event);
         let ctrlPressed = (modifiers & Clutter.ModifierType.CONTROL_MASK);
+        let shiftPressed = (modifiers & Clutter.ModifierType.SHIFT_MASK);
 
         let shouldStartInstance = (
             (button === 1 && ctrlPressed)
+            || (button === 1 && shiftPressed)
             || (button === 1
                 && this.groupState.isFavoriteApp
                 && nWindows === 0
@@ -755,6 +774,10 @@ class AppGroup {
         if (this.groupState.isFavoriteApp && this.groupState.metaWindows.length === 0) {
             this.launchNewInstance();
         } else {
+            if (this.appKeyTimeout) {
+                clearTimeout(this.appKeyTimeout);
+                this.appKeyTimeout = 0;
+            }
             if (this.groupState.metaWindows.length > 1) {
                 if (!this.hoverMenu) this.initThumbnailMenu();
                 this.hoverMenu.open(true);
@@ -762,6 +785,15 @@ class AppGroup {
                 this.listState.trigger('closeAllHoverMenus');
             }
             this.windowHandle();
+            this.appKeyTimeout = setTimeout(() => {
+                if (this.groupState.thumbnailMenuEntered) {
+                    clearTimeout(this.appKeyTimeout);
+                    this.appKeyTimeout = 0;
+                    return;
+                }
+                this.hoverMenu.close(true);
+                this.appKeyTimeout = 0;
+            }, this.state.settings.showAppsOrderTimeout);
         }
     }
 
@@ -796,16 +828,18 @@ class AppGroup {
         }
     }
 
-    windowAdded(metaWindow, _metaWindows) {
+    windowAdded(metaWindow) {
         let {metaWindows, trigger, set} = this.groupState;
-        if (_metaWindows) metaWindows = _metaWindows;
         let refWindow = metaWindows.indexOf(metaWindow);
         if (metaWindow) {
             this.signals.connect(metaWindow, 'notify::title', (...args) => this.onWindowTitleChanged(...args));
             this.signals.connect(metaWindow, 'notify::appears-focused', (...args) => this.onFocusWindowChange(...args));
             this.signals.connect(metaWindow, 'notify::gtk-application-id', (w) => this.onAppChange(w));
             this.signals.connect(metaWindow, 'notify::wm-class', (w) => this.onAppChange(w));
-            this.signals.connect(metaWindow, 'notify::icon', (w) => this.setIcon(w));
+
+            if (!this.state.settings.groupApps) {
+                this.signals.connect(metaWindow, 'notify::icon', (w) => this.setIcon(w));
+            }
 
             if (metaWindow.progress !== undefined) {
                 this._progress = metaWindow.progress;
@@ -813,10 +847,13 @@ class AppGroup {
             }
 
             // Set the initial button label as not all windows will get updated via signals initially.
-            if (this.state.settings.titleDisplay > 1) this.onWindowTitleChanged(metaWindow);
+            if (this.state.settings.titleDisplay > 1) {
+                this.onWindowTitleChanged(metaWindow);
+                this.state.trigger('updateThumbnailsStyle');
+            }
             if (refWindow === -1) {
                 metaWindows.push(metaWindow);
-                if (this.hoverMenu) trigger('addThumbnailToMenu', metaWindow)
+                if (this.hoverMenu) trigger('addThumbnailToMenu', metaWindow);
             }
             this.calcWindowNumber();
             this.onFocusChange();
@@ -858,7 +895,6 @@ class AppGroup {
                     this.groupState.trigger('removeThumbnailFromMenu', metaWindow);
                 }
                 cb(this.groupState.appId, this.groupState.isFavoriteApp);
-                if (this.groupState.isFavoriteApp) this.setActiveStatus(false);
             }
         }
     }
@@ -934,7 +970,7 @@ class AppGroup {
             return;
         }
 
-        if (this.groupState.metaWindows.length === 0) {
+        if (!metaWindow || this.groupState.metaWindows.length === 0) {
             this.hideLabel();
         } else if (this.state.settings.titleDisplay === TitleDisplay.Title) {
             this.setText(metaWindow.title);
@@ -947,9 +983,13 @@ class AppGroup {
         } else if (this.state.settings.titleDisplay === TitleDisplay.Focused) {
             this.setText(metaWindow.title);
             if (focus === undefined) focus = getFocusState(metaWindow);
-            if (focus) {
+            if (focus
+                && this.groupState.metaWindows.length > 0) {
                 this.showLabel(animate);
-            } else {
+            // If a skip-taskbar window is focused from this group, do nothing.
+            // Show the last trackable window's label because the application is focused.
+            } else if (global.display.focus_window
+                && this.groupState.appId.indexOf(global.display.focus_window.wm_class.toLowerCase()) === -1) {
                 this.hideLabel();
             }
             // Re-orient the menu after the focus button expands
