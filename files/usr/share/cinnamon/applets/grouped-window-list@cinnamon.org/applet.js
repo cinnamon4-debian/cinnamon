@@ -301,7 +301,8 @@ class GroupedWindowListApplet extends Applet.Applet {
             getFavorites: () => this.pinnedFavorites._favorites,
             cycleWindows: (e, source) => this.handleScroll(e, source),
             openAbout: () => this.openAbout(),
-            configureApplet: () => this.configureApplet()
+            configureApplet: () => this.configureApplet(),
+            updateThumbnailsStyle: () => null // Silence missing key warnings
         });
 
         this.settings = new AppletSettings(this.state.settings, metadata.uuid, instance_id);
@@ -345,7 +346,6 @@ class GroupedWindowListApplet extends Applet.Applet {
             {key: 'show-alerts', value: 'showAlerts', cb: this.updateAttentionState},
             {key: 'group-apps', value: 'groupApps', cb: this.refreshCurrentAppList},
             {key: 'enable-app-button-dragging', value: 'enableDragging', cb: null},
-            {key: 'pinOnDrag', value: 'pinOnDrag', cb: null},
             {key: 'launcher-animation-effect', value: 'launcherAnimationEffect', cb: null},
             {key: 'pinned-apps', value: 'pinnedApps', cb: null},
             {key: 'middle-click-action', value: 'middleClickAction', cb: null},
@@ -800,6 +800,7 @@ class GroupedWindowListApplet extends Applet.Applet {
         let appList = this.appLists[this.state.currentWs];
         let children = appList.actor.get_children();
         let windowPos = children.indexOf(source.actor);
+        let isForeign = typeof source.groupState === 'undefined';
 
         let pos = 0;
 
@@ -837,15 +838,19 @@ class GroupedWindowListApplet extends Applet.Applet {
                 fadeIn = true;
             }
 
-            let childWidth = source.actor.width;
-            let childHeight = source.actor.height;
+            let iconSize = this.getPanelIconSize();
             this.state.dragPlaceholder = new DND.GenericDragPlaceholderItem();
-            this.state.dragPlaceholder.child.width = childWidth;
-            this.state.dragPlaceholder.child.height = childHeight;
-            appList.actor.insert_child_at_index(
-                this.state.dragPlaceholder.actor,
-                this.state.dragPlaceholderPos
-            );
+            this.state.dragPlaceholder.child.width = iconSize;
+            this.state.dragPlaceholder.child.height = iconSize;
+
+            // For menu items, don't insert actors at specific indices,
+            // they will get attached to the end of the list anyway.
+            if (!isForeign) {
+                appList.actor.insert_child_at_index(
+                    this.state.dragPlaceholder.actor,
+                    this.state.dragPlaceholderPos
+                );
+            }
 
             if (fadeIn) this.state.dragPlaceholder.animateIn();
         }
@@ -890,6 +895,7 @@ class GroupedWindowListApplet extends Applet.Applet {
         Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
             // Move the button
             currentAppList.actor.set_child_at_index(source.actor, pos);
+            currentAppList.updateAppGroupIndexes();
             // Refresh the group's thumbnails so hoverMenu is aware of the position change
             // In the case of dragging a group that has a delay before Cinnamon can grab its
             // thumbnail texture, e.g., LibreOffice, defer the refresh.
@@ -899,8 +905,7 @@ class GroupedWindowListApplet extends Applet.Applet {
 
 
             // Handle favoriting if pin on drag is enabled
-            if (this.state.settings.pinOnDrag
-                && !source.groupState.app.is_window_backed()) {
+            if (!source.groupState.app.is_window_backed()) {
                 let opts = {
                     appId: source.groupState.appId,
                     app: source.groupState.app,
@@ -909,8 +914,6 @@ class GroupedWindowListApplet extends Applet.Applet {
                 let refFav = findIndex(this.pinnedFavorites._favorites, (favorite) => favorite.id === source.groupState.appId);
                 if (refFav > -1) {
                     this.pinnedFavorites.moveFavoriteToPos(opts);
-                } else if (this.state.settings.pinOnDrag) {
-                    this.pinnedFavorites.addFavorite(opts);
                 }
             }
 

@@ -66,6 +66,15 @@ class AppList {
         this.refreshList();
     }
 
+    getWindowCount(appId) {
+        let windowCount = 0;
+        each(this.appList, function(appGroup) {
+            if (appGroup.groupState.appId !== appId) return;
+            windowCount += appGroup.groupState.metaWindows.length;
+        });
+        return windowCount;
+    }
+
     closeAllHoverMenus(cb) {
         for (let i = 0, len = this.appList.length; i < len; i++) {
             let {hoverMenu, groupState} = this.appList[i];
@@ -228,6 +237,8 @@ class AppList {
     windowAdded(metaWorkspace, metaWindow, app, isFavoriteApp) {
         if (!this.state) return;
 
+        if (metaWindow && !this.shouldWindowBeAdded(metaWindow)) return;
+
         if (this.state.appletReady && this.state.settings.showAllWorkspaces && metaWindow && !metaWindow.__gwlInit__) {
             metaWindow.__gwlInit__ = true;
             this.state.trigger('addWindowToAllWorkspaces', metaWindow, app, isFavoriteApp);
@@ -322,11 +333,11 @@ class AppList {
                     initApp([], null);
                 }
             }
-        } else if (metaWindow && this.shouldWindowBeAdded(metaWindow)) {
+        } else if (metaWindow) {
             if (this.state.settings.groupApps) {
-                this.appList[refApp].windowAdded(metaWindow, null);
+                this.appList[refApp].windowAdded(metaWindow);
             } else if (transientFavorite && this.appList[refApp].groupState.metaWindows.length === 0) {
-                this.appList[refApp].windowAdded(metaWindow, [metaWindow]);
+                this.appList[refApp].windowAdded(metaWindow);
             } else if (refWindow === -1) {
                 initApp([metaWindow], metaWindow);
             }
@@ -361,19 +372,11 @@ class AppList {
             return;
         }
 
-        let wmClass = metaWindow.get_wm_class(),
-            refApp = -1,
-            refWindow = -1,
-            windowCount = 0;
-
+        let refApp = -1, refWindow = -1;
         each(this.appList, (appGroup, i) => {
             let shouldReturn = false;
             each(appGroup.groupState.metaWindows, (win, z) => {
-                if (win.get_wm_class() === wmClass) {
-                    ++windowCount;
-                }
                 if (win === metaWindow) {
-                    ++windowCount;
                     refApp = i;
                     refWindow = z;
                     shouldReturn = this.state.settings.groupApps;
@@ -386,12 +389,18 @@ class AppList {
         });
         if (refApp > -1) {
             this.appList[refApp].windowRemoved(metaWorkspace, metaWindow, refWindow, (appId, isFavoriteApp) => {
-                if (isFavoriteApp || (isFavoriteApp && !this.state.settings.groupApps && windowCount === 0)) {
-                    this.appList[refApp].groupState.set({groupReady: false});
+                if (this.state.settings.titleDisplay > 1) {
+                    this.state.trigger('updateThumbnailsStyle');
+                }
+
+                isFavoriteApp = isFavoriteApp && (this.state.settings.groupApps || this.getWindowCount(appId) === 0);
+                if (isFavoriteApp) {
+                    this.appList[refApp].groupState.set({groupReady: false, lastFocused: null});
                     this.appList[refApp].actor.set_style_pseudo_class('closed');
                     this.appList[refApp].actor.remove_style_class_name('grouped-window-list-item-demands-attention');
+                    this.appList[refApp].setActiveStatus(false);
                     if (this.state.settings.titleDisplay > 1) {
-                        this.appList[refApp].hideLabel(true);
+                        this.appList[refApp].hideLabel();
                     }
                     return;
                 }
